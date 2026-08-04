@@ -61,6 +61,7 @@ def build_server(
             try:
                 payload = self._read_json()
                 if self.path == "/api/cases":
+                    self._require_exact_fields(payload, {"scenario_id"})
                     scenario_id = self._required_text(payload, "scenario_id")
                     case = service.create_case(scenario_id)
                     self._send_json(201, case_to_dict(case))
@@ -72,12 +73,17 @@ def build_server(
                     return
                 case_id, action = action_match.groups()
                 if action == "approve":
+                    self._require_exact_fields(
+                        payload,
+                        {"proposal_id", "target_digest"},
+                    )
                     case = service.approve(
                         case_id,
                         self._required_text(payload, "proposal_id"),
                         self._required_text(payload, "target_digest"),
                     )
                 else:
+                    self._require_exact_fields(payload, set())
                     case = service.execute(case_id)
                 self._send_json(200, case_to_dict(case))
             except CaseNotFound:
@@ -108,6 +114,17 @@ def build_server(
             if not isinstance(value, str) or not value.strip():
                 raise TypeError(f"{key} must be a non-empty string")
             return value
+
+        @staticmethod
+        def _require_exact_fields(
+            payload: dict[str, Any],
+            expected: set[str],
+        ) -> None:
+            unexpected = sorted(set(payload) - expected)
+            if unexpected:
+                raise ValueError(
+                    "unexpected request fields: " + ", ".join(unexpected)
+                )
 
         def _send_static(self, path: Path) -> None:
             try:

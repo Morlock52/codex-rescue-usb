@@ -106,7 +106,7 @@ h3 { margin-bottom: 8px; font-size: 19px; }
 .evidence-list div { display: grid; grid-template-columns: 170px 1fr; gap: 12px; }
 .evidence-list dt { color: var(--muted); }
 .evidence-list dd { margin: 0; }
-.finding-card, .proposal-card, .boundary-card {
+.finding-card, .proposal-card, .workflow-card, .boundary-card {
   margin-top: 16px;
   padding: 16px;
   border: 1px solid var(--line);
@@ -118,6 +118,10 @@ h3 { margin-bottom: 8px; font-size: 19px; }
 .proposal-facts { margin: 12px 0 0; font: 13px/1.5 var(--mono); }
 .proposal-facts div { display: grid; grid-template-columns: 150px 1fr; }
 .proposal-facts dd { margin: 0; }
+.workflow-facts { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px; font-size: 13px; }
+.workflow-facts div { min-width: 0; }
+.workflow-facts dt { color: var(--muted); font: 11px var(--mono); text-transform: uppercase; }
+.workflow-facts dd { margin: 3px 0 0; overflow-wrap: anywhere; }
 .boundary-card { background: var(--positive); }
 .boundary-card strong { font-size: 14px; }
 
@@ -173,5 +177,6 @@ h3 { margin-bottom: 8px; font-size: 19px; }
   .badges { justify-content: flex-start; }
   .scenario-rail { min-height: 460px; }
   .evidence-list div, .proposal-facts div { grid-template-columns: 1fr; }
+  .workflow-facts { grid-template-columns: 1fr; }
   .timeline { grid-template-columns: repeat(2, 1fr); }
 }

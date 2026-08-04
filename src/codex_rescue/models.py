@@ -20,6 +20,19 @@ class BitLockerState(StrEnum):
     UNLOCKED = "unlocked"
 
 
+class Operation(StrEnum):
+    SIMULATE_BCD_REBUILD = "simulate.bcd.rebuild"
+
+
+class CaseStage(StrEnum):
+    BLOCKED = "blocked"
+    DIAGNOSED = "diagnosed"
+    PROPOSED = "proposed"
+    APPROVED = "approved"
+    VERIFIED = "verified"
+    FAILED = "failed"
+
+
 @dataclass(frozen=True)
 class TargetFingerprint:
     disk_serial: str
@@ -31,6 +44,15 @@ class TargetFingerprint:
     def digest(self) -> str:
         payload = json.dumps(asdict(self), sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+    def is_unambiguous(self) -> bool:
+        required = (
+            self.disk_serial,
+            self.partition_guid,
+            self.filesystem_uuid,
+            self.windows_path,
+        )
+        return all(value.strip() for value in required)
 
 
 @dataclass(frozen=True)
@@ -55,19 +77,33 @@ class Finding:
     title: str
     summary: str
     blocks_writes: bool
-    suggested_operation: str | None = None
+    confidence: float
+    uncertainty: str
+    suggested_operation: Operation | None = None
 
 
 @dataclass(frozen=True)
 class RepairProposal:
     proposal_id: str
-    operation: str
+    operation: Operation
     target: TargetFingerprint
     risk: RiskLevel
     summary: str
     rollback_required: bool
     rollback_artifact_ready: bool
     contains_secret: bool = False
+
+    def receipt_digest(self) -> str:
+        payload = json.dumps(
+            {
+                "operation": self.operation,
+                "proposal_id": self.proposal_id,
+                "target_digest": self.target.digest(),
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -96,14 +132,14 @@ class VerificationResult:
     message: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class CaseRecord:
     case_id: str
     evidence: EvidenceSnapshot
     findings: tuple[Finding, ...]
-    stage: str
+    stage: CaseStage
     proposal: RepairProposal | None = None
     approval: Approval | None = None
     execution: ExecutionResult | None = None
     verification: VerificationResult | None = None
-    event_log: list[str] = field(default_factory=list)
+    event_log: tuple[str, ...] = field(default_factory=tuple)

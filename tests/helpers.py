@@ -12,6 +12,7 @@ from codex_rescue.models import (  # noqa: E402
     Approval,
     BitLockerState,
     EvidenceSnapshot,
+    Operation,
     RepairProposal,
     RiskLevel,
     TargetFingerprint,
@@ -51,7 +52,7 @@ def evidence(**overrides: object) -> EvidenceSnapshot:
 def proposal(**overrides: object) -> RepairProposal:
     values: dict[str, object] = {
         "proposal_id": "proposal-001",
-        "operation": "simulate.bcd.rebuild",
+        "operation": Operation.SIMULATE_BCD_REBUILD,
         "target": target(),
         "risk": RiskLevel.REVERSIBLE,
         "summary": "Simulate rebuilding the BCD store",

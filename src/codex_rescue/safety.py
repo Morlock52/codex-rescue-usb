@@ -9,6 +9,7 @@ from codex_rescue.models import (
     PolicyDecision,
     RepairProposal,
     RiskLevel,
+    Operation,
 )
 
 
@@ -22,7 +23,7 @@ class SafetyBroker:
     """Validate structured proposals without executing commands."""
 
     _catalog = {
-        "simulate.bcd.rebuild": OperationPolicy(
+        Operation.SIMULATE_BCD_REBUILD: OperationPolicy(
             risk=RiskLevel.REVERSIBLE,
             requires_rollback=True,
         )
@@ -39,6 +40,8 @@ class SafetyBroker:
 
         if policy is None:
             reasons.append("operation is not allowlisted")
+        if not proposal.target.is_unambiguous():
+            reasons.append("proposal target is ambiguous")
         if proposal.target != evidence.target:
             reasons.append("proposal target does not match evidence target")
         if proposal.contains_secret:
@@ -56,7 +59,7 @@ class SafetyBroker:
             if policy.requires_rollback and not proposal.rollback_artifact_ready:
                 reasons.append("verified rollback artifact is required")
 
-        if proposal.operation == "simulate.bcd.rebuild" and evidence.bcd_valid:
+        if proposal.operation == Operation.SIMULATE_BCD_REBUILD and evidence.bcd_valid:
             reasons.append("BCD repair is not supported by the evidence")
 
         if approval is None:

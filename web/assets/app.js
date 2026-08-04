@@ -174,6 +174,22 @@ function renderCase() {
     setText("target-digest", "—");
   }
 
+  setText("workflow-target", shortDigest(evidence.target_digest));
+  setText("workflow-confidence", `${Math.round(finding.confidence * 100)}%`);
+  setText("workflow-uncertainty", finding.uncertainty);
+  setText(
+    "workflow-next-action",
+    proposal ? proposal.summary : finding.blocks_writes ? "Stop: safety blocker requires a separate workflow." : "No supported action.",
+  );
+  setText("workflow-risk", proposal ? proposal.risk : "No action proposed");
+  setText(
+    "workflow-rollback",
+    proposal ? (proposal.rollback_artifact_ready ? "Verified fixture artifact ready" : "Not ready") : "Not applicable",
+  );
+  setText("workflow-approval", caseRecord.approval ? "Approved for one execution" : "Not approved");
+  setText("workflow-execution", caseRecord.execution ? caseRecord.execution.message : "Not executed");
+  setText("workflow-verification", caseRecord.verification ? caseRecord.verification.message : "Not verified");
+
   const interlock = caseRecord.stage === "blocked" ? "Blocked" : caseRecord.stage === "verified" ? "Verified" : "Simulation armed";
   setText("interlock-state", interlock);
   renderAction(caseRecord);

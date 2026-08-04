@@ -1,16 +1,20 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from uuid import uuid4
 
 from codex_rescue.diagnostics import analyze
 from codex_rescue.fixtures import FixtureRepository
 from codex_rescue.models import (
     Approval,
+    CaseStage,
     CaseRecord,
+    EvidenceSnapshot,
+    Operation,
     RepairProposal,
     RiskLevel,
 )
-from codex_rescue.runner import SimulatedRepairRunner
+from codex_rescue.runner import SimulatedRepairRunner, SimulatedVerifier
 from codex_rescue.safety import SafetyBroker
 
 
@@ -29,6 +33,7 @@ class CaseService:
         self.fixtures = fixtures
         self.broker = SafetyBroker()
         self.runner = SimulatedRepairRunner()
+        self.verifier = SimulatedVerifier()
         self._cases: dict[str, CaseRecord] = {}
 
     def list_scenarios(self) -> list[dict[str, str]]:
@@ -39,11 +44,11 @@ class CaseService:
         findings = analyze(evidence)
         proposal = self._proposal_for(findings[0].suggested_operation, evidence)
         if any(finding.blocks_writes for finding in findings):
-            stage = "blocked"
+            stage = CaseStage.BLOCKED
         elif proposal is not None:
-            stage = "proposed"
+            stage = CaseStage.PROPOSED
         else:
-            stage = "diagnosed"
+            stage = CaseStage.DIAGNOSED
 
         case = CaseRecord(
             case_id=uuid4().hex,
@@ -51,10 +56,13 @@ class CaseService:
             findings=findings,
             stage=stage,
             proposal=proposal,
-            event_log=["Fixture evidence loaded", "Offline diagnosis completed"],
+            event_log=("Fixture evidence loaded", "Offline diagnosis completed"),
         )
         if proposal is not None:
-            case.event_log.append("Structured simulated proposal created")
+            case = replace(
+                case,
+                event_log=case.event_log + ("Structured simulated proposal created",),
+            )
         self._cases[case.case_id] = case
         return case
 
@@ -73,23 +81,32 @@ class CaseService:
         case = self.get_case(case_id)
         if case.proposal is None:
             raise PolicyBlocked(("case has no executable proposal",))
+        if case.stage != CaseStage.PROPOSED:
+            raise PolicyBlocked(("case is not awaiting approval",))
         if proposal_id != case.proposal.proposal_id:
             raise PolicyBlocked(("proposal id does not match",))
         if target_digest != case.proposal.target.digest():
             raise PolicyBlocked(("target digest does not match",))
-        case.approval = Approval(
+        approval = Approval(
             proposal_id=proposal_id,
             target_digest=target_digest,
             approved_by="local-user",
         )
-        case.stage = "approved"
-        case.event_log.append("Local user approved the simulated proposal")
-        return case
+        updated = replace(
+            case,
+            approval=approval,
+            stage=CaseStage.APPROVED,
+            event_log=case.event_log + ("Local user approved one simulated action",),
+        )
+        self._cases[case_id] = updated
+        return updated
 
     def execute(self, case_id: str) -> CaseRecord:
         case = self.get_case(case_id)
         if case.proposal is None:
             raise PolicyBlocked(("case has no executable proposal",))
+        if case.stage != CaseStage.APPROVED:
+            raise PolicyBlocked(("approval permits one execution only",))
 
         decision = self.broker.evaluate(
             case.proposal,
@@ -99,16 +116,25 @@ class CaseService:
         if not decision.allowed:
             raise PolicyBlocked(decision.reasons)
 
-        case.execution = self.runner.execute(case.proposal)
-        case.event_log.append(case.execution.message)
-        case.verification = self.runner.verify(case.proposal, case.execution)
-        case.event_log.append(case.verification.message)
-        case.stage = "verified" if case.verification.passed else "failed"
-        return case
+        execution = self.runner.execute(case.proposal)
+        verification = self.verifier.verify(case.proposal, execution)
+        stage = CaseStage.VERIFIED if verification.passed else CaseStage.FAILED
+        updated = replace(
+            case,
+            execution=execution,
+            verification=verification,
+            stage=stage,
+            event_log=case.event_log + (execution.message, verification.message),
+        )
+        self._cases[case_id] = updated
+        return updated
 
     @staticmethod
-    def _proposal_for(operation: str | None, evidence: object) -> RepairProposal | None:
-        if operation != "simulate.bcd.rebuild":
+    def _proposal_for(
+        operation: Operation | None,
+        evidence: EvidenceSnapshot,
+    ) -> RepairProposal | None:
+        if operation != Operation.SIMULATE_BCD_REBUILD:
             return None
         target = evidence.target
         return RepairProposal(

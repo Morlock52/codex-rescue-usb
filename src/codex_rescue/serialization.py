@@ -8,7 +8,7 @@ def case_to_dict(case: CaseRecord) -> dict[str, object]:
     if case.proposal is not None:
         proposal = {
             "proposal_id": case.proposal.proposal_id,
-            "operation": case.proposal.operation,
+            "operation": case.proposal.operation.value,
             "risk": case.proposal.risk.value,
             "summary": case.proposal.summary,
             "rollback_required": case.proposal.rollback_required,
@@ -41,7 +41,7 @@ def case_to_dict(case: CaseRecord) -> dict[str, object]:
 
     return {
         "case_id": case.case_id,
-        "stage": case.stage,
+        "stage": case.stage.value,
         "fixture_only": True,
         "evidence": {
             "scenario_id": case.evidence.scenario_id,
@@ -53,6 +53,7 @@ def case_to_dict(case: CaseRecord) -> dict[str, object]:
             "bcd_valid": case.evidence.bcd_valid,
             "boot_files_present": case.evidence.boot_files_present,
             "network_available": case.evidence.network_available,
+            "target_digest": case.evidence.target.digest(),
             "notes": list(case.evidence.notes),
         },
         "findings": [
@@ -62,6 +63,8 @@ def case_to_dict(case: CaseRecord) -> dict[str, object]:
                 "title": finding.title,
                 "summary": finding.summary,
                 "blocks_writes": finding.blocks_writes,
+                "confidence": finding.confidence,
+                "uncertainty": finding.uncertainty,
             }
             for finding in case.findings
         ],

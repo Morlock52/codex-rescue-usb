@@ -34,6 +34,19 @@ class SafetyBrokerTests(unittest.TestCase):
         self.assertFalse(decision.allowed)
         self.assertIn("proposal target does not match evidence target", decision.reasons)
 
+    def test_ambiguous_target_is_blocked_even_when_fingerprints_match(self) -> None:
+        ambiguous_target = target(disk_serial="")
+        item = proposal(target=ambiguous_target)
+
+        decision = self.broker.evaluate(
+            item,
+            evidence(target=ambiguous_target),
+            approval(item),
+        )
+
+        self.assertFalse(decision.allowed)
+        self.assertIn("proposal target is ambiguous", decision.reasons)
+
     def test_missing_rollback_artifact_is_blocked(self) -> None:
         item = proposal(rollback_artifact_ready=False)
 

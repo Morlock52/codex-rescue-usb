@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+from dataclasses import FrozenInstanceError
 from pathlib import Path
 
 from tests.helpers import ROOT
@@ -23,16 +24,25 @@ class CaseServiceTests(unittest.TestCase):
             self.service.execute(case.case_id)
 
         assert case.proposal is not None
-        self.service.approve(
+        approved = self.service.approve(
             case.case_id,
             case.proposal.proposal_id,
             case.proposal.target.digest(),
         )
         completed = self.service.execute(case.case_id)
 
+        self.assertEqual(case.stage, "proposed")
+        self.assertEqual(approved.stage, "approved")
         self.assertEqual(completed.stage, "verified")
         self.assertTrue(completed.execution.success)
         self.assertTrue(completed.verification.passed)
+
+        with self.assertRaises(FrozenInstanceError):
+            completed.stage = "failed"
+
+        with self.assertRaises(PolicyBlocked) as blocked:
+            self.service.execute(case.case_id)
+        self.assertIn("one execution", str(blocked.exception))
 
     def test_bitlocker_fixture_has_no_executable_proposal(self) -> None:
         case = self.service.create_case("bitlocker-locked")

@@ -87,11 +87,27 @@ class HttpServerTests(unittest.TestCase):
             self.assertEqual(status, 201)
             self.assertEqual(case["stage"], "proposed")
             self.assertNotIn("recovery_key", json.dumps(case).lower())
+            self.assertIn("confidence", case["findings"][0])
+            self.assertIn("uncertainty", case["findings"][0])
+            self.assertIn("target_digest", case["evidence"])
 
             case_id = str(case["case_id"])
             proposal = case["proposal"]
             self.assertIsInstance(proposal, dict)
             assert isinstance(proposal, dict)
+
+            status, rejected_secret = request_json(
+                base_url,
+                f"/api/cases/{case_id}/approve",
+                "POST",
+                {
+                    "proposal_id": str(proposal["proposal_id"]),
+                    "target_digest": str(proposal["target_digest"]),
+                    "recovery_key": "NEVER-ACCEPT-THIS",
+                },
+            )
+            self.assertEqual(status, 400)
+            self.assertIn("unexpected request fields", rejected_secret["error"])
 
             status, blocked = request_json(
                 base_url,
@@ -126,6 +142,15 @@ class HttpServerTests(unittest.TestCase):
             self.assertEqual(status, 200)
             self.assertEqual(completed["stage"], "verified")
             self.assertTrue(completed["verification"]["passed"])
+
+            status, repeated = request_json(
+                base_url,
+                f"/api/cases/{case_id}/execute",
+                "POST",
+                {},
+            )
+            self.assertEqual(status, 409)
+            self.assertIn("one execution", repeated["error"])
 
     def test_static_console_has_no_external_runtime_dependencies(self) -> None:
         with running_server() as base_url:
