@@ -71,6 +71,36 @@ The BitLocker and failing-drive cases are expected safe stops: they intentionall
 
 ![Approved one-time simulated repair plan](docs/images/rescue-console-approved.jpg)
 
+## Feature guide
+
+### Problem categories and fixtures
+
+Use the left-side **Problem categories** panel to select a bundled fixture. The interface labels each category as available or planned. Available fixtures load only validated local data; planned categories intentionally cannot run an action in this milestone.
+
+### Read-only diagnosis
+
+The center panel reports the selected fixture's observed evidence, likely cause, proposed repair when one is safe, and workflow facts. Treat this panel as a demonstration of the decision model, not evidence about a physical computer.
+
+### Safety Interlock
+
+The right-side **Safety Interlock** shows the immutable boundaries, proposal digest, target digest, and one-time approval state. Read the proposed operation, target, rollback status, and expected evidence before approving anything. A proposal or target change invalidates its approval.
+
+### Simulated BCD recovery
+
+The boot-loop fixture is the only workflow that can proceed. Select **Approve exact simulated plan**, then select **Run safe simulation**. This updates only fixture state and produces a typed receipt; it never changes a host disk or boot configuration.
+
+### BitLocker safe stop
+
+Select **BitLocker locked** to review the blocked condition. The console deliberately does not ask for or accept a recovery key. This demonstrates that encrypted media remains protected until an owner uses an approved recovery environment.
+
+### Failing-drive safe stop
+
+Select **Failing drive** to see storage-health evidence take precedence over ordinary repair. The console blocks writes and retains read-only evidence, modeling the correct response to a possible hardware failure.
+
+### Audit records
+
+Use **Open hash-chained audit record** after loading a case. The audit record shows the timestamped case history. It is stored locally in the case directory; review it when checking what the fixture workflow did and what it intentionally did not do.
+
 ## Demonstration fixtures
 
 | Fixture | Purpose | Action available |
@@ -105,8 +135,20 @@ tests/             Unit and HTTP integration tests
 
 This release proves the safety and workflow model with deterministic fixtures. A real bootable recovery environment would be a separate milestone requiring hardware testing, threat modeling, and explicit approval for every real disk or encryption operation.
 
+## Planned real recovery USB
+
+The next build is designed as a two-stage Windows recovery medium:
+
+1. **Windows PE recovery stage:** boots a PC, inventories storage and BitLocker state, collects read-only troubleshooting evidence, and hands an owner-entered recovery key to the local Windows BitLocker recovery flow without retaining the key.
+2. **Full Windows recovery workspace:** starts only when the operator selects it, then provides the supported Codex desktop GUI and voice experience for guided diagnosis and reviewed repair.
+
+Planned safeguards include an offline-by-default recovery workspace, explicit network enablement for Codex, no recovery-key logging or storage, target-specific confirmation before any write, rollback requirements, and independent post-action verification.
+
+These are planned capabilities, not features of the current fixture console. The build requires a Windows ADK host and a disposable USB drive for hardware validation.
+
 ## References
 
 - [Product and safety design](docs/plans/2026-08-04-codex-rescue-usb-design.md)
 - [Fixture console implementation plan](docs/plans/2026-08-04-fixture-rescue-console-implementation.md)
+- [Windows PE and Codex recovery architecture](docs/plans/windows-pe-codex-recovery-architecture.md)
 - [Editable Figma Rescue Console](https://www.figma.com/design/sW9ctJbQnpgzx0DqJqwnbo)
