@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import FrozenInstanceError
+from threading import Barrier
 from pathlib import Path
 
 from tests.helpers import ROOT
@@ -40,9 +42,35 @@ class CaseServiceTests(unittest.TestCase):
         with self.assertRaises(FrozenInstanceError):
             completed.stage = "failed"
 
+        with self.assertRaises(TypeError):
+            completed.execution.output["target_digest"] = "mutated"
+
         with self.assertRaises(PolicyBlocked) as blocked:
             self.service.execute(case.case_id)
         self.assertIn("one execution", str(blocked.exception))
+
+    def test_one_approval_cannot_race_into_two_executions(self) -> None:
+        case = self.service.create_case("boot-loop")
+        assert case.proposal is not None
+        self.service.approve(
+            case.case_id,
+            case.proposal.proposal_id,
+            case.proposal.target.digest(),
+        )
+        barrier = Barrier(2)
+
+        def execute_once() -> str:
+            barrier.wait(timeout=2)
+            try:
+                return self.service.execute(case.case_id).stage
+            except PolicyBlocked:
+                return "blocked"
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            results = list(executor.map(lambda _: execute_once(), range(2)))
+
+        self.assertEqual(results.count("verified"), 1)
+        self.assertEqual(results.count("blocked"), 1)
 
     def test_bitlocker_fixture_has_no_executable_proposal(self) -> None:
         case = self.service.create_case("bitlocker-locked")

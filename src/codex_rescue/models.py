@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from enum import StrEnum
-from typing import Any
+from types import MappingProxyType
 
 
 class RiskLevel(StrEnum):
@@ -123,7 +124,18 @@ class PolicyDecision:
 class ExecutionResult:
     success: bool
     message: str
-    output: dict[str, Any]
+    output: Mapping[str, str | bool]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "output", MappingProxyType(dict(self.output)))
+
+
+@dataclass(frozen=True)
+class PostActionEvidence:
+    source: str
+    target_digest: str
+    bcd_valid: bool
+    rollback_artifact_present: bool
 
 
 @dataclass(frozen=True)
@@ -141,5 +153,6 @@ class CaseRecord:
     proposal: RepairProposal | None = None
     approval: Approval | None = None
     execution: ExecutionResult | None = None
+    post_action_evidence: PostActionEvidence | None = None
     verification: VerificationResult | None = None
     event_log: tuple[str, ...] = field(default_factory=tuple)

@@ -16,6 +16,51 @@ const labels = {
   "failing-drive": "Storage",
 };
 
+const stageViews = {
+  blocked: {
+    timelineIndex: 1,
+    interlock: "Blocked",
+    action: "blocked",
+    button: "Repair blocked",
+    hint: "Resolve the safety blocker outside this fixture prototype.",
+  },
+  diagnosed: {
+    timelineIndex: 1,
+    interlock: "No action",
+    action: "none",
+    button: "No action available",
+    hint: "This diagnosis has no supported simulated repair.",
+  },
+  proposed: {
+    timelineIndex: 1,
+    interlock: "Simulation armed",
+    action: "approve",
+    button: "Approve simulated repair",
+    hint: "Approves this proposal and exact target digest.",
+  },
+  approved: {
+    timelineIndex: 2,
+    interlock: "Approved once",
+    action: "execute",
+    button: "Run safe simulation",
+    hint: "Creates a receipt. Makes no system change.",
+  },
+  verified: {
+    timelineIndex: 3,
+    interlock: "Verified",
+    action: "complete",
+    button: "Simulation verified",
+    hint: "Independent fixture verification passed.",
+  },
+  failed: {
+    timelineIndex: 3,
+    interlock: "Verification failed",
+    action: "failed",
+    button: "Simulation failed",
+    hint: "Review the execution receipt and post-action evidence.",
+  },
+};
+
 async function api(path, options = {}) {
   const response = await fetch(path, {
     ...options,
@@ -29,6 +74,11 @@ async function api(path, options = {}) {
 function shortDigest(value) {
   if (!value) return "—";
   return `${value.slice(0, 6)}…${value.slice(-4)}`;
+}
+
+function exactTarget(target) {
+  const keyId = target.bitlocker_key_id ? ` · BitLocker key ID ${target.bitlocker_key_id}` : "";
+  return `${target.disk_serial} · partition ${target.partition_guid} · filesystem ${target.filesystem_uuid} · ${target.windows_path}${keyId}`;
 }
 
 function setText(id, value) {
@@ -82,7 +132,7 @@ function renderEvidence(evidence) {
 
 function timelineState(stage, step) {
   const order = ["loaded", "diagnosed", "approved", "verified"];
-  const stageIndex = { proposed: 1, blocked: 1, approved: 2, verified: 3, failed: 3 }[stage] ?? 0;
+  const stageIndex = stageViews[stage]?.timelineIndex ?? 0;
   const index = order.indexOf(step);
   if (index < stageIndex || (stage === "verified" && index === stageIndex)) return "complete";
   if (index === stageIndex) return "current";
@@ -121,26 +171,16 @@ function renderAction(caseRecord) {
   const hint = document.getElementById("action-hint");
   button.disabled = true;
   button.onclick = null;
+  const view = stageViews[caseRecord.stage] || stageViews.diagnosed;
+  button.textContent = view.button;
+  hint.textContent = caseRecord.verification?.message || view.hint;
 
-  if (caseRecord.stage === "proposed") {
+  if (view.action === "approve") {
     button.disabled = false;
-    button.textContent = "Approve simulated repair";
-    hint.textContent = "Approves this proposal and exact target digest.";
     button.onclick = approveCase;
-  } else if (caseRecord.stage === "approved") {
+  } else if (view.action === "execute") {
     button.disabled = false;
-    button.textContent = "Run safe simulation";
-    hint.textContent = "Creates a receipt. Makes no system change.";
     button.onclick = executeCase;
-  } else if (caseRecord.stage === "verified") {
-    button.textContent = "Simulation verified";
-    hint.textContent = caseRecord.verification.message;
-  } else if (caseRecord.stage === "blocked") {
-    button.textContent = "Repair blocked";
-    hint.textContent = "Resolve the safety blocker outside this fixture prototype.";
-  } else {
-    button.textContent = "No action available";
-    hint.textContent = "This diagnosis has no supported simulated repair.";
   }
 }
 
@@ -174,7 +214,7 @@ function renderCase() {
     setText("target-digest", "—");
   }
 
-  setText("workflow-target", shortDigest(evidence.target_digest));
+  setText("workflow-target", exactTarget(evidence.target));
   setText("workflow-confidence", `${Math.round(finding.confidence * 100)}%`);
   setText("workflow-uncertainty", finding.uncertainty);
   setText(
@@ -190,8 +230,7 @@ function renderCase() {
   setText("workflow-execution", caseRecord.execution ? caseRecord.execution.message : "Not executed");
   setText("workflow-verification", caseRecord.verification ? caseRecord.verification.message : "Not verified");
 
-  const interlock = caseRecord.stage === "blocked" ? "Blocked" : caseRecord.stage === "verified" ? "Verified" : "Simulation armed";
-  setText("interlock-state", interlock);
+  setText("interlock-state", stageViews[caseRecord.stage]?.interlock || "Unknown");
   renderAction(caseRecord);
   renderTimeline(caseRecord);
 }

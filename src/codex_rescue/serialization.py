@@ -29,7 +29,18 @@ def case_to_dict(case: CaseRecord) -> dict[str, object]:
         execution = {
             "success": case.execution.success,
             "message": case.execution.message,
-            "output": case.execution.output,
+            "output": dict(case.execution.output),
+        }
+
+    post_action_evidence = None
+    if case.post_action_evidence is not None:
+        post_action_evidence = {
+            "source": case.post_action_evidence.source,
+            "target_digest": case.post_action_evidence.target_digest,
+            "bcd_valid": case.post_action_evidence.bcd_valid,
+            "rollback_artifact_present": (
+                case.post_action_evidence.rollback_artifact_present
+            ),
         }
 
     verification = None
@@ -54,6 +65,13 @@ def case_to_dict(case: CaseRecord) -> dict[str, object]:
             "boot_files_present": case.evidence.boot_files_present,
             "network_available": case.evidence.network_available,
             "target_digest": case.evidence.target.digest(),
+            "target": {
+                "disk_serial": case.evidence.target.disk_serial,
+                "partition_guid": case.evidence.target.partition_guid,
+                "filesystem_uuid": case.evidence.target.filesystem_uuid,
+                "windows_path": case.evidence.target.windows_path,
+                "bitlocker_key_id": case.evidence.target.bitlocker_key_id,
+            },
             "notes": list(case.evidence.notes),
         },
         "findings": [
@@ -71,6 +89,7 @@ def case_to_dict(case: CaseRecord) -> dict[str, object]:
         "proposal": proposal,
         "approval": approval,
         "execution": execution,
+        "post_action_evidence": post_action_evidence,
         "verification": verification,
         "event_log": list(case.event_log),
     }

@@ -90,6 +90,11 @@ class HttpServerTests(unittest.TestCase):
             self.assertIn("confidence", case["findings"][0])
             self.assertIn("uncertainty", case["findings"][0])
             self.assertIn("target_digest", case["evidence"])
+            self.assertEqual(case["evidence"]["target"]["disk_serial"], "NVME-DEMO-001")
+            self.assertEqual(
+                case["evidence"]["target"]["partition_guid"],
+                "11111111-2222-3333-4444-555555555555",
+            )
 
             case_id = str(case["case_id"])
             proposal = case["proposal"]

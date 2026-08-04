@@ -3,6 +3,7 @@ from __future__ import annotations
 from codex_rescue.models import (
     ExecutionResult,
     Operation,
+    PostActionEvidence,
     RepairProposal,
     VerificationResult,
 )
@@ -26,9 +27,26 @@ class SimulatedRepairRunner:
                 "operation": proposal.operation.value,
                 "target_digest": proposal.target.digest(),
                 "receipt_digest": proposal.receipt_digest(),
-                "backup_verified": True,
-                "bcd_valid_after": True,
             },
+        )
+
+
+class FixturePostActionProbe:
+    """Collect separate, immutable post-action evidence from fixture state."""
+
+    def collect(self, proposal: RepairProposal) -> PostActionEvidence:
+        if proposal.operation != Operation.SIMULATE_BCD_REBUILD:
+            return PostActionEvidence(
+                source="fixture://post-action/unsupported",
+                target_digest=proposal.target.digest(),
+                bcd_valid=False,
+                rollback_artifact_present=False,
+            )
+        return PostActionEvidence(
+            source="fixture://post-action/bcd-rebuild",
+            target_digest=proposal.target.digest(),
+            bcd_valid=True,
+            rollback_artifact_present=True,
         )
 
 
@@ -39,6 +57,7 @@ class SimulatedVerifier:
         self,
         proposal: RepairProposal,
         execution: ExecutionResult,
+        post_evidence: PostActionEvidence,
     ) -> VerificationResult:
         if proposal.operation != Operation.SIMULATE_BCD_REBUILD:
             return VerificationResult(False, "No verifier exists for this operation.")
@@ -48,8 +67,10 @@ class SimulatedVerifier:
             and execution.output.get("operation") == proposal.operation.value
             and execution.output.get("target_digest") == proposal.target.digest()
             and execution.output.get("receipt_digest") == proposal.receipt_digest()
-            and execution.output.get("backup_verified") is True
-            and execution.output.get("bcd_valid_after") is True
+            and post_evidence.source == "fixture://post-action/bcd-rebuild"
+            and post_evidence.target_digest == proposal.target.digest()
+            and post_evidence.rollback_artifact_present
+            and post_evidence.bcd_valid
         )
         return VerificationResult(
             passed=passed,
