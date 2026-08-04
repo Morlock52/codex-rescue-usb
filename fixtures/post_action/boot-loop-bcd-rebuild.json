@@ -1,0 +1,16 @@
+{
+  "scenario_id": "boot-loop",
+  "operation": "simulate.bcd.rebuild",
+  "target": {
+    "disk_serial": "NVME-DEMO-001",
+    "partition_guid": "11111111-2222-3333-4444-555555555555",
+    "filesystem_uuid": "AAAA-BBBB",
+    "windows_path": "\\Windows",
+    "bitlocker_key_id": null
+  },
+  "observed": {
+    "bcd_valid": true,
+    "rollback_artifact_digest": "90094827288f1c76ca87b35ca320b2883ad9a6c7506e68a862c16dbce7c000c3"
+  },
+  "observed_at": "2026-08-04T00:00:01Z"
+}

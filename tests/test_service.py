@@ -28,8 +28,7 @@ class CaseServiceTests(unittest.TestCase):
         assert case.proposal is not None
         approved = self.service.approve(
             case.case_id,
-            case.proposal.proposal_id,
-            case.proposal.target.digest(),
+            case.proposal.approval_fingerprint(),
         )
         completed = self.service.execute(case.case_id)
 
@@ -42,8 +41,8 @@ class CaseServiceTests(unittest.TestCase):
         with self.assertRaises(FrozenInstanceError):
             completed.stage = "failed"
 
-        with self.assertRaises(TypeError):
-            completed.execution.output["target_digest"] = "mutated"
+        with self.assertRaises(FrozenInstanceError):
+            completed.execution.receipt.target_digest = "mutated"
 
         with self.assertRaises(PolicyBlocked) as blocked:
             self.service.execute(case.case_id)
@@ -54,8 +53,7 @@ class CaseServiceTests(unittest.TestCase):
         assert case.proposal is not None
         self.service.approve(
             case.case_id,
-            case.proposal.proposal_id,
-            case.proposal.target.digest(),
+            case.proposal.approval_fingerprint(),
         )
         barrier = Barrier(2)
 

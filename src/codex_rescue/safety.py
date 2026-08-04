@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+import re
+from dataclasses import asdict
 
 from codex_rescue.models import (
     Approval,
@@ -8,26 +9,47 @@ from codex_rescue.models import (
     EvidenceSnapshot,
     PolicyDecision,
     RepairProposal,
-    RiskLevel,
-    Operation,
+    StorageHealth,
+)
+from codex_rescue.operations import OperationRegistry
+
+
+_BITLOCKER_PASSWORD = re.compile(r"\b(?:\d{6}-){7}\d{6}\b")
+_TOKEN_PATTERN = re.compile(
+    r"\b(?:sk-|ghp_|github_pat_|bearer\s+)[A-Za-z0-9._-]{8,}",
+    re.IGNORECASE,
+)
+_SECRET_KEY_TOKENS = (
+    "api_key",
+    "authorization",
+    "client_secret",
+    "credential",
+    "password",
+    "recovery_key",
+    "recovery_password",
+    "secret",
+    "token",
 )
 
 
-@dataclass(frozen=True)
-class OperationPolicy:
-    risk: RiskLevel
-    requires_rollback: bool
+def _contains_secret(value: object, key: str = "") -> bool:
+    normalized = key.strip().lower().replace("-", "_")
+    if normalized and any(token in normalized for token in _SECRET_KEY_TOKENS):
+        return True
+    if isinstance(value, dict):
+        return any(_contains_secret(child, str(child_key)) for child_key, child in value.items())
+    if isinstance(value, (list, tuple)):
+        return any(_contains_secret(child) for child in value)
+    if isinstance(value, str):
+        return bool(_BITLOCKER_PASSWORD.search(value) or _TOKEN_PATTERN.search(value))
+    return False
 
 
 class SafetyBroker:
-    """Validate structured proposals without executing commands."""
+    """Validate complete structured proposals without executing commands."""
 
-    _catalog = {
-        Operation.SIMULATE_BCD_REBUILD: OperationPolicy(
-            risk=RiskLevel.REVERSIBLE,
-            requires_rollback=True,
-        )
-    }
+    def __init__(self, registry: OperationRegistry) -> None:
+        self.registry = registry
 
     def evaluate(
         self,
@@ -36,38 +58,38 @@ class SafetyBroker:
         approval: Approval | None,
     ) -> PolicyDecision:
         reasons: list[str] = []
-        policy = self._catalog.get(proposal.operation)
+        handler = self.registry.get(proposal.operation)
 
-        if policy is None:
+        if handler is None:
             reasons.append("operation is not allowlisted")
         if not proposal.target.is_unambiguous():
             reasons.append("proposal target is ambiguous")
-        if proposal.target != evidence.target:
+        if proposal.target.digest() != evidence.target.digest():
             reasons.append("proposal target does not match evidence target")
-        if proposal.contains_secret:
+        if _contains_secret(asdict(proposal)):
             reasons.append("proposal contains secret material")
-        if evidence.smart_status != "healthy" or evidence.read_errors > 0:
+        if evidence.smart_status != StorageHealth.HEALTHY or evidence.read_errors > 0:
             reasons.append("storage health blocks ordinary repair")
         if evidence.bitlocker_state == BitLockerState.LOCKED:
             reasons.append("BitLocker volume is locked")
 
-        if policy is not None:
-            if proposal.risk != policy.risk:
+        if handler is not None:
+            if proposal.risk != handler.policy.risk:
                 reasons.append("proposal risk does not match operation policy")
-            if policy.requires_rollback and not proposal.rollback_required:
-                reasons.append("operation policy requires rollback")
-            if policy.requires_rollback and not proposal.rollback_artifact_ready:
+            if not handler.supports(evidence):
+                reasons.append("evidence does not support this operation")
+            artifact = proposal.rollback_artifact
+            if handler.policy.requires_rollback and not artifact.restore_tested:
                 reasons.append("verified rollback artifact is required")
+            if artifact.target_digest != proposal.target.digest():
+                reasons.append("rollback artifact target does not match proposal target")
+            if artifact.scenario_id != evidence.scenario_id:
+                reasons.append("rollback artifact scenario does not match evidence")
 
-        if proposal.operation == Operation.SIMULATE_BCD_REBUILD and evidence.bcd_valid:
-            reasons.append("BCD repair is not supported by the evidence")
-
+        expected_fingerprint = proposal.approval_fingerprint()
         if approval is None:
             reasons.append("approval is required")
-        else:
-            if approval.proposal_id != proposal.proposal_id:
-                reasons.append("approval does not match proposal")
-            if approval.target_digest != proposal.target.digest():
-                reasons.append("approval target does not match proposal target")
+        elif approval.fingerprint != expected_fingerprint:
+            reasons.append("approval fingerprint does not match complete proposal")
 
         return PolicyDecision(allowed=not reasons, reasons=tuple(reasons))

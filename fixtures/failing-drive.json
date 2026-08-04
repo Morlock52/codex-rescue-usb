@@ -1,7 +1,12 @@
 {
   "id": "failing-drive",
   "title": "Storage health blocks ordinary repair",
-  "category": "check-hardware",
+  "category": "check-disk-hardware",
+  "presentation": {
+    "label": "Failing drive",
+    "description": "Storage health blocks ordinary repair",
+    "order": 3
+  },
   "target": {
     "disk_serial": "SATA-DEMO-003",
     "partition_guid": "33333333-4444-5555-6666-777777777777",

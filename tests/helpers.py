@@ -15,7 +15,10 @@ from codex_rescue.models import (  # noqa: E402
     Operation,
     RepairProposal,
     RiskLevel,
+    RollbackArtifact,
+    StorageHealth,
     TargetFingerprint,
+    utc_now,
 )
 
 
@@ -35,9 +38,9 @@ def evidence(**overrides: object) -> EvidenceSnapshot:
     values: dict[str, object] = {
         "scenario_id": "boot-loop",
         "title": "Windows boot configuration is damaged",
-        "category": "pc-wont-boot",
+        "category": "windows-crashes-loops",
         "target": target(),
-        "smart_status": "healthy",
+        "smart_status": StorageHealth.HEALTHY,
         "read_errors": 0,
         "bitlocker_state": BitLockerState.NOT_ENCRYPTED,
         "bcd_valid": False,
@@ -54,11 +57,26 @@ def proposal(**overrides: object) -> RepairProposal:
         "proposal_id": "proposal-001",
         "operation": Operation.SIMULATE_BCD_REBUILD,
         "target": target(),
-        "risk": RiskLevel.REVERSIBLE,
+        "risk": RiskLevel.READ_ONLY,
         "summary": "Simulate rebuilding the BCD store",
-        "rollback_required": True,
-        "rollback_artifact_ready": True,
-        "contains_secret": False,
+        "reason": "BCD validation failed",
+        "simulated_change": "BCD fixture state becomes valid",
+        "host_impact": "No host impact",
+        "inputs": ("fixture evidence",),
+        "preconditions": ("healthy storage",),
+        "permitted_commands": (),
+        "expected_outputs": ("typed receipt",),
+        "rollback_artifact": RollbackArtifact(
+            artifact_id="rollback-test-001",
+            scenario_id="boot-loop",
+            kind="fixture-bcd-backup",
+            target_digest=target().digest(),
+            content_digest="9" * 64,
+            restore_tested=True,
+            verified_at="2026-08-04T00:00:00Z",
+        ),
+        "stop_conditions": ("target changes",),
+        "verification_plan": ("load independent post-action fixture",),
     }
     values.update(overrides)
     return RepairProposal(**values)
@@ -67,7 +85,7 @@ def proposal(**overrides: object) -> RepairProposal:
 def approval(item: RepairProposal | None = None) -> Approval:
     approved = item or proposal()
     return Approval(
-        proposal_id=approved.proposal_id,
-        target_digest=approved.target.digest(),
+        fingerprint=approved.approval_fingerprint(),
         approved_by="local-user",
+        approved_at=utc_now(),
     )

@@ -1,0 +1,24 @@
+{
+  "artifact_id": "rollback-boot-loop-bcd-001",
+  "scenario_id": "boot-loop",
+  "operation": "simulate.bcd.rebuild",
+  "kind": "fixture-bcd-backup",
+  "target": {
+    "disk_serial": "NVME-DEMO-001",
+    "partition_guid": "11111111-2222-3333-4444-555555555555",
+    "filesystem_uuid": "AAAA-BBBB",
+    "windows_path": "\\Windows",
+    "bitlocker_key_id": null
+  },
+  "payload": {
+    "backup_format": "fixture-json",
+    "bcd_state": "missing",
+    "entries": []
+  },
+  "expected_content_digest": "90094827288f1c76ca87b35ca320b2883ad9a6c7506e68a862c16dbce7c000c3",
+  "restore_test": {
+    "status": "passed",
+    "restored_content_digest": "90094827288f1c76ca87b35ca320b2883ad9a6c7506e68a862c16dbce7c000c3"
+  },
+  "verified_at": "2026-08-04T00:00:00Z"
+}

@@ -1,15 +1,22 @@
 from __future__ import annotations
 
-from codex_rescue.models import BitLockerState, EvidenceSnapshot, Finding, Operation
+from codex_rescue.models import (
+    BitLockerState,
+    EvidenceSnapshot,
+    Finding,
+    FindingSeverity,
+    Operation,
+    StorageHealth,
+)
 
 
 def analyze(evidence: EvidenceSnapshot) -> tuple[Finding, ...]:
     """Return deterministic findings, ordered by the strongest safety gate."""
-    if evidence.smart_status != "healthy" or evidence.read_errors > 0:
+    if evidence.smart_status != StorageHealth.HEALTHY or evidence.read_errors > 0:
         return (
             Finding(
                 code="storage.failing",
-                severity="critical",
+                severity=FindingSeverity.CRITICAL,
                 title="Storage may be failing",
                 summary=(
                     "Ordinary repair is blocked. Image the source to separate "
@@ -25,7 +32,7 @@ def analyze(evidence: EvidenceSnapshot) -> tuple[Finding, ...]:
         return (
             Finding(
                 code="bitlocker.locked",
-                severity="blocked",
+                severity=FindingSeverity.BLOCKED,
                 title="BitLocker volume is locked",
                 summary=(
                     "Continue only through the authorized local WinPE unlock "
@@ -41,7 +48,7 @@ def analyze(evidence: EvidenceSnapshot) -> tuple[Finding, ...]:
         return (
             Finding(
                 code="boot.files-missing",
-                severity="error",
+                severity=FindingSeverity.ERROR,
                 title="Required boot files are missing",
                 summary="Collect installation media evidence before proposing repair.",
                 blocks_writes=True,
@@ -54,7 +61,7 @@ def analyze(evidence: EvidenceSnapshot) -> tuple[Finding, ...]:
         return (
             Finding(
                 code="boot.bcd-invalid",
-                severity="error",
+                severity=FindingSeverity.ERROR,
                 title="Windows boot configuration is invalid",
                 summary=(
                     "The fixture can demonstrate BCD backup, approval, simulated "
@@ -70,7 +77,7 @@ def analyze(evidence: EvidenceSnapshot) -> tuple[Finding, ...]:
     return (
         Finding(
             code="system.no-known-fault",
-            severity="info",
+            severity=FindingSeverity.INFO,
             title="No supported fault detected",
             summary="The fixture evidence does not match a version-one repair rule.",
             blocks_writes=False,

@@ -4,22 +4,24 @@ from dataclasses import replace
 from threading import RLock
 from uuid import uuid4
 
+from codex_rescue.artifacts import (
+    PostActionFixtureRepository,
+    RollbackArtifactRepository,
+)
+from codex_rescue.case_store import CaseStore, InMemoryCaseStore
 from codex_rescue.diagnostics import analyze
 from codex_rescue.fixtures import FixtureRepository
 from codex_rescue.models import (
     Approval,
-    CaseStage,
+    ApprovalFingerprint,
+    CaseEvent,
     CaseRecord,
-    EvidenceSnapshot,
+    CaseStage,
     Operation,
-    RepairProposal,
-    RiskLevel,
+    utc_now,
 )
-from codex_rescue.runner import (
-    FixturePostActionProbe,
-    SimulatedRepairRunner,
-    SimulatedVerifier,
-)
+from codex_rescue.operations import OperationRegistry
+from codex_rescue.runner import SimulatedRepairRunner, SimulatedVerifier
 from codex_rescue.safety import SafetyBroker
 
 
@@ -34,23 +36,49 @@ class CaseNotFound(KeyError):
 
 
 class CaseService:
-    def __init__(self, fixtures: FixtureRepository) -> None:
+    def __init__(
+        self,
+        fixtures: FixtureRepository,
+        *,
+        case_store: CaseStore | None = None,
+        rollback_artifacts: RollbackArtifactRepository | None = None,
+        post_actions: PostActionFixtureRepository | None = None,
+        registry: OperationRegistry | None = None,
+    ) -> None:
         self.fixtures = fixtures
-        self.broker = SafetyBroker()
-        self.runner = SimulatedRepairRunner()
-        self.post_action_probe = FixturePostActionProbe()
-        self.verifier = SimulatedVerifier()
+        self.case_store = case_store or InMemoryCaseStore()
+        self.registry = registry or OperationRegistry()
+        self.rollback_artifacts = rollback_artifacts or RollbackArtifactRepository(
+            fixtures.root / "rollback"
+        )
+        self.post_actions = post_actions or PostActionFixtureRepository(
+            fixtures.root / "post_action"
+        )
+        self.broker = SafetyBroker(self.registry)
+        self.runner = SimulatedRepairRunner(self.registry)
+        self.verifier = SimulatedVerifier(self.registry)
         self._cases: dict[str, CaseRecord] = {}
         self._lock = RLock()
 
-    def list_scenarios(self) -> list[dict[str, str]]:
-        return self.fixtures.list()
+    def list_scenario_summaries(self) -> list[dict[str, object]]:
+        return self.fixtures.list_scenario_summaries()
+
+    def problem_catalog(self) -> list[dict[str, object]]:
+        return self.fixtures.problem_catalog()
 
     def create_case(self, scenario_id: str) -> CaseRecord:
         with self._lock:
             evidence = self.fixtures.load(scenario_id)
             findings = analyze(evidence)
-            proposal = self._proposal_for(findings[0].suggested_operation, evidence)
+            proposal = None
+            operation = findings[0].suggested_operation
+            if operation is not None:
+                rollback = self.rollback_artifacts.load_for(evidence, operation)
+                proposal = self.registry.require(operation).create_proposal(
+                    uuid4().hex,
+                    evidence,
+                    rollback,
+                )
             if any(finding.blocks_writes for finding in findings):
                 stage = CaseStage.BLOCKED
             elif proposal is not None:
@@ -64,12 +92,18 @@ class CaseService:
                 findings=findings,
                 stage=stage,
                 proposal=proposal,
-                event_log=("Fixture evidence loaded", "Offline diagnosis completed"),
+            )
+            case = self._record(case, "evidence.loaded", "Fixture evidence loaded")
+            case = self._record(
+                case,
+                "diagnosis.completed",
+                "Offline deterministic diagnosis completed",
             )
             if proposal is not None:
-                case = replace(
+                case = self._record(
                     case,
-                    event_log=case.event_log + ("Structured simulated proposal created",),
+                    "proposal.created",
+                    "Complete simulated proposal and rollback artifact verified",
                 )
             self._cases[case.case_id] = case
             return case
@@ -81,11 +115,14 @@ class CaseService:
             except KeyError as error:
                 raise CaseNotFound(case_id) from error
 
+    def get_case_events(self, case_id: str) -> tuple[CaseEvent, ...]:
+        self.get_case(case_id)
+        return self.case_store.read(case_id)
+
     def approve(
         self,
         case_id: str,
-        proposal_id: str,
-        target_digest: str,
+        fingerprint: ApprovalFingerprint,
     ) -> CaseRecord:
         with self._lock:
             case = self.get_case(case_id)
@@ -93,20 +130,24 @@ class CaseService:
                 raise PolicyBlocked(("case has no executable proposal",))
             if case.stage != CaseStage.PROPOSED:
                 raise PolicyBlocked(("case is not awaiting approval",))
-            if proposal_id != case.proposal.proposal_id:
-                raise PolicyBlocked(("proposal id does not match",))
-            if target_digest != case.proposal.target.digest():
-                raise PolicyBlocked(("target digest does not match",))
+            if fingerprint != case.proposal.approval_fingerprint():
+                raise PolicyBlocked(
+                    ("approval fingerprint does not match complete proposal",)
+                )
             approval = Approval(
-                proposal_id=proposal_id,
-                target_digest=target_digest,
+                fingerprint=fingerprint,
                 approved_by="local-user",
+                approved_at=utc_now(),
             )
             updated = replace(
                 case,
                 approval=approval,
                 stage=CaseStage.APPROVED,
-                event_log=case.event_log + ("Local user approved one simulated action",),
+            )
+            updated = self._record(
+                updated,
+                "approval.granted",
+                "Local user approved one exact simulated action",
             )
             self._cases[case_id] = updated
             return updated
@@ -116,6 +157,8 @@ class CaseService:
             case = self.get_case(case_id)
             if case.proposal is None:
                 raise PolicyBlocked(("case has no executable proposal",))
+            if case.approval is None:
+                raise PolicyBlocked(("approval is required",))
             if case.stage != CaseStage.APPROVED:
                 raise PolicyBlocked(("approval permits one execution only",))
 
@@ -127,10 +170,11 @@ class CaseService:
             if not decision.allowed:
                 raise PolicyBlocked(decision.reasons)
 
-            execution = self.runner.execute(case.proposal)
-            post_evidence = self.post_action_probe.collect(case.proposal)
+            execution = self.runner.execute(case.proposal, case.approval)
+            post_evidence = self.post_actions.collect(case.evidence, case.proposal)
             verification = self.verifier.verify(
                 case.proposal,
+                case.approval,
                 execution,
                 post_evidence,
             )
@@ -141,28 +185,28 @@ class CaseService:
                 post_action_evidence=post_evidence,
                 verification=verification,
                 stage=stage,
-                event_log=case.event_log + (execution.message, verification.message),
+            )
+            updated = self._record(
+                updated,
+                "execution.completed",
+                execution.message,
+            )
+            updated = self._record(
+                updated,
+                "verification.completed",
+                verification.message,
             )
             self._cases[case_id] = updated
             return updated
 
-    @staticmethod
-    def _proposal_for(
-        operation: Operation | None,
-        evidence: EvidenceSnapshot,
-    ) -> RepairProposal | None:
-        if operation != Operation.SIMULATE_BCD_REBUILD:
-            return None
-        target = evidence.target
-        return RepairProposal(
-            proposal_id=uuid4().hex,
-            operation=operation,
-            target=target,
-            risk=RiskLevel.REVERSIBLE,
-            summary=(
-                "Back up the fixture BCD state, simulate rebuilding it, then "
-                "verify the simulated result independently."
-            ),
-            rollback_required=True,
-            rollback_artifact_ready=True,
+    def _record(self, case: CaseRecord, kind: str, message: str) -> CaseRecord:
+        previous_hash = case.event_log[-1].event_hash if case.event_log else ""
+        event = CaseEvent.create(
+            case_id=case.case_id,
+            sequence=len(case.event_log) + 1,
+            kind=kind,
+            message=message,
+            previous_hash=previous_hash,
         )
+        self.case_store.append(event)
+        return replace(case, event_log=case.event_log + (event,))

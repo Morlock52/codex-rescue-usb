@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 
 from tests.helpers import approval, evidence, proposal, target
 
-from codex_rescue.models import BitLockerState, RepairProposal
+from codex_rescue.models import BitLockerState
+from codex_rescue.operations import OperationRegistry
 from codex_rescue.safety import SafetyBroker
 
 
 class SafetyBrokerTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.broker = SafetyBroker()
+        self.broker = SafetyBroker(OperationRegistry())
 
     def test_valid_fixture_proposal_is_allowed_after_approval(self) -> None:
         item = proposal()
@@ -48,7 +50,11 @@ class SafetyBrokerTests(unittest.TestCase):
         self.assertIn("proposal target is ambiguous", decision.reasons)
 
     def test_missing_rollback_artifact_is_blocked(self) -> None:
-        item = proposal(rollback_artifact_ready=False)
+        item = proposal()
+        item = replace(
+            item,
+            rollback_artifact=replace(item.rollback_artifact, restore_tested=False),
+        )
 
         decision = self.broker.evaluate(item, evidence(), approval(item))
 
@@ -56,7 +62,11 @@ class SafetyBrokerTests(unittest.TestCase):
         self.assertIn("verified rollback artifact is required", decision.reasons)
 
     def test_secret_bearing_proposal_is_blocked(self) -> None:
-        item = proposal(contains_secret=True)
+        item = proposal(
+            summary=(
+                "Use 111111-111111-111111-111111-111111-111111-111111-111111"
+            )
+        )
 
         decision = self.broker.evaluate(item, evidence(), approval(item))
 
@@ -97,19 +107,21 @@ class SafetyBrokerTests(unittest.TestCase):
 
     def test_approval_must_match_proposal_target(self) -> None:
         item = proposal()
-        mismatched_approval = approval(
-            RepairProposal(
-                **{
-                    **item.__dict__,
-                    "target": target(disk_serial="OTHER-DISK"),
-                }
-            )
+        mismatched_approval = replace(
+            approval(item),
+            fingerprint=replace(
+                item.approval_fingerprint(),
+                target_digest=target(disk_serial="OTHER-DISK").digest(),
+            ),
         )
 
         decision = self.broker.evaluate(item, evidence(), mismatched_approval)
 
         self.assertFalse(decision.allowed)
-        self.assertIn("approval target does not match proposal target", decision.reasons)
+        self.assertIn(
+            "approval fingerprint does not match complete proposal",
+            decision.reasons,
+        )
 
 
 if __name__ == "__main__":

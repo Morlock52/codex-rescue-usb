@@ -2,6 +2,11 @@
   "id": "bitlocker-locked",
   "title": "Windows volume is protected by BitLocker",
   "category": "pc-wont-boot",
+  "presentation": {
+    "label": "BitLocker locked",
+    "description": "Encrypted Windows volume detected",
+    "order": 2
+  },
   "target": {
     "disk_serial": "NVME-DEMO-002",
     "partition_guid": "22222222-3333-4444-5555-666666666666",

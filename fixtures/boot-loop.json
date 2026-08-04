@@ -1,7 +1,12 @@
 {
   "id": "boot-loop",
   "title": "Windows enters a boot-repair loop",
-  "category": "pc-wont-boot",
+  "category": "windows-crashes-loops",
+  "presentation": {
+    "label": "Boot loop",
+    "description": "Startup Repair repeats",
+    "order": 1
+  },
   "target": {
     "disk_serial": "NVME-DEMO-001",
     "partition_guid": "11111111-2222-3333-4444-555555555555",

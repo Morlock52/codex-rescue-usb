@@ -1,56 +1,76 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 
-from tests.helpers import proposal
+from tests.helpers import ROOT
 
-from codex_rescue.models import ExecutionResult, PostActionEvidence
-from codex_rescue.runner import (
-    FixturePostActionProbe,
-    SimulatedRepairRunner,
-    SimulatedVerifier,
-)
+from codex_rescue.fixtures import FixtureRepository
+from codex_rescue.service import CaseService
 
 
 class SimulatedVerifierTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.proposal = proposal()
-        self.runner = SimulatedRepairRunner()
-        self.verifier = SimulatedVerifier()
-        self.probe = FixturePostActionProbe()
+        self.service = CaseService(FixtureRepository(ROOT / "fixtures"))
+        case = self.service.create_case("boot-loop")
+        assert case.proposal is not None
+        self.case = self.service.approve(
+            case.case_id,
+            case.proposal.approval_fingerprint(),
+        )
+        self.proposal = self.case.proposal
+        self.approval = self.case.approval
+        assert self.proposal is not None
+        assert self.approval is not None
 
     def test_verifier_independently_checks_receipt_against_proposal(self) -> None:
-        execution = self.runner.execute(self.proposal)
-        post_evidence = self.probe.collect(self.proposal)
+        execution = self.service.runner.execute(self.proposal, self.approval)
+        post_evidence = self.service.post_actions.collect(
+            self.case.evidence,
+            self.proposal,
+        )
 
-        result = self.verifier.verify(self.proposal, execution, post_evidence)
+        result = self.service.verifier.verify(
+            self.proposal,
+            self.approval,
+            execution,
+            post_evidence,
+        )
 
         self.assertTrue(result.passed)
 
-    def test_verifier_rejects_tampered_runner_output(self) -> None:
-        execution = self.runner.execute(self.proposal)
-        tampered = ExecutionResult(
-            success=execution.success,
-            message=execution.message,
-            output={**dict(execution.output), "target_digest": "different-target"},
+    def test_verifier_rejects_tampered_typed_receipt(self) -> None:
+        execution = self.service.runner.execute(self.proposal, self.approval)
+        assert execution.receipt is not None
+        tampered = replace(
+            execution,
+            receipt=replace(execution.receipt, target_digest="different-target"),
         )
-        post_evidence = self.probe.collect(self.proposal)
+        post_evidence = self.service.post_actions.collect(
+            self.case.evidence,
+            self.proposal,
+        )
 
-        result = self.verifier.verify(self.proposal, tampered, post_evidence)
+        result = self.service.verifier.verify(
+            self.proposal,
+            self.approval,
+            tampered,
+            post_evidence,
+        )
 
         self.assertFalse(result.passed)
 
     def test_verifier_rejects_independent_post_action_failure(self) -> None:
-        execution = self.runner.execute(self.proposal)
-        failed_evidence = PostActionEvidence(
-            source="fixture://post-action/bcd-rebuild",
-            target_digest=self.proposal.target.digest(),
-            bcd_valid=False,
-            rollback_artifact_present=True,
-        )
-
-        result = self.verifier.verify(
+        execution = self.service.runner.execute(self.proposal, self.approval)
+        post_evidence = self.service.post_actions.collect(
+            self.case.evidence,
             self.proposal,
+        )
+        failed_evidence = replace(post_evidence, bcd_valid=False)
+
+        result = self.service.verifier.verify(
+            self.proposal,
+            self.approval,
             execution,
             failed_evidence,
         )

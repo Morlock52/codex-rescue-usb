@@ -8,6 +8,7 @@
   --warning: #fff6d8;
   --positive: #77d2a1;
   --danger: #f2c4bd;
+  --planned: #d8d9d6;
   --radius: 12px;
   --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
   --sans: "Atkinson Hyperlegible", "Avenir Next", Arial, sans-serif;
@@ -74,19 +75,42 @@ h3 { margin-bottom: 8px; font-size: 19px; }
   font: 600 12px/1 var(--mono);
   text-transform: uppercase;
 }
+.badge-safe { background: var(--positive); }
 
 .workspace {
   min-height: 690px;
   display: grid;
-  grid-template-columns: 272px minmax(480px, 1fr) 384px;
+  grid-template-columns: 304px minmax(480px, 1fr) 384px;
   gap: 16px;
 }
 
 .scenario-rail, .evidence-panel, .interlock-panel { padding: 24px; }
 .scenario-rail { display: flex; flex-direction: column; }
-.scenario-list { display: grid; gap: 12px; }
+.scenario-list { display: grid; gap: 10px; }
+.category-group {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255,255,255,.32);
+}
+.category-group[data-status="planned"] { background: transparent; color: var(--muted); }
+.category-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.category-header h3 { margin: 0; font-size: 14px; text-transform: uppercase; }
+.category-status {
+  flex: 0 0 auto;
+  padding: 4px 6px;
+  border-radius: 999px;
+  background: var(--positive);
+  font: 600 9px/1 var(--mono);
+  text-transform: uppercase;
+}
+.category-group[data-status="planned"] .category-status { background: var(--planned); }
+.category-group > p { margin: 6px 0 0; color: var(--muted); font-size: 11px; line-height: 1.35; }
+.planned-message { display: block; margin-top: 8px; font: 10px/1.35 var(--mono); text-transform: uppercase; }
 .scenario-button {
+  width: 100%;
   min-height: 76px;
+  margin-top: 10px;
   padding: 14px 16px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -98,7 +122,7 @@ h3 { margin-bottom: 8px; font-size: 19px; }
 .scenario-button strong { display: block; margin-bottom: 4px; text-transform: uppercase; }
 .scenario-button span { color: var(--muted); font-size: 13px; }
 .scenario-button[aria-current="true"] { background: var(--brand); border-color: transparent; }
-.fixture-count { margin: auto 0 0; color: var(--muted); font: 12px var(--mono); text-transform: uppercase; }
+.fixture-count { margin: 16px 0 0; color: var(--muted); font: 12px var(--mono); text-transform: uppercase; }
 
 .evidence-panel { display: flex; flex-direction: column; }
 .evidence-block { padding: 16px; }
@@ -106,7 +130,7 @@ h3 { margin-bottom: 8px; font-size: 19px; }
 .evidence-list div { display: grid; grid-template-columns: 170px 1fr; gap: 12px; }
 .evidence-list dt { color: var(--muted); }
 .evidence-list dd { margin: 0; }
-.finding-card, .proposal-card, .workflow-card, .boundary-card {
+.finding-card, .proposal-card, .workflow-card, .recovery-card, .boundary-card {
   margin-top: 16px;
   padding: 16px;
   border: 1px solid var(--line);
@@ -116,23 +140,34 @@ h3 { margin-bottom: 8px; font-size: 19px; }
 .finding-card[data-blocked="true"] { background: var(--danger); }
 .finding-card p:last-child, .proposal-card p:last-child { margin-bottom: 0; }
 .proposal-facts { margin: 12px 0 0; font: 13px/1.5 var(--mono); }
-.proposal-facts div { display: grid; grid-template-columns: 150px 1fr; }
+.proposal-facts div { display: grid; grid-template-columns: 150px 1fr; gap: 8px; margin-top: 4px; }
 .proposal-facts dd { margin: 0; }
+.proposal-detail { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.proposal-detail summary { cursor: pointer; font: 700 12px var(--mono); text-transform: uppercase; }
+.contract-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+.contract-grid section { padding: 12px; border: 1px solid var(--line); border-radius: 6px; }
+.contract-grid h4 { margin: 0 0 8px; font: 700 11px var(--mono); text-transform: uppercase; }
+.contract-grid ul, .contract-grid ol { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.5; }
 .workflow-facts { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px; font-size: 13px; }
 .workflow-facts div { min-width: 0; }
 .workflow-facts dt { color: var(--muted); font: 11px var(--mono); text-transform: uppercase; }
 .workflow-facts dd { margin: 3px 0 0; overflow-wrap: anywhere; }
 .boundary-card { background: var(--positive); }
 .boundary-card strong { font-size: 14px; }
+.recovery-card { background: var(--danger); border-color: #8f3f35; }
+.recovery-card p:last-child { margin-bottom: 0; }
 
 .interlock-panel { display: flex; flex-direction: column; }
-.rule-card, .fingerprint-card, .codex-plan { margin-top: 16px; padding: 14px; }
+.rule-card, .fingerprint-card, .offline-plan { margin-top: 16px; padding: 14px; }
 .rule-card { border: 1px solid #237343; border-radius: 8px; }
 .rule-card ul { list-style: "✓  "; margin: 0; padding-left: 18px; }
-.fingerprint-card dl { margin: 0; font: 12px var(--mono); }
-.fingerprint-card dl div { display: grid; grid-template-columns: 90px 1fr; }
+.fingerprint-card dl { margin: 0; font: 11px/1.35 var(--mono); }
+.fingerprint-card dl div { display: grid; grid-template-columns: 110px 1fr; gap: 8px; margin-top: 7px; }
+.fingerprint-card dt { color: var(--muted); }
 .fingerprint-card dd { margin: 0; overflow-wrap: anywhere; }
-.codex-plan ol { margin: 0; padding-left: 19px; }
+.offline-plan { background: #e8edf3; border-radius: 8px; }
+.offline-plan ol { margin: 0; padding-left: 19px; font-size: 13px; line-height: 1.6; }
+.offline-proof { margin: 10px 0 0; color: var(--muted); font: 10px/1.4 var(--mono); text-transform: uppercase; }
 .action-area { margin-top: auto; }
 .action-area button {
   width: 100%;
@@ -147,6 +182,7 @@ h3 { margin-bottom: 8px; font-size: 19px; }
 }
 .action-area button:disabled { opacity: .5; cursor: not-allowed; }
 .action-area p { margin: 12px 0 0; color: var(--muted); font-size: 12px; }
+.audit-link { display: inline-block; margin-top: 12px; color: var(--ink); font: 600 11px var(--mono); }
 
 .timeline-panel {
   min-height: 72px;
@@ -177,6 +213,6 @@ h3 { margin-bottom: 8px; font-size: 19px; }
   .badges { justify-content: flex-start; }
   .scenario-rail { min-height: 460px; }
   .evidence-list div, .proposal-facts div { grid-template-columns: 1fr; }
-  .workflow-facts { grid-template-columns: 1fr; }
+  .workflow-facts, .contract-grid { grid-template-columns: 1fr; }
   .timeline { grid-template-columns: repeat(2, 1fr); }
 }

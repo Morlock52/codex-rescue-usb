@@ -2,10 +2,18 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
 from enum import StrEnum
-from types import MappingProxyType
+
+
+def canonical_digest(value: object) -> str:
+    payload = json.dumps(value, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 class RiskLevel(StrEnum):
@@ -19,6 +27,20 @@ class BitLockerState(StrEnum):
     NOT_ENCRYPTED = "not-encrypted"
     LOCKED = "locked"
     UNLOCKED = "unlocked"
+
+
+class StorageHealth(StrEnum):
+    HEALTHY = "healthy"
+    WARNING = "warning"
+    FAILING = "failing"
+
+
+class FindingSeverity(StrEnum):
+    INFO = "info"
+    WARNING = "warning"
+    ERROR = "error"
+    BLOCKED = "blocked"
+    CRITICAL = "critical"
 
 
 class Operation(StrEnum):
@@ -42,18 +64,28 @@ class TargetFingerprint:
     windows_path: str
     bitlocker_key_id: str | None = None
 
+    def canonical(self) -> dict[str, str | None]:
+        return {
+            "disk_serial": self.disk_serial.strip().upper(),
+            "partition_guid": self.partition_guid.strip().lower(),
+            "filesystem_uuid": self.filesystem_uuid.strip().upper(),
+            "windows_path": self.windows_path.strip().replace("/", "\\").lower(),
+            "bitlocker_key_id": (
+                self.bitlocker_key_id.strip().upper()
+                if self.bitlocker_key_id is not None
+                else None
+            ),
+        }
+
     def digest(self) -> str:
-        payload = json.dumps(asdict(self), sort_keys=True, separators=(",", ":"))
-        return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+        return canonical_digest(self.canonical())
 
     def is_unambiguous(self) -> bool:
-        required = (
-            self.disk_serial,
-            self.partition_guid,
-            self.filesystem_uuid,
-            self.windows_path,
+        canonical = self.canonical()
+        return all(
+            canonical[key]
+            for key in ("disk_serial", "partition_guid", "filesystem_uuid", "windows_path")
         )
-        return all(value.strip() for value in required)
 
 
 @dataclass(frozen=True)
@@ -62,7 +94,7 @@ class EvidenceSnapshot:
     title: str
     category: str
     target: TargetFingerprint
-    smart_status: str
+    smart_status: StorageHealth
     read_errors: int
     bitlocker_state: BitLockerState
     bcd_valid: bool
@@ -74,13 +106,38 @@ class EvidenceSnapshot:
 @dataclass(frozen=True)
 class Finding:
     code: str
-    severity: str
+    severity: FindingSeverity
     title: str
     summary: str
     blocks_writes: bool
     confidence: float
     uncertainty: str
     suggested_operation: Operation | None = None
+
+    def __post_init__(self) -> None:
+        if not 0.0 <= self.confidence <= 1.0:
+            raise ValueError("finding confidence must be between zero and one")
+
+
+@dataclass(frozen=True)
+class RollbackArtifact:
+    artifact_id: str
+    scenario_id: str
+    kind: str
+    target_digest: str
+    content_digest: str
+    restore_tested: bool
+    verified_at: str
+
+
+@dataclass(frozen=True)
+class ApprovalFingerprint:
+    proposal_id: str
+    proposal_digest: str
+    target_digest: str
+
+    def digest(self) -> str:
+        return canonical_digest(asdict(self))
 
 
 @dataclass(frozen=True)
@@ -90,28 +147,33 @@ class RepairProposal:
     target: TargetFingerprint
     risk: RiskLevel
     summary: str
-    rollback_required: bool
-    rollback_artifact_ready: bool
-    contains_secret: bool = False
+    reason: str
+    simulated_change: str
+    host_impact: str
+    inputs: tuple[str, ...]
+    preconditions: tuple[str, ...]
+    permitted_commands: tuple[str, ...]
+    expected_outputs: tuple[str, ...]
+    rollback_artifact: RollbackArtifact
+    stop_conditions: tuple[str, ...]
+    verification_plan: tuple[str, ...]
 
-    def receipt_digest(self) -> str:
-        payload = json.dumps(
-            {
-                "operation": self.operation,
-                "proposal_id": self.proposal_id,
-                "target_digest": self.target.digest(),
-            },
-            sort_keys=True,
-            separators=(",", ":"),
+    def digest(self) -> str:
+        return canonical_digest(asdict(self))
+
+    def approval_fingerprint(self) -> ApprovalFingerprint:
+        return ApprovalFingerprint(
+            proposal_id=self.proposal_id,
+            proposal_digest=self.digest(),
+            target_digest=self.target.digest(),
         )
-        return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 @dataclass(frozen=True)
 class Approval:
-    proposal_id: str
-    target_digest: str
+    fingerprint: ApprovalFingerprint
     approved_by: str
+    approved_at: str
 
 
 @dataclass(frozen=True)
@@ -121,27 +183,100 @@ class PolicyDecision:
 
 
 @dataclass(frozen=True)
+class SimulationReceipt:
+    operation: Operation
+    proposal_digest: str
+    approval_fingerprint_digest: str
+    target_digest: str
+    result_code: str
+    simulated_change: str
+    host_impact: str
+    produced_at: str
+    content_digest: str
+
+    @classmethod
+    def create(
+        cls,
+        proposal: RepairProposal,
+        approval: Approval,
+        result_code: str,
+    ) -> SimulationReceipt:
+        values = {
+            "operation": proposal.operation,
+            "proposal_digest": proposal.digest(),
+            "approval_fingerprint_digest": approval.fingerprint.digest(),
+            "target_digest": proposal.target.digest(),
+            "result_code": result_code,
+            "simulated_change": proposal.simulated_change,
+            "host_impact": proposal.host_impact,
+            "produced_at": utc_now(),
+        }
+        return cls(**values, content_digest=canonical_digest(values))
+
+    def verify_digest(self) -> bool:
+        values = asdict(self)
+        content_digest = values.pop("content_digest")
+        return content_digest == canonical_digest(values)
+
+
+@dataclass(frozen=True)
 class ExecutionResult:
     success: bool
     message: str
-    output: Mapping[str, str | bool]
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "output", MappingProxyType(dict(self.output)))
+    receipt: SimulationReceipt | None
 
 
 @dataclass(frozen=True)
 class PostActionEvidence:
     source: str
+    source_fixture_digest: str
+    scenario_id: str
+    operation: Operation
     target_digest: str
     bcd_valid: bool
-    rollback_artifact_present: bool
+    rollback_artifact_digest: str
+    observed_at: str
 
 
 @dataclass(frozen=True)
 class VerificationResult:
     passed: bool
     message: str
+
+
+@dataclass(frozen=True)
+class CaseEvent:
+    case_id: str
+    sequence: int
+    kind: str
+    message: str
+    occurred_at: str
+    previous_hash: str
+    event_hash: str
+
+    @classmethod
+    def create(
+        cls,
+        case_id: str,
+        sequence: int,
+        kind: str,
+        message: str,
+        previous_hash: str,
+    ) -> CaseEvent:
+        values = {
+            "case_id": case_id,
+            "sequence": sequence,
+            "kind": kind,
+            "message": message,
+            "occurred_at": utc_now(),
+            "previous_hash": previous_hash,
+        }
+        return cls(**values, event_hash=canonical_digest(values))
+
+    def verify_hash(self) -> bool:
+        values = asdict(self)
+        event_hash = values.pop("event_hash")
+        return event_hash == canonical_digest(values)
 
 
 @dataclass(frozen=True)
@@ -155,4 +290,4 @@ class CaseRecord:
     execution: ExecutionResult | None = None
     post_action_evidence: PostActionEvidence | None = None
     verification: VerificationResult | None = None
-    event_log: tuple[str, ...] = field(default_factory=tuple)
+    event_log: tuple[CaseEvent, ...] = field(default_factory=tuple)

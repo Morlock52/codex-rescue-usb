@@ -22,6 +22,7 @@
         <div class="badges" aria-label="Runtime boundaries">
           <span class="badge">Fixture only</span>
           <span class="badge">Offline</span>
+          <span class="badge badge-safe">Codex not contacted</span>
         </div>
       </header>
 
@@ -53,9 +54,21 @@
             <h3 id="proposal-title"></h3>
             <p id="proposal-summary"></p>
             <dl class="proposal-facts">
+              <div><dt>Reason</dt><dd id="proposal-reason"></dd></div>
               <div><dt>Allowed operation</dt><dd id="operation"></dd></div>
-              <div><dt>Expected change</dt><dd>None — evidence receipt only</dd></div>
+              <div><dt>Simulated change</dt><dd id="simulated-change"></dd></div>
+              <div><dt>Host impact</dt><dd id="host-impact"></dd></div>
+              <div><dt>Rollback artifact</dt><dd id="rollback-artifact"></dd></div>
             </dl>
+            <details class="proposal-detail">
+              <summary>Review complete safety contract</summary>
+              <div class="contract-grid">
+                <section><h4>Preconditions</h4><ul id="proposal-preconditions"></ul></section>
+                <section><h4>Expected outputs</h4><ul id="proposal-outputs"></ul></section>
+                <section><h4>Stop conditions</h4><ul id="proposal-stops"></ul></section>
+                <section><h4>Verification plan</h4><ol id="proposal-verification"></ol></section>
+              </div>
+            </details>
           </section>
 
           <section class="workflow-card" aria-labelledby="workflow-title">
@@ -70,7 +83,14 @@
               <div><dt>Approval</dt><dd id="workflow-approval">—</dd></div>
               <div><dt>Execution</dt><dd id="workflow-execution">—</dd></div>
               <div><dt>Verification</dt><dd id="workflow-verification">—</dd></div>
+              <div><dt>Last safe state</dt><dd id="workflow-last-safe">—</dd></div>
             </dl>
+          </section>
+
+          <section id="recovery-card" class="recovery-card" hidden>
+            <p class="eyebrow">Stop and recover safely</p>
+            <h3 id="stop-reason">Operation stopped</h3>
+            <p id="recovery-action"></p>
           </section>
 
           <aside class="boundary-card">
@@ -97,23 +117,28 @@
           <section class="fingerprint-card">
             <p class="eyebrow">Approval fingerprint</p>
             <dl>
-              <div><dt>Proposal</dt><dd id="proposal-digest">—</dd></div>
-              <div><dt>Target</dt><dd id="target-digest">—</dd></div>
+              <div><dt>Proposal ID</dt><dd id="proposal-id">—</dd></div>
+              <div><dt>Proposal digest</dt><dd id="proposal-digest">—</dd></div>
+              <div><dt>Target digest</dt><dd id="target-digest">—</dd></div>
+              <div><dt>Fingerprint digest</dt><dd id="fingerprint-digest">—</dd></div>
             </dl>
           </section>
 
-          <section class="codex-plan">
-            <p class="eyebrow">Codex plan</p>
+          <section class="offline-plan">
+            <p class="eyebrow">Offline deterministic plan</p>
             <ol>
-              <li>Verify fixture digest</li>
-              <li>Simulate approved operation</li>
-              <li>Produce evidence receipt</li>
+              <li>Verify fixture and rollback artifact</li>
+              <li>Bind approval to the complete proposal</li>
+              <li>Simulate the allowlisted operation</li>
+              <li>Verify separate post-action evidence</li>
             </ol>
+            <p class="offline-proof">No model call · no network dependency · no host command</p>
           </section>
 
           <div class="action-area">
             <button id="action-button" type="button" disabled>No action available</button>
             <p id="action-hint">Select a fixture to begin.</p>
+            <a id="audit-link" class="audit-link" href="#" hidden>Open hash-chained audit record</a>
           </div>
         </aside>
       </section>

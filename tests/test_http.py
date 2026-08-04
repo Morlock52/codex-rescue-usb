@@ -35,7 +35,7 @@ def request_json(
     base_url: str,
     path: str,
     method: str = "GET",
-    payload: dict[str, str] | None = None,
+    payload: dict[str, object] | None = None,
 ) -> tuple[int, dict[str, object]]:
     data = None if payload is None else json.dumps(payload).encode("utf-8")
     request = Request(
@@ -77,6 +77,13 @@ class HttpServerTests(unittest.TestCase):
             status, scenarios = request_json(base_url, "/api/scenarios")
             self.assertEqual(status, 200)
             self.assertEqual(len(scenarios["scenarios"]), 3)
+            self.assertEqual(len(scenarios["categories"]), 7)
+            self.assertEqual(
+                [category["status"] for category in scenarios["categories"]].count(
+                    "available"
+                ),
+                3,
+            )
 
             status, case = request_json(
                 base_url,
@@ -86,6 +93,8 @@ class HttpServerTests(unittest.TestCase):
             )
             self.assertEqual(status, 201)
             self.assertEqual(case["stage"], "proposed")
+            self.assertFalse(case["codex_contacted"])
+            self.assertEqual(case["workflow"]["allowed_actions"], ["approve"])
             self.assertNotIn("recovery_key", json.dumps(case).lower())
             self.assertIn("confidence", case["findings"][0])
             self.assertIn("uncertainty", case["findings"][0])
@@ -100,14 +109,18 @@ class HttpServerTests(unittest.TestCase):
             proposal = case["proposal"]
             self.assertIsInstance(proposal, dict)
             assert isinstance(proposal, dict)
+            fingerprint = proposal["approval_fingerprint"]
+            self.assertEqual(proposal["proposal_digest"], fingerprint["proposal_digest"])
+            self.assertEqual(
+                fingerprint["target_digest"], case["evidence"]["target_digest"]
+            )
 
             status, rejected_secret = request_json(
                 base_url,
                 f"/api/cases/{case_id}/approve",
                 "POST",
                 {
-                    "proposal_id": str(proposal["proposal_id"]),
-                    "target_digest": str(proposal["target_digest"]),
+                    "fingerprint": fingerprint,
                     "recovery_key": "NEVER-ACCEPT-THIS",
                 },
             )
@@ -119,24 +132,24 @@ class HttpServerTests(unittest.TestCase):
                 f"/api/cases/{case_id}/approve",
                 "POST",
                 {
-                    "proposal_id": str(proposal["proposal_id"]),
-                    "target_digest": "wrong-target",
+                    "fingerprint": {
+                        **fingerprint,
+                        "target_digest": "wrong-target",
+                    },
                 },
             )
             self.assertEqual(status, 409)
-            self.assertIn("target digest does not match", blocked["error"])
+            self.assertIn("complete proposal", blocked["error"])
 
             status, approved = request_json(
                 base_url,
                 f"/api/cases/{case_id}/approve",
                 "POST",
-                {
-                    "proposal_id": str(proposal["proposal_id"]),
-                    "target_digest": str(proposal["target_digest"]),
-                },
+                {"fingerprint": fingerprint},
             )
             self.assertEqual(status, 200)
             self.assertEqual(approved["stage"], "approved")
+            self.assertEqual(approved["workflow"]["allowed_actions"], ["execute"])
 
             status, completed = request_json(
                 base_url,
@@ -147,6 +160,29 @@ class HttpServerTests(unittest.TestCase):
             self.assertEqual(status, 200)
             self.assertEqual(completed["stage"], "verified")
             self.assertTrue(completed["verification"]["passed"])
+            self.assertIsInstance(completed["execution"]["receipt"], dict)
+            self.assertEqual(
+                completed["execution"]["receipt"]["result_code"],
+                "fixture.bcd-rebuild.simulated",
+            )
+            self.assertIn(
+                "No host disk",
+                completed["execution"]["receipt"]["host_impact"],
+            )
+            self.assertTrue(completed["post_action_evidence"]["bcd_valid"])
+            self.assertEqual(completed["workflow"]["allowed_actions"], [])
+
+            status, audit = request_json(
+                base_url,
+                f"/api/cases/{case_id}/audit",
+            )
+            self.assertEqual(status, 200)
+            self.assertEqual(len(audit["events"]), 6)
+            self.assertEqual(audit["events"][0]["previous_hash"], "")
+            self.assertEqual(
+                audit["events"][1]["previous_hash"],
+                audit["events"][0]["event_hash"],
+            )
 
             status, repeated = request_json(
                 base_url,
@@ -163,6 +199,8 @@ class HttpServerTests(unittest.TestCase):
                 body = response.read().decode("utf-8")
 
         self.assertIn("Codex Rescue USB", body)
+        self.assertIn("Offline deterministic plan", body)
+        self.assertNotIn("Codex plan", body)
         self.assertNotIn("https://", body)
         self.assertNotIn("http://", body)
 
