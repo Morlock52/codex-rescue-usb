@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -36,7 +35,7 @@ class CaseAuditTests(unittest.TestCase):
         self.assertTrue(all(event.occurred_at for event in events))
         self.assertTrue(verify_event_chain(events))
         self.assertEqual(events, restarted_events)
-        payloads = {event.kind: json.loads(event.payload_json) for event in events}
+        payloads = {event.kind: event.payload() for event in events}
         self.assertEqual(payloads["evidence.loaded"]["scenario_id"], "boot-loop")
         self.assertIn("proposal_digest", payloads["proposal.created"])
         self.assertIn("fingerprint", payloads["approval.granted"])

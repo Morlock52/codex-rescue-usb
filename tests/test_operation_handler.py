@@ -9,7 +9,7 @@ from codex_rescue.fixtures import FixtureRepository
 from codex_rescue.service import CaseService
 
 
-class SimulatedVerifierTests(unittest.TestCase):
+class OperationHandlerVerificationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.service = CaseService(FixtureRepository(ROOT / "fixtures"))
         case = self.service.create_case("boot-loop")

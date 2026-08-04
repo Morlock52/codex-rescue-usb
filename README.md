@@ -1,38 +1,87 @@
 # Codex Rescue USB
 
-Codex Rescue USB is a safety-first prototype for a future offline PC recovery environment. This milestone is a host-runnable Rescue Console that diagnoses strictly validated fixtures, creates complete repair proposals, binds approval to the full proposal and exact target, simulates one allowlisted repair, and verifies the result against separate post-action evidence.
+> A safety-first, offline fixture console for PC-recovery workflows — without touching a real PC.
 
-> **Fixture-only:** This repository cannot repair a PC. It does not mount, unlock, write, format, or execute host commands. It does not contact Codex or any other model. Never enter a BitLocker recovery key, password, token, or credential into this prototype.
+Codex Rescue USB is a host-runnable prototype for a future offline recovery environment. It diagnoses strictly validated demonstration fixtures, creates complete repair proposals, binds approval to the exact proposal and target, simulates one allowlisted repair, and verifies the result with separate post-action evidence.
 
-## Run the console
+It is not a bootable USB image and cannot repair a physical computer. The current milestone is a local Rescue Console for safely exploring recovery workflows.
 
-Python 3.11 or newer is required. No third-party packages or network connection are needed.
+![Rescue Console showing a boot-loop diagnosis and proposed simulated repair](docs/images/rescue-console-overview.png)
+
+## Features
+
+- Runs locally on `127.0.0.1` with no network dependency.
+- Diagnoses a boot loop, locked BitLocker volume, or failing drive fixture.
+- Requires approval bound to the complete repair proposal and exact target.
+- Simulates an allowlisted BCD reconstruction with zero host impact.
+- Verifies separate post-action fixture evidence.
+- Saves timestamped, hash-chained local audit records.
+
+## Safety boundaries
+
+- No bootable USB is created in this version.
+- No real disk, volume, boot file, or host command is touched.
+- BitLocker keys, passwords, tokens, and credentials are never requested.
+- No Codex, model, or network service is contacted.
+
+Do not use this prototype as a real recovery tool.
+
+## Requirements
+
+- Python 3.11 or newer
+- A modern browser
+- No third-party packages
+
+## Install
+
+```sh
+git clone https://github.com/Morlock52/codex-rescue-usb.git
+cd codex-rescue-usb
+```
+
+No package installation is needed; the console uses the Python standard library.
+
+## Run
 
 ```sh
 PYTHONPATH=src python3 -m codex_rescue --port 8080
 ```
 
-Open `http://127.0.0.1:8080`. The server always binds to loopback. Hash-chained audit records are written with restricted permissions under `~/.codex-rescue/cases` by default; use `--case-dir PATH` to choose a separate directory.
+Open [http://127.0.0.1:8080](http://127.0.0.1:8080). The service always binds to loopback, so it is not exposed to the local network.
 
-The console presents the complete recovery taxonomy and marks workflows that are planned but unavailable. Three bundled fixtures are currently executable as demonstrations:
+Audit records are written to `~/.codex-rescue/cases` by default. Choose a different local directory when needed:
 
-- a boot-loop fixture with an approvable BCD rebuild simulation;
-- a locked BitLocker fixture that blocks repair without accepting recovery material;
-- a failing-drive fixture that blocks ordinary repair and preserves read-only evidence.
+```sh
+PYTHONPATH=src python3 -m codex_rescue --port 8080 --case-dir ./local-cases
+```
 
-## Safety contract
+Stop the server with `Ctrl+C`.
 
-- Fixture IDs are resolved through a validated index; traversal and malformed or secret-bearing fixture data are rejected.
-- Storage health, finding severity, operations, risk, BitLocker state, and case stages use bounded enums.
-- The operation registry owns proposal creation, policy, execution, and verification for each allowlisted operation.
-- Every proposal states its reason, inputs, preconditions, simulated change, zero-host-impact boundary, expected outputs, stop conditions, verification plan, and verified rollback artifact.
-- Approval contains the proposal ID, complete proposal digest, and exact target digest. Any proposal or target change invalidates it.
-- The safety broker scans proposal content for recovery passwords and other secret material without relying on a caller-provided flag.
-- Execution produces a typed, digest-verifiable simulation receipt. Verification loads separate post-action fixture evidence rather than trusting the receipt alone.
-- Case events are timestamped, hash chained, persisted as JSONL, and available from `/api/cases/{case_id}/audit`.
-- Blocked and failed cases expose a stop reason, last safe state, and non-automatic recovery guidance.
+## Use the console
 
-These guarantees apply only to the fixture prototype. The future bootable USB architecture and every real disk or BitLocker operation remain separate, gated milestones.
+1. Start the server and open the local address.
+2. Review the default **Boot loop** case or select **BitLocker locked** or **Failing drive**.
+3. Inspect the evidence, likely cause, proposal, workflow facts, and safety boundary.
+4. For the boot-loop fixture, review the simulated BCD reconstruction and rollback artifact.
+5. Select **Approve exact simulated plan** after reviewing the proposal and target fingerprints.
+6. Select **Run safe simulation**. This affects fixture state only.
+7. Confirm independent verification, then open the hash-chained audit record if desired.
+
+The BitLocker and failing-drive cases are expected safe stops: they intentionally do not offer an executable action.
+
+![Verified simulated BCD repair with independent fixture verification](docs/images/rescue-console-verified-simulation.png)
+
+## Demonstration fixtures
+
+| Fixture | Purpose | Action available |
+| --- | --- | --- |
+| Boot loop | Diagnosis, approval, simulated BCD rebuild, and independent verification. | Simulation only |
+| BitLocker locked | Blocked workflow without accepting recovery material. | No |
+| Failing drive | Protected stop for storage-health risk. | No |
+
+## Safety model
+
+Each executable workflow validates fixture and rollback evidence, builds a complete proposal, binds one approval to its proposal and target digests, runs the allowlisted simulation once, and then checks independent post-action evidence. The safety broker rejects malformed, secret-bearing, mismatched, ambiguous, unapproved, or unsupported operations.
 
 ## Test
 
@@ -43,7 +92,21 @@ python3 -m compileall -q src tests
 git diff --check
 ```
 
-## Project references
+## Project layout
+
+```text
+src/codex_rescue/  Service, safety broker, fixture handling, and simulation
+web/               Static browser console
+fixtures/          Demonstration cases plus rollback and post-action evidence
+tests/             Unit and HTTP integration tests
+docs/images/       README screenshots captured from the local console
+```
+
+## Current scope
+
+This release proves the safety and workflow model with deterministic fixtures. A real bootable recovery environment would be a separate milestone requiring hardware testing, threat modeling, and explicit approval for every real disk or encryption operation.
+
+## References
 
 - [Product and safety design](docs/plans/2026-08-04-codex-rescue-usb-design.md)
 - [Fixture console implementation plan](docs/plans/2026-08-04-fixture-rescue-console-implementation.md)

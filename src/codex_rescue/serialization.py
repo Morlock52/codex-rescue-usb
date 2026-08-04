@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from dataclasses import asdict
 
 from codex_rescue.models import CaseEvent, CaseRecord, CaseStage
@@ -8,7 +7,8 @@ from codex_rescue.models import CaseEvent, CaseRecord, CaseStage
 
 def event_to_dict(event: CaseEvent) -> dict[str, object]:
     payload = asdict(event)
-    payload["payload"] = json.loads(str(payload.pop("payload_json")))
+    payload.pop("payload_json")
+    payload["payload"] = event.payload()
     return payload
 
 

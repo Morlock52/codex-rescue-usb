@@ -58,9 +58,6 @@ class CaseService:
         self._cases: dict[str, CaseRecord] = {}
         self._lock = RLock()
 
-    def list_scenario_summaries(self) -> list[dict[str, object]]:
-        return self.fixtures.list_scenario_summaries()
-
     def problem_catalog(self) -> list[dict[str, object]]:
         return self.fixtures.problem_catalog()
 

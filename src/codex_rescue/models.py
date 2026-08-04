@@ -285,6 +285,9 @@ class CaseEvent:
         event_hash = values.pop("event_hash")
         return event_hash == canonical_digest(values)
 
+    def payload(self) -> object:
+        return json.loads(self.payload_json)
+
 
 @dataclass(frozen=True)
 class CaseRecord:
