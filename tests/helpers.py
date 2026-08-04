@@ -57,7 +57,7 @@ def proposal(**overrides: object) -> RepairProposal:
         "proposal_id": "proposal-001",
         "operation": Operation.SIMULATE_BCD_REBUILD,
         "target": target(),
-        "risk": RiskLevel.READ_ONLY,
+        "risk": RiskLevel.REVERSIBLE,
         "summary": "Simulate rebuilding the BCD store",
         "reason": "BCD validation failed",
         "simulated_change": "BCD fixture state becomes valid",

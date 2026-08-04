@@ -3,14 +3,13 @@ from __future__ import annotations
 import json
 import mimetypes
 import re
-from dataclasses import asdict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 
 from codex_rescue.fixtures import FixtureIntegrityError, FixtureNotFound
 from codex_rescue.models import ApprovalFingerprint
-from codex_rescue.serialization import case_to_dict
+from codex_rescue.serialization import case_to_dict, event_to_dict
 from codex_rescue.service import CaseNotFound, CaseService, PolicyBlocked
 
 
@@ -59,18 +58,26 @@ def build_server(
                 )
                 return
             if self.path == "/api/scenarios":
+                categories = service.problem_catalog()
                 self._send_json(
                     200,
                     {
-                        "scenarios": service.list_scenario_summaries(),
-                        "categories": service.problem_catalog(),
+                        "scenarios": [
+                            scenario
+                            for category in categories
+                            for scenario in category["scenarios"]
+                        ],
+                        "categories": categories,
                     },
                 )
                 return
             audit_match = _AUDIT_ROUTE.fullmatch(self.path)
             if audit_match:
                 events = service.get_case_events(audit_match[1])
-                self._send_json(200, {"events": [asdict(event) for event in events]})
+                self._send_json(
+                    200,
+                    {"events": [event_to_dict(event) for event in events]},
+                )
                 return
             case_match = _CASE_ROUTE.fullmatch(self.path)
             if case_match:

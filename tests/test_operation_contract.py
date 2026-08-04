@@ -6,7 +6,7 @@ from dataclasses import replace
 from tests.helpers import ROOT
 
 from codex_rescue.fixtures import FixtureRepository
-from codex_rescue.models import SimulationReceipt
+from codex_rescue.models import RiskLevel, SimulationReceipt
 from codex_rescue.service import CaseService, PolicyBlocked
 
 
@@ -26,6 +26,7 @@ class OperationContractTests(unittest.TestCase):
         self.assertTrue(proposal.stop_conditions)
         self.assertTrue(proposal.verification_plan)
         self.assertTrue(proposal.rollback_artifact.restore_tested)
+        self.assertEqual(proposal.risk, RiskLevel.REVERSIBLE)
 
     def test_broker_detects_secret_material_without_caller_flag(self) -> None:
         case = self.service.create_case("boot-loop")

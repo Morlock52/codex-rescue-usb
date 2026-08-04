@@ -12,6 +12,7 @@ from codex_rescue.models import (
     StorageHealth,
 )
 from codex_rescue.operations import OperationRegistry
+from codex_rescue.secret_policy import SECRET_FIELD_TOKENS
 
 
 _BITLOCKER_PASSWORD = re.compile(r"\b(?:\d{6}-){7}\d{6}\b")
@@ -19,22 +20,9 @@ _TOKEN_PATTERN = re.compile(
     r"\b(?:sk-|ghp_|github_pat_|bearer\s+)[A-Za-z0-9._-]{8,}",
     re.IGNORECASE,
 )
-_SECRET_KEY_TOKENS = (
-    "api_key",
-    "authorization",
-    "client_secret",
-    "credential",
-    "password",
-    "recovery_key",
-    "recovery_password",
-    "secret",
-    "token",
-)
-
-
 def _contains_secret(value: object, key: str = "") -> bool:
     normalized = key.strip().lower().replace("-", "_")
-    if normalized and any(token in normalized for token in _SECRET_KEY_TOKENS):
+    if normalized and any(token in normalized for token in SECRET_FIELD_TOKENS):
         return True
     if isinstance(value, dict):
         return any(_contains_secret(child, str(child_key)) for child_key, child in value.items())

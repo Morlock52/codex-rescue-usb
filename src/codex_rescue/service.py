@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import replace
+from dataclasses import asdict, replace
 from threading import RLock
 from uuid import uuid4
 
@@ -10,7 +10,7 @@ from codex_rescue.artifacts import (
 )
 from codex_rescue.case_store import CaseStore, InMemoryCaseStore
 from codex_rescue.diagnostics import analyze
-from codex_rescue.fixtures import FixtureRepository
+from codex_rescue.fixtures import FixtureIntegrityError, FixtureRepository
 from codex_rescue.models import (
     Approval,
     ApprovalFingerprint,
@@ -18,10 +18,10 @@ from codex_rescue.models import (
     CaseRecord,
     CaseStage,
     Operation,
+    VerificationResult,
     utc_now,
 )
 from codex_rescue.operations import OperationRegistry
-from codex_rescue.runner import SimulatedRepairRunner, SimulatedVerifier
 from codex_rescue.safety import SafetyBroker
 
 
@@ -55,8 +55,6 @@ class CaseService:
             fixtures.root / "post_action"
         )
         self.broker = SafetyBroker(self.registry)
-        self.runner = SimulatedRepairRunner(self.registry)
-        self.verifier = SimulatedVerifier(self.registry)
         self._cases: dict[str, CaseRecord] = {}
         self._lock = RLock()
 
@@ -93,17 +91,27 @@ class CaseService:
                 stage=stage,
                 proposal=proposal,
             )
-            case = self._record(case, "evidence.loaded", "Fixture evidence loaded")
+            case = self._record(
+                case,
+                "evidence.loaded",
+                "Fixture evidence loaded",
+                asdict(evidence),
+            )
             case = self._record(
                 case,
                 "diagnosis.completed",
                 "Offline deterministic diagnosis completed",
+                {"findings": [asdict(finding) for finding in findings]},
             )
             if proposal is not None:
                 case = self._record(
                     case,
                     "proposal.created",
                     "Complete simulated proposal and rollback artifact verified",
+                    {
+                        **asdict(proposal),
+                        "proposal_digest": proposal.digest(),
+                    },
                 )
             self._cases[case.case_id] = case
             return case
@@ -116,8 +124,10 @@ class CaseService:
                 raise CaseNotFound(case_id) from error
 
     def get_case_events(self, case_id: str) -> tuple[CaseEvent, ...]:
-        self.get_case(case_id)
-        return self.case_store.read(case_id)
+        events = self.case_store.read(case_id)
+        if not events and case_id not in self._cases:
+            raise CaseNotFound(case_id)
+        return events
 
     def approve(
         self,
@@ -148,6 +158,7 @@ class CaseService:
                 updated,
                 "approval.granted",
                 "Local user approved one exact simulated action",
+                asdict(approval),
             )
             self._cases[case_id] = updated
             return updated
@@ -170,14 +181,29 @@ class CaseService:
             if not decision.allowed:
                 raise PolicyBlocked(decision.reasons)
 
-            execution = self.runner.execute(case.proposal, case.approval)
-            post_evidence = self.post_actions.collect(case.evidence, case.proposal)
-            verification = self.verifier.verify(
-                case.proposal,
-                case.approval,
-                execution,
-                post_evidence,
-            )
+            handler = self.registry.require(case.proposal.operation)
+            execution = handler.execute(case.proposal, case.approval)
+            try:
+                post_evidence = self.post_actions.collect(
+                    case.evidence,
+                    case.proposal,
+                )
+            except FixtureIntegrityError:
+                post_evidence = None
+                verification = VerificationResult(
+                    passed=False,
+                    message=(
+                        "Independent post-action evidence is unavailable; "
+                        "retain the last safe state."
+                    ),
+                )
+            else:
+                verification = handler.verify(
+                    case.proposal,
+                    case.approval,
+                    execution,
+                    post_evidence,
+                )
             stage = CaseStage.VERIFIED if verification.passed else CaseStage.FAILED
             updated = replace(
                 case,
@@ -190,22 +216,36 @@ class CaseService:
                 updated,
                 "execution.completed",
                 execution.message,
+                asdict(execution),
             )
             updated = self._record(
                 updated,
                 "verification.completed",
                 verification.message,
+                {
+                    "post_action_evidence": (
+                        asdict(post_evidence) if post_evidence is not None else None
+                    ),
+                    "verification": asdict(verification),
+                },
             )
             self._cases[case_id] = updated
             return updated
 
-    def _record(self, case: CaseRecord, kind: str, message: str) -> CaseRecord:
+    def _record(
+        self,
+        case: CaseRecord,
+        kind: str,
+        message: str,
+        payload: object,
+    ) -> CaseRecord:
         previous_hash = case.event_log[-1].event_hash if case.event_log else ""
         event = CaseEvent.create(
             case_id=case.case_id,
             sequence=len(case.event_log) + 1,
             kind=kind,
             message=message,
+            payload=payload,
             previous_hash=previous_hash,
         )
         self.case_store.append(event)

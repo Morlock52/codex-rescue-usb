@@ -11,6 +11,7 @@ from codex_rescue.models import (
     StorageHealth,
     TargetFingerprint,
 )
+from codex_rescue.secret_policy import SECRET_FIELD_TOKENS
 
 
 class FixtureError(ValueError):
@@ -33,18 +34,6 @@ _GUID_PATTERN = re.compile(
 _SERIAL_PATTERN = re.compile(r"^[A-Za-z0-9._-]{3,64}$")
 _FILESYSTEM_PATTERN = re.compile(r"^[A-Za-z0-9._-]{3,64}$")
 _KEY_ID_PATTERN = re.compile(r"^[A-Fa-f0-9-]{8,64}$")
-_SECRET_KEY_TOKENS = (
-    "api_key",
-    "authorization",
-    "client_secret",
-    "credential",
-    "password",
-    "recovery_key",
-    "recovery_password",
-    "secret",
-    "token",
-)
-
 PROBLEM_TAXONOMY = (
     ("pc-wont-boot", "PC won't boot", "Boot media, encryption, and startup evidence"),
     (
@@ -77,7 +66,7 @@ def _reject_secret_fields(value: Any, path: str = "root") -> None:
     if isinstance(value, dict):
         for key, child in value.items():
             normalized = str(key).strip().lower().replace("-", "_")
-            if any(token in normalized for token in _SECRET_KEY_TOKENS):
+            if any(token in normalized for token in SECRET_FIELD_TOKENS):
                 raise FixtureIntegrityError(
                     f"secret field is forbidden at {path}.{key}"
                 )
@@ -135,8 +124,7 @@ class FixtureRepository:
     def list_scenario_summaries(self) -> list[dict[str, object]]:
         summaries: list[dict[str, object]] = []
         index = self._index()
-        for scenario_id, path in index.items():
-            payload = self._read_validated(path)
+        for scenario_id, payload in index.items():
             presentation = payload["presentation"]
             summaries.append(
                 {
@@ -169,10 +157,9 @@ class FixtureRepository:
     def load(self, scenario_id: str) -> EvidenceSnapshot:
         if not _ID_PATTERN.fullmatch(scenario_id):
             raise FixtureNotFound(f"unknown fixture: {scenario_id}")
-        path = self._index().get(scenario_id)
-        if path is None:
+        payload = self._index().get(scenario_id)
+        if payload is None:
             raise FixtureNotFound(f"unknown fixture: {scenario_id}")
-        payload = self._read_validated(path)
         target_data = payload["target"]
         evidence_data = payload["evidence"]
         return EvidenceSnapshot(
@@ -195,8 +182,8 @@ class FixtureRepository:
             notes=tuple(evidence_data["notes"]),
         )
 
-    def _index(self) -> dict[str, Path]:
-        index: dict[str, Path] = {}
+    def _index(self) -> dict[str, dict[str, Any]]:
+        index: dict[str, dict[str, Any]] = {}
         for path in sorted(self.root.glob("*.json")):
             resolved = path.resolve()
             if resolved.parent != self.root:
@@ -205,7 +192,7 @@ class FixtureRepository:
             scenario_id = payload["id"]
             if scenario_id in index:
                 raise FixtureIntegrityError(f"duplicate fixture id: {scenario_id}")
-            index[scenario_id] = resolved
+            index[scenario_id] = payload
         return index
 
     def _read_validated(self, path: Path) -> dict[str, Any]:

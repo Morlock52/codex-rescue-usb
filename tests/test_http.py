@@ -95,6 +95,10 @@ class HttpServerTests(unittest.TestCase):
             self.assertEqual(case["stage"], "proposed")
             self.assertFalse(case["codex_contacted"])
             self.assertEqual(case["workflow"]["allowed_actions"], ["approve"])
+            self.assertEqual(
+                [step["state"] for step in case["workflow"]["timeline"]],
+                ["complete", "complete", "current", "pending"],
+            )
             self.assertNotIn("recovery_key", json.dumps(case).lower())
             self.assertIn("confidence", case["findings"][0])
             self.assertIn("uncertainty", case["findings"][0])
@@ -150,6 +154,10 @@ class HttpServerTests(unittest.TestCase):
             self.assertEqual(status, 200)
             self.assertEqual(approved["stage"], "approved")
             self.assertEqual(approved["workflow"]["allowed_actions"], ["execute"])
+            self.assertEqual(
+                [step["state"] for step in approved["workflow"]["timeline"]],
+                ["complete", "complete", "complete", "current"],
+            )
 
             status, completed = request_json(
                 base_url,
@@ -179,6 +187,10 @@ class HttpServerTests(unittest.TestCase):
             self.assertEqual(status, 200)
             self.assertEqual(len(audit["events"]), 6)
             self.assertEqual(audit["events"][0]["previous_hash"], "")
+            self.assertEqual(
+                audit["events"][0]["payload"]["scenario_id"],
+                "boot-loop",
+            )
             self.assertEqual(
                 audit["events"][1]["previous_hash"],
                 audit["events"][0]["event_hash"],

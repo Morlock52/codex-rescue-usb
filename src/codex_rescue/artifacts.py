@@ -21,6 +21,20 @@ _OPERATION_FILENAMES = {
 }
 
 
+def _operation_fixture_path(
+    root: Path,
+    scenario_id: str,
+    operation: Operation,
+) -> Path:
+    operation_name = _OPERATION_FILENAMES.get(operation)
+    if operation_name is None:
+        raise FixtureIntegrityError("operation has no artifact fixture")
+    path = (root / f"{scenario_id}-{operation_name}.json").resolve()
+    if path.parent != root or not path.is_file():
+        raise FixtureIntegrityError("operation artifact fixture is missing")
+    return path
+
+
 def _read_object(path: Path) -> dict[str, Any]:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -75,7 +89,7 @@ class RollbackArtifactRepository:
         evidence: EvidenceSnapshot,
         operation: Operation,
     ) -> RollbackArtifact:
-        path = self._path(evidence.scenario_id, operation)
+        path = _operation_fixture_path(self.root, evidence.scenario_id, operation)
         payload = _read_object(path)
         _require_exact_keys(
             payload,
@@ -127,16 +141,6 @@ class RollbackArtifactRepository:
             verified_at=payload["verified_at"],
         )
 
-    def _path(self, scenario_id: str, operation: Operation) -> Path:
-        operation_name = _OPERATION_FILENAMES.get(operation)
-        if operation_name is None:
-            raise FixtureIntegrityError("operation has no rollback artifact fixture")
-        path = (self.root / f"{scenario_id}-{operation_name}.json").resolve()
-        if path.parent != self.root or not path.is_file():
-            raise FixtureIntegrityError("rollback artifact fixture is missing")
-        return path
-
-
 class PostActionFixtureRepository:
     def __init__(self, root: Path) -> None:
         self.root = root.resolve()
@@ -146,14 +150,11 @@ class PostActionFixtureRepository:
         evidence: EvidenceSnapshot,
         proposal: RepairProposal,
     ) -> PostActionEvidence:
-        operation_name = _OPERATION_FILENAMES.get(proposal.operation)
-        if operation_name is None:
-            raise FixtureIntegrityError("operation has no post-action fixture")
-        path = (
-            self.root / f"{evidence.scenario_id}-{operation_name}.json"
-        ).resolve()
-        if path.parent != self.root or not path.is_file():
-            raise FixtureIntegrityError("post-action fixture is missing")
+        path = _operation_fixture_path(
+            self.root,
+            evidence.scenario_id,
+            proposal.operation,
+        )
         payload = _read_object(path)
         _require_exact_keys(
             payload,

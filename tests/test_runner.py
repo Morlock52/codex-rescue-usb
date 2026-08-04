@@ -22,15 +22,16 @@ class SimulatedVerifierTests(unittest.TestCase):
         self.approval = self.case.approval
         assert self.proposal is not None
         assert self.approval is not None
+        self.handler = self.service.registry.require(self.proposal.operation)
 
     def test_verifier_independently_checks_receipt_against_proposal(self) -> None:
-        execution = self.service.runner.execute(self.proposal, self.approval)
+        execution = self.handler.execute(self.proposal, self.approval)
         post_evidence = self.service.post_actions.collect(
             self.case.evidence,
             self.proposal,
         )
 
-        result = self.service.verifier.verify(
+        result = self.handler.verify(
             self.proposal,
             self.approval,
             execution,
@@ -40,7 +41,7 @@ class SimulatedVerifierTests(unittest.TestCase):
         self.assertTrue(result.passed)
 
     def test_verifier_rejects_tampered_typed_receipt(self) -> None:
-        execution = self.service.runner.execute(self.proposal, self.approval)
+        execution = self.handler.execute(self.proposal, self.approval)
         assert execution.receipt is not None
         tampered = replace(
             execution,
@@ -51,7 +52,7 @@ class SimulatedVerifierTests(unittest.TestCase):
             self.proposal,
         )
 
-        result = self.service.verifier.verify(
+        result = self.handler.verify(
             self.proposal,
             self.approval,
             tampered,
@@ -61,14 +62,14 @@ class SimulatedVerifierTests(unittest.TestCase):
         self.assertFalse(result.passed)
 
     def test_verifier_rejects_independent_post_action_failure(self) -> None:
-        execution = self.service.runner.execute(self.proposal, self.approval)
+        execution = self.handler.execute(self.proposal, self.approval)
         post_evidence = self.service.post_actions.collect(
             self.case.evidence,
             self.proposal,
         )
         failed_evidence = replace(post_evidence, bcd_valid=False)
 
-        result = self.service.verifier.verify(
+        result = self.handler.verify(
             self.proposal,
             self.approval,
             execution,

@@ -1,8 +1,15 @@
 from __future__ import annotations
 
+import json
 from dataclasses import asdict
 
-from codex_rescue.models import CaseRecord, CaseStage
+from codex_rescue.models import CaseEvent, CaseRecord, CaseStage
+
+
+def event_to_dict(event: CaseEvent) -> dict[str, object]:
+    payload = asdict(event)
+    payload["payload"] = json.loads(str(payload.pop("payload_json")))
+    return payload
 
 
 def _timeline(case: CaseRecord) -> list[dict[str, str]]:
@@ -15,8 +22,8 @@ def _timeline(case: CaseRecord) -> list[dict[str, str]]:
     stage_index = {
         CaseStage.BLOCKED: 1,
         CaseStage.DIAGNOSED: 1,
-        CaseStage.PROPOSED: 1,
-        CaseStage.APPROVED: 2,
+        CaseStage.PROPOSED: 2,
+        CaseStage.APPROVED: 3,
         CaseStage.VERIFIED: 3,
         CaseStage.FAILED: 3,
     }[case.stage]
@@ -190,5 +197,5 @@ def case_to_dict(case: CaseRecord) -> dict[str, object]:
             asdict(case.verification) if case.verification is not None else None
         ),
         "workflow": _workflow(case),
-        "event_log": [asdict(event) for event in case.event_log],
+        "event_log": [event_to_dict(event) for event in case.event_log],
     }

@@ -4,6 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from tests.helpers import ROOT
 
@@ -74,6 +75,19 @@ class FixtureSecurityTests(unittest.TestCase):
         with self.fixture_repository(payload) as repository:
             with self.assertRaises(FixtureIntegrityError):
                 repository.load("strict-fixture")
+
+    def test_problem_catalog_reads_each_fixture_once(self) -> None:
+        repository = FixtureRepository(ROOT / "fixtures")
+
+        with patch.object(
+            repository,
+            "_read_validated",
+            wraps=repository._read_validated,
+        ) as read_validated:
+            catalog = repository.problem_catalog()
+
+        self.assertEqual(len(catalog), 7)
+        self.assertEqual(read_validated.call_count, 3)
 
     @staticmethod
     def fixture_repository(payload: dict[str, object]):

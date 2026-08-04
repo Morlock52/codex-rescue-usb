@@ -26,7 +26,7 @@ class OperationPolicy:
 
 class SimulatedBcdRebuildHandler:
     operation = Operation.SIMULATE_BCD_REBUILD
-    policy = OperationPolicy(risk=RiskLevel.READ_ONLY, requires_rollback=True)
+    policy = OperationPolicy(risk=RiskLevel.REVERSIBLE, requires_rollback=True)
 
     def supports(self, evidence: EvidenceSnapshot) -> bool:
         return bool(

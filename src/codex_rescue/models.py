@@ -250,6 +250,7 @@ class CaseEvent:
     sequence: int
     kind: str
     message: str
+    payload_json: str
     occurred_at: str
     previous_hash: str
     event_hash: str
@@ -261,6 +262,7 @@ class CaseEvent:
         sequence: int,
         kind: str,
         message: str,
+        payload: object,
         previous_hash: str,
     ) -> CaseEvent:
         values = {
@@ -268,6 +270,11 @@ class CaseEvent:
             "sequence": sequence,
             "kind": kind,
             "message": message,
+            "payload_json": json.dumps(
+                payload,
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
             "occurred_at": utc_now(),
             "previous_hash": previous_hash,
         }

@@ -9,7 +9,9 @@ from pathlib import Path
 
 from tests.helpers import ROOT
 
+from codex_rescue.artifacts import PostActionFixtureRepository
 from codex_rescue.fixtures import FixtureError, FixtureRepository
+from codex_rescue.models import CaseStage
 from codex_rescue.service import CaseService, PolicyBlocked
 
 
@@ -69,6 +71,24 @@ class CaseServiceTests(unittest.TestCase):
 
         self.assertEqual(results.count("verified"), 1)
         self.assertEqual(results.count("blocked"), 1)
+
+    def test_missing_post_action_evidence_consumes_approval_and_fails_case(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            service = CaseService(
+                FixtureRepository(ROOT / "fixtures"),
+                post_actions=PostActionFixtureRepository(Path(temp_dir)),
+            )
+            case = service.create_case("boot-loop")
+            assert case.proposal is not None
+            service.approve(case.case_id, case.proposal.approval_fingerprint())
+
+            failed = service.execute(case.case_id)
+
+        self.assertEqual(failed.stage, CaseStage.FAILED)
+        self.assertFalse(failed.verification.passed)
+        self.assertIn("unavailable", failed.verification.message)
+        with self.assertRaises(PolicyBlocked):
+            service.execute(case.case_id)
 
     def test_bitlocker_fixture_has_no_executable_proposal(self) -> None:
         case = self.service.create_case("bitlocker-locked")
