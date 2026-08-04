@@ -59,14 +59,18 @@ def build_server(
                 return
             if self.path == "/api/scenarios":
                 categories = service.problem_catalog()
+                scenarios = sorted(
+                    (
+                        scenario
+                        for category in categories
+                        for scenario in category["scenarios"]
+                    ),
+                    key=lambda scenario: (scenario["order"], scenario["id"]),
+                )
                 self._send_json(
                     200,
                     {
-                        "scenarios": [
-                            scenario
-                            for category in categories
-                            for scenario in category["scenarios"]
-                        ],
+                        "scenarios": scenarios,
                         "categories": categories,
                     },
                 )

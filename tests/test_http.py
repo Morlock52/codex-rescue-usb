@@ -77,6 +77,7 @@ class HttpServerTests(unittest.TestCase):
             status, scenarios = request_json(base_url, "/api/scenarios")
             self.assertEqual(status, 200)
             self.assertEqual(len(scenarios["scenarios"]), 3)
+            self.assertEqual(scenarios["scenarios"][0]["id"], "boot-loop")
             self.assertEqual(len(scenarios["categories"]), 7)
             self.assertEqual(
                 [category["status"] for category in scenarios["categories"]].count(
