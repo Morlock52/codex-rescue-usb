@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Codex Rescue USB</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+    <script src="/assets/app.js" defer></script>
+  </head>
+  <body>
+    <main class="console-shell" aria-live="polite">
+      <header class="console-header panel">
+        <div>
+          <p class="eyebrow">Field recovery system</p>
+          <h1>Codex Rescue USB</h1>
+        </div>
+        <div class="session-copy">
+          <p class="eyebrow" id="case-label">Fixture session</p>
+          <p class="session-boundary">Read-only diagnosis · simulated repair only</p>
+        </div>
+        <div class="badges" aria-label="Runtime boundaries">
+          <span class="badge">Fixture only</span>
+          <span class="badge">Offline</span>
+        </div>
+      </header>
+
+      <section class="workspace" aria-label="Rescue workspace">
+        <nav class="panel scenario-rail" aria-labelledby="scenario-title">
+          <p class="eyebrow">Diagnostic mode</p>
+          <h2 id="scenario-title">Problem categories</h2>
+          <div id="scenario-list" class="scenario-list"></div>
+          <p id="fixture-count" class="fixture-count">Loading fixtures…</p>
+        </nav>
+
+        <section class="panel evidence-panel" aria-labelledby="diagnosis-title">
+          <p class="eyebrow">Read-only diagnosis</p>
+          <h2 id="diagnosis-title">Loading fixture evidence…</h2>
+
+          <section class="evidence-block" aria-labelledby="evidence-title">
+            <p class="eyebrow" id="evidence-title">Observed evidence</p>
+            <dl id="evidence-list" class="evidence-list"></dl>
+          </section>
+
+          <section id="finding-card" class="finding-card">
+            <p class="eyebrow">Likely cause</p>
+            <h3 id="finding-title">Waiting for diagnosis</h3>
+            <p id="finding-summary"></p>
+          </section>
+
+          <section id="proposal-card" class="proposal-card" hidden>
+            <p class="eyebrow">Proposed repair</p>
+            <h3 id="proposal-title"></h3>
+            <p id="proposal-summary"></p>
+            <dl class="proposal-facts">
+              <div><dt>Allowed operation</dt><dd id="operation"></dd></div>
+              <div><dt>Expected change</dt><dd>None — evidence receipt only</dd></div>
+            </dl>
+          </section>
+
+          <aside class="boundary-card">
+            <p class="eyebrow">Safety boundary</p>
+            <strong>This prototype cannot mount, unlock, write, format, or execute host commands.</strong>
+          </aside>
+        </section>
+
+        <aside class="panel interlock-panel" aria-labelledby="interlock-title">
+          <p class="eyebrow">Safety broker</p>
+          <h2 id="interlock-title">Safety Interlock</h2>
+          <span id="interlock-state" class="badge">Waiting</span>
+
+          <section class="rule-card">
+            <p class="eyebrow">Immutable rules</p>
+            <ul>
+              <li>No host command execution</li>
+              <li>No disk or volume writes</li>
+              <li>BitLocker keys never requested</li>
+              <li>Target digest must match</li>
+            </ul>
+          </section>
+
+          <section class="fingerprint-card">
+            <p class="eyebrow">Approval fingerprint</p>
+            <dl>
+              <div><dt>Proposal</dt><dd id="proposal-digest">—</dd></div>
+              <div><dt>Target</dt><dd id="target-digest">—</dd></div>
+            </dl>
+          </section>
+
+          <section class="codex-plan">
+            <p class="eyebrow">Codex plan</p>
+            <ol>
+              <li>Verify fixture digest</li>
+              <li>Simulate approved operation</li>
+              <li>Produce evidence receipt</li>
+            </ol>
+          </section>
+
+          <div class="action-area">
+            <button id="action-button" type="button" disabled>No action available</button>
+            <p id="action-hint">Select a fixture to begin.</p>
+          </div>
+        </aside>
+      </section>
+
+      <footer class="panel timeline-panel">
+        <div>
+          <p class="eyebrow" id="timeline-case">Fixture case</p>
+          <strong>Evidence timeline</strong>
+        </div>
+        <ol id="timeline" class="timeline" aria-label="Case progress"></ol>
+      </footer>
+      <p id="error-message" class="error-message" role="alert" hidden></p>
+    </main>
+  </body>
+</html>

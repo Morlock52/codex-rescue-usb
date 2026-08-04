@@ -1,0 +1,25 @@
+{
+  "id": "failing-drive",
+  "title": "Storage health blocks ordinary repair",
+  "category": "check-hardware",
+  "target": {
+    "disk_serial": "SATA-DEMO-003",
+    "partition_guid": "33333333-4444-5555-6666-777777777777",
+    "filesystem_uuid": "EEEE-FFFF",
+    "windows_path": "\\Windows",
+    "bitlocker_key_id": null
+  },
+  "evidence": {
+    "smart_status": "failing",
+    "read_errors": 12,
+    "bitlocker_state": "not-encrypted",
+    "bcd_valid": false,
+    "boot_files_present": true,
+    "network_available": false,
+    "notes": [
+      "Fixture evidence only",
+      "Read errors were simulated",
+      "Image to separate storage before repair"
+    ]
+  }
+}

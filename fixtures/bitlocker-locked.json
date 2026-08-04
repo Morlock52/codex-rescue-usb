@@ -1,0 +1,25 @@
+{
+  "id": "bitlocker-locked",
+  "title": "Windows volume is protected by BitLocker",
+  "category": "pc-wont-boot",
+  "target": {
+    "disk_serial": "NVME-DEMO-002",
+    "partition_guid": "22222222-3333-4444-5555-666666666666",
+    "filesystem_uuid": "CCCC-DDDD",
+    "windows_path": "\\Windows",
+    "bitlocker_key_id": "ABCDEF12"
+  },
+  "evidence": {
+    "smart_status": "healthy",
+    "read_errors": 0,
+    "bitlocker_state": "locked",
+    "bcd_valid": false,
+    "boot_files_present": true,
+    "network_available": true,
+    "notes": [
+      "Fixture evidence only",
+      "Recovery material is intentionally absent",
+      "Only authorized local WinPE unlock is permitted"
+    ]
+  }
+}
