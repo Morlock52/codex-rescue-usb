@@ -6,6 +6,8 @@ Codex Rescue USB is a host-runnable prototype for a future offline recovery envi
 
 It is not a bootable USB image and cannot repair a physical computer. The current milestone is a local Rescue Console for safely exploring recovery workflows.
 
+![Boot-loop diagnosis and proposed simulated repair](docs/images/rescue-console-overview.jpg)
+
 ## Features
 
 - Runs locally on `127.0.0.1` with no network dependency.
@@ -66,6 +68,8 @@ Stop the server with `Ctrl+C`.
 7. Confirm independent verification, then open the hash-chained audit record if desired.
 
 The BitLocker and failing-drive cases are expected safe stops: they intentionally do not offer an executable action.
+
+![Approved one-time simulated repair plan](docs/images/rescue-console-approved.jpg)
 
 ## Demonstration fixtures
 
