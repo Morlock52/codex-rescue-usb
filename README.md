@@ -8,18 +8,26 @@ The current milestone includes a local fixture console plus a Windows PE ISO bui
 
 ## Building the bootable ISO (Windows build VM)
 
-The checked-in source now includes the first WinPE ISO build assets. On a Windows build VM, install the Windows ADK Deployment Tools, the matching WinPE add-on, and the current Microsoft ADK servicing patch before building. Then run:
+The checked-in source includes the first WinPE ISO build assets. Build it on a Windows 11 x64 VM or workstation with:
+
+- Windows ADK **Deployment Tools**;
+- the matching Windows PE add-on; and
+- the current Microsoft ADK servicing patch for that ADK release.
+
+Then run:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
 .\scripts\Build-RescueIso.ps1 -Force
 ```
 
-This produces `dist\Codex-Rescue-ISO.iso`. Test that ISO in a Proxmox VM before using physical hardware. To make a physical USB later, use a dedicated USB-writing tool on a separate Windows machine, select the verified ISO, and confirm the exact removable drive before writing. This overwrites that USB. The ISO contains no recovery keys and starts in read-only evidence-collection mode. Evidence collection asks the operator to select a removable destination drive and then writes only to `CodexRescueEvidence` on that selected drive.
+This produces `dist\Codex-Rescue-ISO.iso`. Attach that ISO to a separate Proxmox test VM and verify it reaches the WinPE command prompt before using physical hardware. The build VM is not the test VM.
+
+To make a physical USB after VM verification, use a dedicated USB-writing tool on a separate Windows machine. Select the verified ISO, confirm the exact removable drive, and write it. This overwrites that USB. The image contains no recovery keys and starts in read-only evidence-collection mode. Evidence collection asks the operator to select a removable destination drive and then writes only to `CodexRescueEvidence` on that selected drive.
 
 ![Boot-loop diagnosis and proposed simulated repair](docs/images/rescue-console-overview.jpg)
 
-## Features
+## Fixture console features
 
 - Runs locally on `127.0.0.1` with no network dependency.
 - Diagnoses a boot loop, locked BitLocker volume, or failing drive fixture.
@@ -30,14 +38,15 @@ This produces `dist\Codex-Rescue-ISO.iso`. Test that ISO in a Proxmox VM before 
 
 ## Safety boundaries
 
-- The Windows PE build assets are not proof that the ISO has booted; VM verification is required.
-- No real disk, volume, boot file, or host command is touched.
-- BitLocker keys, passwords, tokens, and credentials are never requested.
-- No Codex, model, or network service is contacted.
+- The Windows PE build assets are not proof that the ISO has booted; separate VM verification is required.
+- The fixture console never touches a real disk, volume, boot file, or host command.
+- A booted WinPE image can query the machine it was booted on for disk layout, BitLocker status, boot configuration, event-log names, driver inventory, and network state. Its checked-in evidence command does not unlock, repair, or write to those system components.
+- The fixture console never requests BitLocker keys, passwords, tokens, or credentials. The future real recovery flow must keep any owner-entered recovery key local and out of logs and Codex context.
+- The fixture console contacts no Codex, model, or network service. The WinPE evidence script reports network configuration only; it does not enable or use a network connection.
 
 Do not use this prototype as a real recovery tool.
 
-## Requirements
+## Fixture console requirements
 
 - Python 3.11 or newer
 - A modern browser
@@ -144,7 +153,7 @@ tests/             Unit and HTTP integration tests
 
 ## Current scope
 
-This release proves the safety and workflow model with deterministic fixtures. A real bootable recovery environment would be a separate milestone requiring hardware testing, threat modeling, and explicit approval for every real disk or encryption operation.
+This release proves the safety and workflow model with deterministic fixtures and supplies an unverified WinPE ISO build path. It is not yet a VM-boot-verified recovery image, a physical USB recovery disk, or a full Windows Codex workspace. Those later stages require threat modeling, separate VM and hardware testing, and explicit approval for every real disk or encryption operation.
 
 ## Planned real recovery USB
 
