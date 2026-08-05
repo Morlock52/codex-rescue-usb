@@ -113,6 +113,7 @@ try {
 
     $powerShellComponents = @(
         'WinPE-WMI',
+        'WinPE-SecureStartup',
         'WinPE-NetFx',
         'WinPE-Scripting',
         'WinPE-PowerShell'
@@ -130,6 +131,7 @@ try {
     $rescueDirectory = Join-Path $mount 'Rescue'
     New-Item -ItemType Directory -Force $rescueDirectory | Out-Null
     Copy-Item (Join-Path $PSScriptRoot '..\winpe\Collect-RescueEvidence.cmd') (Join-Path $rescueDirectory 'Collect-RescueEvidence.cmd')
+    Copy-Item (Join-Path $PSScriptRoot '..\winpe\Unlock-BitLockerWithRecoveryKey.cmd') (Join-Path $rescueDirectory 'Unlock-BitLockerWithRecoveryKey.cmd')
     Copy-Item (Join-Path $PSScriptRoot '..\winpe\New-EvidenceManifest.ps1') (Join-Path $rescueDirectory 'New-EvidenceManifest.ps1')
     Copy-Item (Join-Path $PSScriptRoot '..\winpe\diskpart-list.txt') (Join-Path $rescueDirectory 'diskpart-list.txt')
     Copy-Item (Join-Path $PSScriptRoot '..\winpe\startnet.cmd') (Join-Path $mount 'Windows\System32\startnet.cmd') -Force

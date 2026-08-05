@@ -34,15 +34,19 @@ Each phase produces a testable artifact and its own evidence. A design mockup, a
 
 ## Phase 3 — Owner-mediated BitLocker recovery
 
-**Status:** Pending. The current ISO reports BitLocker state only and never accepts a recovery key.
+**Status:** Partially VM-verified on August 5, 2026. The exact alpha.7 ISO completed the external `.bek` recovery-key sub-gate against one disposable encrypted data disk in an isolated Proxmox VM. The 48-digit recovery-password interface, operating-system-volume recovery, physical hardware, and production-data gates remain pending.
 
 **Outcome:** the environment can show BitLocker state and guide an owner through Microsoft’s local recovery steps without retaining recovery material.
 
-**Build work:** add a local, masked entry screen only after threat modeling; prohibit recovery-key logging, clipboard retention, audit export, and Codex context inclusion; require the exact selected volume and an owner confirmation before passing material to the local BitLocker tool.
+**Completed sub-gate:** `WinPE-SecureStartup` is injected after `WinPE-WMI`. A local command accepts one explicit non-system data-volume letter, requires exactly one separately prepared marker drive and one hidden `.bek` file, withholds the key filename and contents, and requires `UNLOCK <drive>:` before calling Microsoft's local BitLocker tool. It performs no decryption, protector change, repair, evidence export, or network operation.
 
-**Acceptance evidence:** a disposable encrypted test volume, successful owner-controlled unlock, proof that no recovery key appears in logs or exports, and an independent review of the audit boundary.
+**Remaining build work:** design and implement a local masked 48-digit recovery-password screen after its own security review; prohibit recovery-password logging, clipboard retention, audit export, and Codex context inclusion; validate operating-system-volume recovery only on a disposable Windows installation; and independently review every output boundary.
 
-**Figma screen:** `03 — BitLocker Safety Gate`. It explains the local-only handoff, redacts all key material, and makes the selected volume and cancel path unmistakable.
+**Collected acceptance evidence:** the 3-GiB data disk was 100% BitLocker-encrypted and locked before WinPE started; a separate 1-GiB key disk held one local external recovery key; alpha.7 required the exact `E:` target and `UNLOCK E:` confirmation; WinPE reported the selected volume unlocked; the known non-secret fixture file was readable; no key filename or contents appeared in the approved captures; and a cold restart returned the volume to `Lock Status: Locked`. The exact artifact is 558,286,848 bytes with SHA-256 `A4FF89AD4FBF1BEB6BAECA4B92387F0153754B270BA3DF897DA11C99812DE947`.
+
+**Open acceptance evidence:** runtime refusal tests for missing, multiple, and ambiguous external-key inputs; a masked recovery-password UI and its refusal/failure paths; disposable operating-system-volume recovery; an independent repository/output review; and physical-hardware validation.
+
+**Figma screen:** `03 — BitLocker Safety Gate`. It explains the local-only handoff, redacts all key material, and makes the selected volume and cancel path unmistakable. The current command-line guard validates the safety behavior; the polished screen remains an implementation gate, not a completed feature.
 
 ## Phase 4 — Full Windows Codex recovery workspace
 

@@ -17,6 +17,9 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.builder = (ROOT / "scripts" / "Build-RescueIso.ps1").read_text(
             encoding="utf-8"
         )
+        self.unlocker = (
+            ROOT / "winpe" / "Unlock-BitLockerWithRecoveryKey.cmd"
+        ).read_text(encoding="utf-8")
 
     def test_destination_requires_explicit_marker_before_writing(self) -> None:
         marker_check = self.collector.index("CODEX_EVIDENCE.DEST")
@@ -63,6 +66,7 @@ class WinPEScriptSafetyTests(unittest.TestCase):
     def test_builder_adds_supported_powershell_dependencies_in_order(self) -> None:
         components = (
             "WinPE-WMI",
+            "WinPE-SecureStartup",
             "WinPE-NetFx",
             "WinPE-Scripting",
             "WinPE-PowerShell",
@@ -75,6 +79,25 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.assertIn('"/Image:$mount"', self.builder)
         self.assertIn('"/PackagePath:$componentCab"', self.builder)
         self.assertNotIn("'/Image:' + $mount", self.builder)
+
+    def test_bitlocker_unlock_requires_exact_local_key_and_target_gates(self) -> None:
+        self.assertIn("CODEX_BITLOCKER.KEY", self.unlocker)
+        self.assertIn('if not "!KEYDRIVE_COUNT!"=="1"', self.unlocker)
+        self.assertIn('if not "!KEYFILE_COUNT!"=="1"', self.unlocker)
+        self.assertIn('UNLOCK !TARGET!:', self.unlocker)
+        self.assertIn('-RecoveryKey "!KEYFILE!"', self.unlocker)
+        self.assertIn('-RecoveryKey "!KEYFILE!" >nul 2>&1', self.unlocker)
+        self.assertNotIn("-RecoveryPassword", self.unlocker)
+        self.assertIn('pushd "!TARGET!:\\"', self.unlocker)
+        self.assertIn("status display above is informational", self.unlocker)
+
+    def test_bitlocker_unlock_blocks_system_and_ram_drives_without_logging(self) -> None:
+        target_scan = self.unlocker.split("for %%D in (", 1)[1].split(") do", 1)[0]
+        self.assertNotIn("C", target_scan.split())
+        self.assertNotIn("X", target_scan.split())
+        self.assertNotIn("Start-Transcript", self.unlocker)
+        self.assertNotIn(">>", self.unlocker)
+        self.assertIn('set "KEYFILE="', self.unlocker)
 
 
 if __name__ == "__main__":

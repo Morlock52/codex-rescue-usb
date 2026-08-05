@@ -24,6 +24,33 @@ class BuildVmScriptTests(unittest.TestCase):
         self.assertIn("$noApplicableUpgradeExitCode", installer)
         self.assertIn("AlreadyCurrent", installer)
 
+    def test_bitlocker_fixture_requires_new_exact_size_disks_and_token(self) -> None:
+        fixture = (ROOT / "scripts" / "New-BitLockerTestFixture.ps1").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("PartitionStyle -ne 'RAW'", fixture)
+        self.assertIn("Refusing boot or system disk", fixture)
+        self.assertIn("expected disposable 3 GiB disk", fixture)
+        self.assertIn("expected disposable 1 GiB disk", fixture)
+        self.assertIn("CREATE DISPOSABLE BITLOCKER FIXTURE", fixture)
+        self.assertIn("SupportsShouldProcess", fixture)
+        self.assertIn("PreventDeviceEncryption", fixture)
+        self.assertIn("Both disposable volumes must be fully decrypted", fixture)
+        self.assertIn("-RecoveryKeyProtector", fixture)
+
+    def test_bitlocker_fixture_records_no_recovery_material(self) -> None:
+        fixture = (ROOT / "scripts" / "New-BitLockerTestFixture.ps1").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("ExternalKeyFileCount", fixture)
+        self.assertIn("KeyVolumeEncryptionState", fixture)
+        self.assertIn("-Recurse -Force", fixture)
+        self.assertIn("ContainsRecoveryMaterial = $false", fixture)
+        self.assertNotIn("RecoveryPassword", fixture)
+        self.assertNotIn("externalKeyFiles[0]", fixture)
+
 
 if __name__ == "__main__":
     unittest.main()
