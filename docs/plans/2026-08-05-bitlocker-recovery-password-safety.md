@@ -1,10 +1,12 @@
 # BitLocker recovery-password safety contract
 
-**Status:** Helper and WinPE command implemented; static tests pass. No alpha.10 ISO, runtime unlock, refusal-path, cold-lock, or output-boundary evidence is accepted yet.
+**Status:** Helper and WinPE command implemented; static tests pass. The exact alpha.11 candidate booted in dedicated VM 114 and verified the corrected launch command, a wrong confirmation-token refusal, and blocked `C:` and `X:` targets. Encrypted-volume input, wrong-password, correct-unlock, fixture-file, cold-lock, clean ADK rebuild, and final output-boundary evidence remain open.
 
 ## Scope
 
 This contract covers one disposable 1-GiB virtual data disk with exactly one numerical recovery-password protector. It does not authorize an operating-system volume, an existing disk, physical hardware, production data, decryption, protector changes, repair, or network use.
+
+The alpha.11 candidate is a derived validation image, not a clean ADK rebuild. Its size is 558,899,200 bytes and its SHA-256 is `7EFB41B96A247FEB49E9B9037AD379F6528EC9184A105D19AF819532152513B0`. Its launch and early-refusal results do not prove that a recovery password can unlock an encrypted volume.
 
 ## Secret boundary
 
