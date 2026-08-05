@@ -108,7 +108,8 @@ class CaseServiceTests(unittest.TestCase):
     def test_fixture_repository_rejects_secret_fields(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             fixture_path = Path(temp_dir) / "unsafe.json"
-            fixture_path.write_text(
+            fake_recovery_password = "-".join(["111111"] * 8)
+            fixture_json = (
                 """{
                     "id": "unsafe",
                     "title": "unsafe",
@@ -127,9 +128,14 @@ class CaseServiceTests(unittest.TestCase):
                         "bcd_valid": false,
                         "boot_files_present": true,
                         "network_available": false,
-                        "recovery_key": "111111-111111-111111-111111-111111-111111-111111-111111"
+                        "recovery_key": "__FAKE_RECOVERY_PASSWORD__"
                     }
-                }""",
+                }"""
+            )
+            fixture_path.write_text(
+                fixture_json.replace(
+                    "__FAKE_RECOVERY_PASSWORD__", fake_recovery_password
+                ),
                 encoding="utf-8",
             )
 

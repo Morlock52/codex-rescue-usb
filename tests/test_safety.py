@@ -62,11 +62,8 @@ class SafetyBrokerTests(unittest.TestCase):
         self.assertIn("verified rollback artifact is required", decision.reasons)
 
     def test_secret_bearing_proposal_is_blocked(self) -> None:
-        item = proposal(
-            summary=(
-                "Use 111111-111111-111111-111111-111111-111111-111111-111111"
-            )
-        )
+        fake_recovery_password = "-".join(["111111"] * 8)
+        item = proposal(summary=f"Use {fake_recovery_password}")
 
         decision = self.broker.evaluate(item, evidence(), approval(item))
 

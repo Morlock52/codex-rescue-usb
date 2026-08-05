@@ -31,9 +31,10 @@ class OperationContractTests(unittest.TestCase):
     def test_broker_detects_secret_material_without_caller_flag(self) -> None:
         case = self.service.create_case("boot-loop")
         assert case.proposal is not None
+        fake_recovery_password = "-".join(["111111"] * 8)
         unsafe = replace(
             case.proposal,
-            summary="Use 111111-111111-111111-111111-111111-111111-111111-111111",
+            summary=f"Use {fake_recovery_password}",
         )
 
         decision = self.service.broker.evaluate(unsafe, case.evidence, None)
