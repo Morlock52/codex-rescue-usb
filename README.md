@@ -2,21 +2,23 @@
 
 > A safety-first recovery project with a fixture console and a VM-verified Windows PE recovery ISO.
 
-Codex Rescue USB contains two deliberately separate deliverables: a host-runnable fixture console that demonstrates the approval model without touching a real PC, and a Windows PE image that has booted in a disposable UEFI VM, exported read-only troubleshooting evidence, and completed a guarded external recovery-key unlock against a disposable BitLocker data volume.
+Codex Rescue USB contains two deliberately separate deliverables: a host-runnable fixture console that demonstrates the approval model without touching a real PC, and a Windows PE image that has booted in a disposable UEFI VM, exported read-only troubleshooting evidence, completed a guarded external recovery-key unlock, and completed a lab-confidential numerical recovery-password unlock against disposable BitLocker data volumes.
 
-The verified Windows PE milestones are real VM evidence. They are not proof of physical USB compatibility, a 48-digit recovery-password flow, operating-system-volume recovery, real repair, a spoken Voice session, or a portable full-Windows workspace. Those claims remain gated until their own tests exist.
+The verified Windows PE milestones are real VM evidence. They are not proof of physical USB compatibility, operator-typed masked recovery-password entry, operating-system-volume recovery, real repair, a spoken Voice session, or a portable full-Windows workspace. Those claims remain gated until their own tests exist.
 
 ## Verified WinPE milestones
 
-On August 5, 2026, the source was built with the serviced Windows ADK and booted in a separate disposable Proxmox UEFI VM using Windows UEFI CA 2023 keys. Three exact artifacts preserve the evidence boundary between the original read-only export test, the BitLocker recovery-key test, and the latest clock-trust hardening:
+On August 5, 2026, the source was built with the serviced Windows ADK and booted in a separate disposable Proxmox UEFI VM using Windows UEFI CA 2023 keys. Five exact artifacts preserve the evidence boundary between the original read-only export test, the external BitLocker recovery-key test, the clock-trust hardening, the confidential numerical recovery-password code-path test, and the clean post-fix build:
 
 | Milestone | Exact artifact | Size | SHA-256 |
 | --- | --- | ---: | --- |
 | Read-only evidence export | `Codex-Rescue-ISO-v0.1.0-alpha.4.iso` | 557,518,848 bytes | `F7F6E3570F0DBF264D56CAAF8703C6FB6EAD99ABB53FDC420D9B4737C9584DFA` |
 | Integrated BitLocker status export and guarded external-key unlock | `Codex-Rescue-ISO-v0.1.0-alpha.7.iso` | 558,286,848 bytes | `A4FF89AD4FBF1BEB6BAECA4B92387F0153754B270BA3DF897DA11C99812DE947` |
-| Explicit evidence-clock trust and latest UEFI boot | `Codex-Rescue-ISO-v0.1.0-alpha.9.iso` | 558,243,840 bytes | `7080E6D51AFADDD6531390FA8A6EDECE8AFCF1AC419FECE36E0C4EE96C087D29` |
+| Explicit evidence-clock trust | `Codex-Rescue-ISO-v0.1.0-alpha.9.iso` | 558,243,840 bytes | `7080E6D51AFADDD6531390FA8A6EDECE8AFCF1AC419FECE36E0C4EE96C087D29` |
+| Confidential numerical recovery-password runtime validation; startup banner superseded | `Codex-Rescue-ISO-v0.1.0-alpha.10-94CE0A74.iso` | 558,180,352 bytes | `94CE0A744855FA777E54BC5B9CE2609D3BD7BE6D8A0121B30D09BE35CCCAD46C` |
+| Clean post-fix ADK build, payload verification, and latest UEFI boot | `Codex-Rescue-ISO-v0.1.0-alpha.12-5E2E1F90.iso` | 557,871,104 bytes | `5E2E1F90765DF00BAA3F9EA66282DBB4A1C981B87FBCAD9C6533ABF66AC58089` |
 
-All three artifacts used the same 4-vCPU, 8-GB Windows 11 build VM with ADK 10.1.26100.2454 plus KB5101684. The isolated test VM used 2 vCPU, 2 GB RAM, UEFI, Windows UEFI CA 2023 keys, disconnected networking, and disposable virtual disks.
+The first three artifacts used the same 4-vCPU, 8-GB Windows 11 build VM with ADK 10.1.26100.2454 plus KB5101684. The VM is now sized at 10 GB fixed RAM for ADK, Codex, and development work. The isolated test VM used 2 vCPU, 2 GB RAM, UEFI, Windows UEFI CA 2023 keys, disconnected networking, and disposable virtual disks.
 
 The alpha.4 evidence test verified all of the following:
 
@@ -50,7 +52,23 @@ The alpha.9 clock-trust test then verified all of the following:
 - No `.bek` file or 48-digit recovery-password-shaped text existed in the package.
 - The redacted-summary generator verified the real alpha.9 package, counted one BitLocker volume/status block, and passed valid scans for private addresses, MAC addresses, volume paths, key-file suffixes, and recovery-password patterns.
 
-This verifies one external recovery-key sub-gate on disposable virtual media. It does **not** prove physical USB boot, a 48-digit recovery-password entry screen, operating-system-volume recovery, production-data access, decryption, protector changes, repair of Windows, or spoken Voice. Those remain separately gated phases.
+The alpha.10 confidential runtime test then verified all of the following:
+
+- The exact alpha.10 artifact above reached its disconnected WinPE prompt, contained the required WinPE packages, and embedded the checked-in recovery-password script with SHA-256 `7CEE6A57B1C42837AD7C3FBD54688F6554A904439B78C7598A6D3474AC392CE9`.
+- A private in-process harness invoked that exact script with `-ExecutionPolicy Bypass` and supplied a new lab-only password through a temporary `Read-Host` override. The password was not placed on a command line, piped through standard input, copied to Git, or shown in the approved captures.
+- The exact confirmation gate rejected a wrong token; format validation rejected malformed input; a valid but wrong password left the volume locked; and the correct disposable password unlocked only the selected `E:` volume.
+- The known non-secret marker became readable only after the correct unlock. A cold power cycle then returned the volume to `Locked`, with both the volume root and marker inaccessible.
+- Pattern and exact-secret scans of the captured streams were false, and the harness emitted no recovery material. A prior disposable fixture and its accidental local-only secret-bearing screenshot were destroyed immediately; neither customer data nor a real recovery credential was involved.
+
+The alpha.12 clean-build test then verified all of the following:
+
+- A full Microsoft ADK build ran in isolated Windows VM 115 from source whose six embedded WinPE file hashes, build-script hash, and verifier-script hash exactly match repository commit `BB6EDA4E740A63F1A76517E30156C405793141F0`.
+- `Test-RescueIso.ps1` independently matched all six embedded files to source; required BIOS and UEFI boot payloads; and installed WinPE-WMI, WinPE-SecureStartup, WinPE-NetFx, WinPE-Scripting, and WinPE-PowerShell packages.
+- The success JSON has SHA-256 `E8DD19331701B3017812C7E25E1E63F70CE403D2110815C81EC674C1FB42D419`, records `ContainsRecoveryMaterial: false`, and marks its Windows build-environment clock as externally unvalidated.
+- A second hash check matched the report's exact ISO size and SHA-256. The hash-named ISO and report were copied through the dedicated `CODEX-ISO-XFER` disk and matched again in private Proxmox storage.
+- That exact ISO visibly reached the corrected offline prompt in VM 114 with 2 vCPU, 2 GiB RAM, OVMF with Windows UEFI CA 2023 keys, no data disks, and `link_down=1`.
+
+This verifies the external recovery-key path and the numerical recovery-password code path on disposable virtual media. The numerical test used a confidential automated input boundary, so it does **not** prove the operator-typed masked prompt. Physical USB boot, operating-system-volume recovery, production-data access, decryption, protector changes, repair of Windows, and spoken Voice also remain separately gated phases.
 
 ### Real VM-boot screenshot
 
@@ -63,6 +81,12 @@ Captured from the exact alpha.4 SHA-256 artifact above. This is real Proxmox VM 
 ![Exact alpha.9 ISO at the read-only Codex Rescue WinPE prompt](docs/images/winpe-alpha9-boot.png)
 
 Captured from the exact alpha.9 SHA-256 artifact above on the disconnected 2-vCPU, 2-GB UEFI validation VM. The test VM was stopped after the independent package inspection.
+
+### Real alpha.12 clean-build boot screenshot
+
+![Exact clean alpha.12 ISO at the corrected offline Codex Rescue WinPE prompt](docs/images/winpe-alpha12-boot.png)
+
+Captured from the exact alpha.12 SHA-256 artifact above in disconnected UEFI VM 114 after its post-build source, payload, package, size, and hash verifier passed. This proves VM bootability of that exact artifact, not physical USB compatibility.
 
 ### Real no-overwrite screenshot
 
@@ -100,9 +124,21 @@ After the exact confirmation, WinPE reported the disposable `CODEX-BL-TEST` volu
 
 The known fixture file was read from the unlocked volume and contained no customer data. A cold restart then returned the volume to `Lock Status: Locked`; the unlock was not left active.
 
+### Real numerical recovery-password runtime screenshot
+
+![Alpha.10 confidential harness validating the numerical recovery-password code path without displaying recovery material](docs/images/winpe-alpha10-recovery-password-runtime.png)
+
+Captured from the exact alpha.10 artifact above in the disconnected disposable VM. The private harness exercised the checked-in production script and reports only booleans and non-secret state. `ManualMaskedEntryValidated: False` is intentional: this proves the guarded runtime code path, not a human typing into the masked prompt.
+
+### Real numerical recovery-password cold-relock screenshot
+
+![Read-only cold-boot audit showing the disposable numerical-password volume locked again](docs/images/winpe-alpha10-recovery-password-cold-relock.png)
+
+After a full VM power cycle, a separate read-only auditor found the volume locked, its root and marker inaccessible, and no recovery material emitted. The auditor had no unlock operation and contained no recovery password.
+
 ### Artifact availability and Microsoft licensing
 
-The repository and GitHub pre-releases publish the original Codex Rescue source, reproducible build instructions, screenshots, verified artifact sizes, and SHA-256 values—not the Microsoft-built ISO binaries. The Windows ADK license installed on the verified build VM permits using WinPE to install and recover Windows, but prohibits publishing the Microsoft software for others to copy. Build the ISO locally from a properly licensed ADK installation and verify the resulting artifact in a disposable VM. The exact alpha.4, alpha.7, and alpha.9 ISOs identified above are retained privately on the Proxmox host for controlled validation.
+The repository and GitHub pre-releases publish the original Codex Rescue source, reproducible build instructions, screenshots, verified artifact sizes, and SHA-256 values—not the Microsoft-built ISO binaries. The Windows ADK license installed on the verified build VM permits using WinPE to install and recover Windows, but prohibits publishing the Microsoft software for others to copy. Build the ISO locally from a properly licensed ADK installation and verify the resulting artifact in a disposable VM. The exact ISO artifacts identified above are retained privately on the Proxmox host for controlled validation.
 
 ## Building the bootable ISO (Windows build VM)
 
@@ -336,11 +372,13 @@ Never copy the `.bek` file into the repository, evidence destination, screenshot
 
 ## Disposable BitLocker recovery-password test
 
-This is the separate alpha.10 lab path for Microsoft's 48-digit numerical recovery password. The helper is implemented and statically tested, but its WinPE runtime gate is still open. Do not describe it as VM-verified until the exact rebuilt ISO completes the disposable test and the output review below.
+This is the separate lab path for Microsoft's 48-digit numerical recovery password. The checked-in helper is statically tested, and its full confidential runtime code path is VM-verified against one disposable encrypted data volume. The clean post-fix alpha.12 artifact passed payload verification and a separate UEFI boot. Human entry through the local masked prompt, operating-system-volume recovery, and physical hardware remain open.
 
-The first alpha.10 candidate (`558,180,352` bytes; SHA-256 `94CE0A744855FA777E54BC5B9CE2609D3BD7BE6D8A0121B30D09BE35CCCAD46C`) booted to the disconnected WinPE prompt, but runtime testing found that its banner omitted `-ExecutionPolicy Bypass`; the displayed command was therefore blocked before the recovery script could run. That artifact is retained as failed evidence, not as a release candidate. The corrected source is committed for the next build, whose full runtime gate remains pending.
+The alpha.10 candidate (`558,180,352` bytes; SHA-256 `94CE0A744855FA777E54BC5B9CE2609D3BD7BE6D8A0121B30D09BE35CCCAD46C`) booted to the disconnected WinPE prompt, but its startup banner omitted `-ExecutionPolicy Bypass`. The advertised one-line launch was therefore incomplete. The embedded recovery script itself matched the checked-in source and later completed the confidential end-to-end runtime test when invoked with the exact command shown below. Alpha.10 is validation evidence, not a release candidate.
 
-The exact alpha.11 validation candidate (`558,899,200` bytes; SHA-256 `7EFB41B96A247FEB49E9B9037AD379F6528EC9184A105D19AF819532152513B0`) was derived from the boot-verified alpha.10 WIM by replacing only `Windows\System32\startnet.cmd` with the committed correction. `wimlib-imagex verify` passed, the extracted in-WIM file hash matched the repository, and the rebuilt ISO reported one BIOS and one UEFI El Torito entry. It then booted in dedicated VM 114 with 2 vCPU, 2 GiB RAM, Windows UEFI CA 2023 keys, no data disks, and `link_down=1`. The corrected banner launched the recovery script and VM-verified wrong-token plus blocked `C:` and `X:` refusals. This proves the launch and early-refusal layer only. A clean ADK rebuild and the encrypted disposable-volume invalid-format, wrong-password, correct-unlock, fixture-file, cold-relock, and leakage gates remain open.
+The exact alpha.11 validation candidate (`558,899,200` bytes; SHA-256 `7EFB41B96A247FEB49E9B9037AD379F6528EC9184A105D19AF819532152513B0`) was derived from the boot-verified alpha.10 WIM by replacing only `Windows\System32\startnet.cmd` with the committed correction. `wimlib-imagex verify` passed, the extracted in-WIM file hash matched the repository, and the rebuilt ISO reported one BIOS and one UEFI El Torito entry. It then booted in dedicated VM 114 with 2 vCPU, 2 GiB RAM, Windows UEFI CA 2023 keys, no data disks, and `link_down=1`. The corrected banner launched the recovery script and VM-verified wrong-token plus blocked `C:` and `X:` refusals. This proves the corrected launch and early-refusal layer. The separate alpha.10 confidential test supplies the encrypted-volume runtime evidence, while alpha.12 supplies the clean post-fix build and boot evidence.
+
+A different alpha.11-named build (`559,575,040` bytes; SHA-256 `3CAC00922E634DE75976E0FE6C15611F49730D89FEEC29E9CD157B1134DD6B45`) was rejected by Windows Boot Manager with BCD error `0xc000000f`. It is failed evidence and must not be used. Reusing an alpha label for two different artifacts was a validation mistake; alpha.12 corrects that record with a new version, passing `Test-RescueIso.ps1` report, and separate UEFI boot test.
 
 Attach one new 1-GiB RAW virtual disk to the disposable full-Windows fixture VM. In a local elevated PowerShell console—not Codex, QEMU guest-agent execution, a transcript, redirected input/output, or a recorded screen—inspect the disk first:
 
@@ -359,7 +397,7 @@ Replace `1` only after verifying that the selected disk is RAW, approximately 1 
 
 The script refuses redirected input/output so the generated password cannot return through guest-agent or Codex command output. It initializes only the confirmed disposable disk, opens Microsoft's `manage-bde` in a separate local console, and asks the operator to write the generated recovery password down without pasting, saving, photographing, or speaking it. After the operator closes that one-time display, the script verifies exactly one numerical-password protector, waits for full encryption, records only non-secret fixture state, and locks the volume.
 
-Move that encrypted disposable disk to the stopped, network-disconnected WinPE test VM and boot the exact alpha.10 candidate. Identify the `CODEX-BL-PASS` volume by label, size, and locked state; never assume its drive letter. For a selected `E:` fixture, run:
+Move that encrypted disposable disk to the stopped, network-disconnected WinPE test VM and boot a clean locally built image from the current source. Identify the `CODEX-BL-PASS` volume by label, size, and locked state; never assume its drive letter. For a selected `E:` fixture, run:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File X:\Rescue\Unlock-BitLockerWithRecoveryPassword.ps1 `
@@ -368,7 +406,7 @@ powershell -ExecutionPolicy Bypass -File X:\Rescue\Unlock-BitLockerWithRecoveryP
   -Confirm:$false
 ```
 
-Type the recovery password only into the masked local prompt. The command validates Microsoft's numerical-password format and invokes `UnlockWithNumericalPassword` only on that explicit volume. Acceptance requires wrong token, blocked-drive, invalid-format, and wrong-password refusal checks; one correct unlock; the known non-secret fixture file; a cold restart returning the volume to locked; and an independent scan confirming no 48-digit password entered source, logs, evidence, screenshots, or Codex context. Microsoft documents the local [`UnlockWithNumericalPassword` WMI method](https://learn.microsoft.com/en-us/windows/win32/secprov/unlockwithnumericalpassword-win32-encryptablevolume) and the accepted [48-digit numerical-password format](https://learn.microsoft.com/en-us/windows/win32/secprov/isnumericalpasswordvalid-win32-encryptablevolume).
+Type the recovery password only into the masked local prompt. The command validates Microsoft's numerical-password format and invokes `UnlockWithNumericalPassword` only on that explicit volume. The confidential VM harness has passed the wrong-token, invalid-format, wrong-password, correct-unlock, fixture-file, cold-relock, and captured-stream leakage checks. It did not validate human typing, so a local operator must still complete the masked-entry check without screen recording, command redirection, clipboard use, or Codex access before release. Microsoft documents the local [`UnlockWithNumericalPassword` WMI method](https://learn.microsoft.com/en-us/windows/win32/secprov/unlockwithnumericalpassword-win32-encryptablevolume) and the accepted [48-digit numerical-password format](https://learn.microsoft.com/en-us/windows/win32/secprov/isnumericalpasswordvalid-win32-encryptablevolume).
 
 ![Boot-loop diagnosis and proposed simulated repair](docs/images/rescue-console-overview.jpg)
 
@@ -386,7 +424,7 @@ Type the recovery password only into the masked local prompt. The command valida
 - Checked-in Windows PE source alone is not boot evidence. The verified milestone above identifies the exact VM-tested artifact and hash; every later build requires its own separate boot test.
 - The fixture console never touches a real disk, volume, boot file, or host command.
 - A booted WinPE image can query the machine it was booted on for disk layout, BitLocker status, boot configuration, event-log names, driver inventory, and network state. Its evidence command does not unlock, repair, or write to those system components.
-- The external-key and recovery-password commands are separate. Each can unlock only an explicitly selected data volume after its own exact confirmation gate; neither can target `C:` or `X:`, decrypt a drive, change protectors, export evidence, enable networking, or repair Windows. Only the external-key path is VM-verified today; the recovery-password path remains an alpha.10 runtime gate.
+- The external-key and recovery-password commands are separate. Each can unlock only an explicitly selected data volume after its own exact confirmation gate; neither can target `C:` or `X:`, decrypt a drive, change protectors, export evidence, enable networking, or repair Windows. Both code paths are VM-verified on disposable data volumes; human masked entry is still open for the recovery-password path.
 - The fixture console never requests BitLocker keys, passwords, tokens, or credentials. Recovery material stays on the separate owner-controlled key drive and out of logs, screenshots, evidence exports, GitHub, and Codex context.
 - The fixture console contacts no Codex, model, or network service. The WinPE evidence script reports network configuration only; it does not enable or use a network connection.
 - The full-Windows launcher requires explicit network consent, imports no evidence automatically, and never authorizes recovery material in Codex context. The operator must redact evidence and select the least app access needed before analysis or repair.
@@ -520,22 +558,22 @@ tests/             Unit and HTTP integration tests
 
 ## Current scope
 
-This release proves the fixture safety model, a VM-boot-verified read-only WinPE evidence path, one guarded external recovery-key unlock against a disposable virtual BitLocker data disk, and a partial full-Windows Codex GUI handoff. Alpha.4 enforced the prepared-destination and no-overwrite gates and exported the nine-file package, but its BitLocker file exposed the then-missing `manage-bde` dependency. Alpha.7 added SecureStartup, required an exact unlock target and confirmation, kept recovery material out of visible output, unlocked the selected fixture, verified the known file, returned to locked after a cold restart, and later exported a fresh checksum-valid package with real BitLocker status. Alpha.9 booted in the same isolated UEFI VM and exported a checksum-valid package whose manifest explicitly marks its WinPE clock as unvalidated. The separate Windows VM launched the installed Codex app on the exact staged project, verified an explicit offline/online transition and cold-boot-safe offline-at-startup policy, and completed a bounded manual review of the redacted alpha.9 summary in **Ask for approval** mode. Its Voice control is visible, but the VM has no audio endpoint. The project is not yet a physical USB-validated recovery disk, a 48-digit recovery-password workflow, an operating-system-volume recovery tool, a repair engine for a real Windows installation, a spoken Voice workflow, or a supported portable full-Windows image.
+This release proves the fixture safety model, a VM-boot-verified read-only WinPE evidence path, guarded external-key and numerical-password unlock code paths against disposable virtual BitLocker data disks, and a partial full-Windows Codex GUI handoff. Alpha.4 enforced the prepared-destination and no-overwrite gates and exported the nine-file package, but its BitLocker file exposed the then-missing `manage-bde` dependency. Alpha.7 added SecureStartup, required an exact unlock target and confirmation, kept recovery material out of visible output, unlocked the selected fixture, verified the known file, returned to locked after a cold restart, and later exported a fresh checksum-valid package with real BitLocker status. Alpha.9 booted in the same isolated UEFI VM and exported a checksum-valid package whose manifest explicitly marks its WinPE clock as unvalidated. Alpha.10 completed the confidential numerical-password runtime path and cold-relock audit; alpha.12 then passed the clean post-fix source/payload/package verifier and a separate disconnected UEFI boot. Manual masked typing remains open. The separate Windows VM launched the installed Codex app on the exact staged project, verified an explicit offline/online transition and cold-boot-safe offline-at-startup policy, and completed a bounded manual review of the redacted alpha.9 summary in **Ask for approval** mode. Its Voice control is visible, but the VM has no audio endpoint. The project is not yet a physical USB-validated recovery disk, an operator-validated recovery-password workflow, an operating-system-volume recovery tool, a repair engine for a real Windows installation, a spoken Voice workflow, or a supported portable full-Windows image.
 
 ## Planned real recovery USB
 
 The next build is designed as a two-stage Windows recovery medium:
 
-1. **Windows PE recovery stage:** boots a PC, inventories storage and BitLocker state, collects read-only troubleshooting evidence, and hands owner-controlled recovery material directly to the local Windows BitLocker recovery flow without retaining it. The external `.bek` fixture path is VM-verified; the 48-digit recovery-password interface remains pending.
+1. **Windows PE recovery stage:** boots a PC, inventories storage and BitLocker state, collects read-only troubleshooting evidence, and hands owner-controlled recovery material directly to the local Windows BitLocker recovery flow without retaining it. The external `.bek` path and confidential numerical-password code path are VM-verified on disposable volumes, and alpha.12 closes the clean post-fix VM-build/boot gate; human masked entry remains pending.
 2. **Full Windows recovery workspace:** starts only after exact network consent in a maintained Windows environment, then provides the supported Codex desktop GUI and, when a trusted microphone endpoint exists, Voice for guided diagnosis and reviewed repair.
 
 Planned safeguards include an offline-by-default recovery workspace, explicit network enablement for Codex, no recovery-key logging or storage, target-specific confirmation before any write, rollback requirements, and independent post-action verification.
 
-The two-stage architecture is partially VM-verified: WinPE boot/evidence, external-key BitLocker unlock, the redacted evidence handoff, and the full-Windows Codex GUI project review have direct evidence. Spoken Voice, physical USB, and disposable hardware validation remain open. Windows To Go is not used as the release baseline.
+The two-stage architecture is partially VM-verified: WinPE boot/evidence, both disposable BitLocker unlock code paths, the redacted evidence handoff, and the full-Windows Codex GUI project review have direct evidence. Human masked entry, spoken Voice, physical USB, and disposable hardware validation remain open. Windows To Go is not used as the release baseline.
 
 ## Recovery-media delivery roadmap
 
-The detailed phase plan, acceptance evidence, safety gates, and planned Figma screens are in [the recovery-media roadmap](docs/plans/2026-08-05-recovery-media-roadmap.md). Phases 1 and 2 are VM-verified. Phase 3's external-key sub-gate and recovery-password launch/early-refusal sub-gate are VM-verified, while its encrypted-volume recovery-password gate remains open. Phase 4's GUI/project handoff, exact network transition, offline-at-startup policy, real alpha.9 redacted-summary generation, and bounded manual Codex review are VM-verified. Voice/audio and physical-workflow least-privilege gates remain open. Physical USB and repair also remain open.
+The detailed phase plan, acceptance evidence, safety gates, and planned Figma screens are in [the recovery-media roadmap](docs/plans/2026-08-05-recovery-media-roadmap.md). Phases 1 and 2 are VM-verified. Phase 3's external-key and confidential numerical-password code paths plus the alpha.12 clean-build/boot gate are VM-verified; human masked entry, operating-system-volume, and physical-hardware gates remain open. Phase 4's GUI/project handoff, exact network transition, offline-at-startup policy, real alpha.9 redacted-summary generation, and bounded manual Codex review are VM-verified. Voice/audio and physical-workflow least-privilege gates remain open. Physical USB and repair also remain open.
 
 ## References
 

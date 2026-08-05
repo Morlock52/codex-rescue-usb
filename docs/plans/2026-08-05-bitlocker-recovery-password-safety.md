@@ -1,12 +1,12 @@
 # BitLocker recovery-password safety contract
 
-**Status:** Helper and WinPE command implemented; static tests pass. The exact alpha.11 candidate booted in dedicated VM 114 and verified the corrected launch command, a wrong confirmation-token refusal, and blocked `C:` and `X:` targets. Encrypted-volume input, wrong-password, correct-unlock, fixture-file, cold-lock, clean ADK rebuild, and final output-boundary evidence remain open.
+**Status:** Helper and WinPE command implemented; static tests pass. The exact alpha.11 candidate booted in dedicated VM 114 and verified the corrected launch command, a wrong confirmation-token refusal, and blocked `C:` and `X:` targets. The exact alpha.10 helper then passed confidential invalid-format, wrong-password, correct-unlock, fixture-file, cold-lock, and captured-stream leakage tests against a disposable encrypted volume. The clean post-fix alpha.12 artifact passed source/payload/package verification and a separate disconnected UEFI boot. Human masked entry, operating-system-volume recovery, and physical hardware remain open.
 
 ## Scope
 
 This contract covers one disposable 1-GiB virtual data disk with exactly one numerical recovery-password protector. It does not authorize an operating-system volume, an existing disk, physical hardware, production data, decryption, protector changes, repair, or network use.
 
-The alpha.11 candidate is a derived validation image, not a clean ADK rebuild. Its size is 558,899,200 bytes and its SHA-256 is `7EFB41B96A247FEB49E9B9037AD379F6528EC9184A105D19AF819532152513B0`. Its launch and early-refusal results do not prove that a recovery password can unlock an encrypted volume.
+The alpha.11 candidate is a derived validation image, not a clean ADK rebuild. Its size is 558,899,200 bytes and its SHA-256 is `7EFB41B96A247FEB49E9B9037AD379F6528EC9184A105D19AF819532152513B0`. Its launch and early-refusal results are separate from the confidential encrypted-volume test, which used the boot-verified alpha.10 artifact and the exact checked-in helper script.
 
 ## Secret boundary
 
@@ -38,4 +38,4 @@ The alpha.11 candidate is a derived validation image, not a clean ADK rebuild. I
 | Cold restart | Fixture returns to locked |
 | Output-boundary scan | No recovery-password pattern in logs, evidence, screenshots, source, Git history, or Codex context |
 
-The exact ISO size and SHA-256, test-VM configuration, fixture audit, approved redacted screenshots, and independent leakage scan must be recorded before changing this status to VM-verified.
+The exact alpha.10 size and SHA-256, test-VM configuration, non-secret fixture audit, approved screenshots, and captured-stream leakage scan are recorded in the README. `ManualMaskedEntryValidated` remains false until a local operator completes that separate no-recording test. The clean post-fix alpha.12 artifact is 557,871,104 bytes with SHA-256 `5E2E1F90765DF00BAA3F9EA66282DBB4A1C981B87FBCAD9C6533ABF66AC58089`; its verifier JSON and separate VM 114 UEFI boot are recorded in the README.
