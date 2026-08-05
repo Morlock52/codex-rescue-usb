@@ -130,6 +130,8 @@ The generator accepts exactly the documented nine files, verifies the manifest a
 
 The actual alpha.7 and alpha.9 evidence packages passed this gate: all package hashes were valid, the BitLocker command was available, one volume/status block was counted in each package, and privacy scans of both outputs found no private IP address, MAC address, volume letter, key-file suffix, or recovery-password pattern. The alpha.7 WinPE source clock differed from the independent host by four hours, which motivated the explicit alpha.9 manifest fields `ClockSource: WinPE system clock` and `ClockExternallyValidated: false`. The recorded source time must not be used as an incident timeline without an independent clock check.
 
+The real alpha.9 summary then passed a bounded manual Codex review in the standard-user VM. Its SHA-256 matched before and after staging; no raw evidence or recovery material was copied into the workspace; Codex was changed to **Ask for approval**; and exactly one literal-path, read-only file command was approved. Codex reported verified integrity, schema v1, eight checksum entries covering seven diagnostic files and 21,407 bytes, the available diagnostic categories with network details withheld, the untrusted-clock caveat, and the next safe offline operator-review action. Networking was disabled after the review. A final QEMU Guest Agent audit verified 9.93 GiB visible RAM with 5.01 GiB free under the live Codex workload, interface 6 Disabled/0 bps, the startup task Ready with result 0, zero temporary automation tasks, the hash-matched summary, one Codex process, and QEMU Guest Agent running.
+
 ## Operator workflow
 
 1. Complete the offline WinPE stage first. Never give Codex a BitLocker recovery password or external recovery-key file.
@@ -148,7 +150,6 @@ The actual alpha.7 and alpha.9 evidence packages passed this gate: all package h
 ## Remaining acceptance gates
 
 - Run one spoken Voice session through a trusted microphone endpoint without exposing recovery material.
-- Perform one controlled, manual Codex review of the generated summary without raw-package import or recovery material.
 - Configure and verify a least-privilege Codex access mode for the physical recovery workflow.
 - Validate the workspace on disposable physical hardware.
 - Decide whether a native-boot VHDX lab experiment is worth maintaining; do not label it a supported Windows To Go replacement.
