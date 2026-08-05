@@ -6,6 +6,17 @@ Codex Rescue USB is a host-runnable prototype for a future offline recovery envi
 
 It is not a bootable USB image and cannot repair a physical computer. The current milestone is a local Rescue Console for safely exploring recovery workflows.
 
+## Building the bootable ISO (Windows build VM)
+
+The checked-in source now includes the first WinPE ISO build assets. On a Windows build VM with the Windows ADK Deployment Tools and matching WinPE add-on installed, run:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\Build-RescueIso.ps1 -Force
+```
+
+This produces `dist\Codex-Rescue-ISO.iso`. Test that ISO in a Proxmox VM before using physical hardware. To make a physical USB later, use a dedicated USB-writing tool on a separate Windows machine, select the verified ISO, and confirm the exact removable drive before writing. This overwrites that USB. The ISO contains no recovery keys and starts in read-only evidence-collection mode.
+
 ![Boot-loop diagnosis and proposed simulated repair](docs/images/rescue-console-overview.jpg)
 
 ## Features
