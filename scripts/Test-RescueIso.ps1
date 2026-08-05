@@ -98,6 +98,11 @@ $embeddedSourceMap = [ordered]@{
     'diskpart-list.txt' = 'Rescue\diskpart-list.txt'
     'startnet.cmd' = 'Windows\System32\startnet.cmd'
 }
+$normalizedBatchSources = @(
+    'Collect-RescueEvidence.cmd',
+    'Unlock-BitLockerWithRecoveryKey.cmd',
+    'startnet.cmd'
+)
 $requiredPackages = @(
     'WinPE-WMI',
     'WinPE-SecureStartup',
@@ -150,15 +155,27 @@ try {
         if (!(Test-Path -LiteralPath $embeddedPath -PathType Leaf)) {
             throw "Embedded WinPE file is missing: $($embeddedSourceMap[$sourceName])"
         }
-        $sourceHash = (Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash
+        $checkedInHash = (Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash
+        $expectedHash = $checkedInHash
+        $sourceTransformation = 'None'
+        if ($sourceName -in $normalizedBatchSources) {
+            $normalizedSourcePath = Join-Path $temporaryDirectory ("expected-$sourceName")
+            Get-Content -LiteralPath $sourcePath |
+                Set-Content -LiteralPath $normalizedSourcePath -Encoding ASCII
+            $expectedHash = (Get-FileHash -LiteralPath $normalizedSourcePath -Algorithm SHA256).Hash
+            $sourceTransformation = 'Windows PowerShell ASCII line normalization'
+        }
         $embeddedHash = (Get-FileHash -LiteralPath $embeddedPath -Algorithm SHA256).Hash
-        if ($sourceHash -cne $embeddedHash) {
+        if ($expectedHash -cne $embeddedHash) {
             throw "Embedded WinPE file does not match source: $sourceName"
         }
         $embeddedFiles += [ordered]@{
             SourceFile = $sourceName
             EmbeddedPath = $embeddedSourceMap[$sourceName]
-            Sha256 = $sourceHash
+            Sha256 = $embeddedHash
+            CheckedInSha256 = $checkedInHash
+            EmbeddedSha256 = $embeddedHash
+            SourceTransformation = $sourceTransformation
         }
     }
 

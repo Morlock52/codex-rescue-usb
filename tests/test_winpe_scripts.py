@@ -303,6 +303,17 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.assertIn('PackageName -like "*$requiredPackage*"', self.verifier)
         self.assertIn("Observed installed WinPE packages", self.verifier)
 
+    def test_iso_verifier_mirrors_batch_file_normalization(self) -> None:
+        self.assertIn("$normalizedBatchSources", self.verifier)
+        self.assertIn(
+            "Set-Content -LiteralPath $normalizedSourcePath -Encoding ASCII",
+            self.verifier,
+        )
+        self.assertIn("Sha256 = $embeddedHash", self.verifier)
+        self.assertIn("CheckedInSha256", self.verifier)
+        self.assertIn("EmbeddedSha256", self.verifier)
+        self.assertIn("SourceTransformation", self.verifier)
+
     def test_iso_verifier_records_exact_artifact_identity(self) -> None:
         self.assertIn("WindowsBuiltInRole]::Administrator", self.verifier)
         self.assertIn("IsoSize", self.verifier)
