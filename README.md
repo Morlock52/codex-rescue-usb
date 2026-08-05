@@ -195,6 +195,8 @@ The validated Proxmox build VM uses four logical processors and now has 10 GB fi
 
 VM 111 is configured with `onboot: 1`, startup order 20, a 30-second startup delay, a 60-second shutdown timeout, QEMU Guest Agent, and Proxmox deletion protection. Its system disk is on node-local storage, so the project does not claim cross-node HA failover; surviving a Proxmox-node failure requires a separate shared-storage or replicated-storage design.
 
+After cloning this VM, do not trust the cloned scheduled-task history as proof of the clone's live network state. Proxmox assigns the clone a different virtual NIC identity, and VM 115 first booted online even though its inherited task history reported result 0. Before staging source on a clone: disable the clone's audited hardware adapter, reinstall `Set-CodexRecoveryOfflineStartup.ps1` for that clone's exact interface index, cold boot, and require a fresh task result 0 plus `Disabled` or `Not Present` at 0 bps. Run only one 10-GB builder at a time on this 25-GiB shared host.
+
 | Validated build tool | Version or state |
 | --- | --- |
 | Windows ADK + WinPE add-on | 10.1.26100.2454, serviced with KB5101684 |
