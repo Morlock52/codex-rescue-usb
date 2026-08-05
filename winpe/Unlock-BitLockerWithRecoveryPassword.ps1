@@ -57,7 +57,7 @@ function Test-RecoveryPasswordFormat {
         }
 
         $digits = @($group.ToCharArray() | ForEach-Object { [int]$_ - [int][char]'0' })
-        $checksum = -$digits[0] + $digits[1] - $digits[2] + $digits[3] - $digits[4]
+        $checksum = $digits[0] - $digits[1] + $digits[2] - $digits[3] + $digits[4]
         $checksum = (($checksum % 11) + 11) % 11
         if ($checksum -ne $digits[5]) {
             return $false

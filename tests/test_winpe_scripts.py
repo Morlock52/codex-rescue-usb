@@ -119,6 +119,11 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.assertIn("Test-RecoveryPasswordFormat", script)
         self.assertIn("720896", script)
         self.assertIn("% 11", script)
+        self.assertIn(
+            "$checksum = $digits[0] - $digits[1] + $digits[2] - $digits[3] + $digits[4]",
+            script,
+        )
+        self.assertNotIn("$checksum = -$digits[0]", script)
         self.assertIn("UnlockWithNumericalPassword", script)
         self.assertIn("GetLockStatus", script)
         self.assertIn("Root\\CIMV2\\Security\\MicrosoftVolumeEncryption", script)
