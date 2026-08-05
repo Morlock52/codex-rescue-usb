@@ -110,6 +110,14 @@ try {
 finally {
     foreach ($driveLetter in $mappedDrives) {
         & subst.exe ('{0}:' -f $driveLetter) /d | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            throw ('Could not remove fixture drive {0}: during cleanup.' -f $driveLetter)
+        }
     }
-    Remove-Item -LiteralPath $temporaryRoot -Recurse -Force -ErrorAction SilentlyContinue
+    if (Test-Path -LiteralPath $temporaryRoot) {
+        Remove-Item -LiteralPath $temporaryRoot -Recurse -Force -ErrorAction Stop
+    }
+    if (Test-Path -LiteralPath $temporaryRoot) {
+        throw 'The evidence-destination fixture directory survived cleanup.'
+    }
 }
