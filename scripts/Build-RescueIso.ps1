@@ -6,9 +6,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$adkRoot = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\Assessment and Deployment Kit\Windows Preinstallation Environment'
-$copype = Join-Path $adkRoot 'copype.cmd'
-$makeMedia = Join-Path $adkRoot 'MakeWinPEMedia.cmd'
+$adkRoot = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\Assessment and Deployment Kit'
+$deploymentTools = Join-Path $adkRoot 'Deployment Tools'
+$copype = Join-Path $deploymentTools 'copype.cmd'
+$makeMedia = Join-Path $deploymentTools 'MakeWinPEMedia.cmd'
 if (!(Test-Path $copype) -or !(Test-Path $makeMedia)) {
     throw 'Install Windows ADK Deployment Tools and the matching Windows PE add-on before building.'
 }

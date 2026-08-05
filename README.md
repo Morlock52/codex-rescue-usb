@@ -1,10 +1,10 @@
 # Codex Rescue USB
 
-> A safety-first, offline fixture console for PC-recovery workflows — without touching a real PC.
+> A safety-first recovery project with a fixture console and a Windows PE ISO build path.
 
 Codex Rescue USB is a host-runnable prototype for a future offline recovery environment. It diagnoses strictly validated demonstration fixtures, creates complete repair proposals, binds approval to the exact proposal and target, simulates one allowlisted repair, and verifies the result with separate post-action evidence.
 
-It is not a bootable USB image and cannot repair a physical computer. The current milestone is a local Rescue Console for safely exploring recovery workflows.
+The current milestone includes a local fixture console plus a Windows PE ISO build path. The fixture console does not touch a real PC. The ISO must be built and boot-tested in a VM before it is described as a usable recovery image or written to physical media.
 
 ## Building the bootable ISO (Windows build VM)
 
@@ -15,7 +15,7 @@ Set-ExecutionPolicy -Scope Process Bypass
 .\scripts\Build-RescueIso.ps1 -Force
 ```
 
-This produces `dist\Codex-Rescue-ISO.iso`. Test that ISO in a Proxmox VM before using physical hardware. To make a physical USB later, use a dedicated USB-writing tool on a separate Windows machine, select the verified ISO, and confirm the exact removable drive before writing. This overwrites that USB. The ISO contains no recovery keys and starts in read-only evidence-collection mode.
+This produces `dist\Codex-Rescue-ISO.iso`. Test that ISO in a Proxmox VM before using physical hardware. To make a physical USB later, use a dedicated USB-writing tool on a separate Windows machine, select the verified ISO, and confirm the exact removable drive before writing. This overwrites that USB. The ISO contains no recovery keys and starts in read-only evidence-collection mode. Evidence collection asks the operator to select a removable destination drive and then writes only to `CodexRescueEvidence` on that selected drive.
 
 ![Boot-loop diagnosis and proposed simulated repair](docs/images/rescue-console-overview.jpg)
 
@@ -30,7 +30,7 @@ This produces `dist\Codex-Rescue-ISO.iso`. Test that ISO in a Proxmox VM before 
 
 ## Safety boundaries
 
-- No bootable USB is created in this version.
+- The Windows PE build assets are not proof that the ISO has booted; VM verification is required.
 - No real disk, volume, boot file, or host command is touched.
 - BitLocker keys, passwords, tokens, and credentials are never requested.
 - No Codex, model, or network service is contacted.
