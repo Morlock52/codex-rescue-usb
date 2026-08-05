@@ -10,6 +10,8 @@ Each phase produces a testable artifact and its own evidence. A design mockup, a
 
 ## Phase 1 — Boot-verified WinPE evidence image
 
+**Status:** Verified in a separate disposable Proxmox UEFI VM on August 5, 2026. The README records the exact ISO size, SHA-256 hash, VM settings, and real boot screenshot.
+
 **Outcome:** a generated ISO boots in a separate Proxmox VM and opens the Codex Rescue Disk read-only prompt.
 
 **Build work:** verify the current Microsoft ADK servicing patch, copy the checked-in WinPE assets into the Windows build VM, generate the ISO, and attach it to a dedicated test VM. Do not use the build VM itself as the boot test.
@@ -20,15 +22,19 @@ Each phase produces a testable artifact and its own evidence. A design mockup, a
 
 ## Phase 2 — Read-only evidence collection
 
+**Status:** VM-verified on August 5, 2026. Prepared-destination discovery, zero/multiple-destination refusal, no-overwrite behavior, seven diagnostic files, a JSON manifest, SHA-256 checksums, and a separate read-only Proxmox inspection are verified against the exact alpha.4 ISO recorded in the README.
+
 **Outcome:** an operator can collect disk layout, BitLocker status, boot configuration, event-log names, driver inventory, and network configuration from a disposable test VM to an explicitly selected removable destination.
 
-**Build work:** validate that the destination prompt rejects the WinPE RAM drive and empty input; make output naming stable; include a manifest and checksum; keep source disks read-only.
+**Build work:** keep the marker-gated destination discovery stable, reject WinPE's RAM drive and the ordinary internal system drive, include a manifest and checksums, refuse overwrite, and keep diagnostic commands read-only.
 
 **Acceptance evidence:** a disposable test VM result, the exported `CodexRescueEvidence` package, its manifest, and a screenshot of destination selection plus the resulting folder.
 
 **Figma screen:** `02 — Evidence Collection`. It shows source information as read-only, a prominent destination confirmation, collection progress, and a redacted export summary.
 
 ## Phase 3 — Owner-mediated BitLocker recovery
+
+**Status:** Pending. The current ISO reports BitLocker state only and never accepts a recovery key.
 
 **Outcome:** the environment can show BitLocker state and guide an owner through Microsoft’s local recovery steps without retaining recovery material.
 
@@ -40,6 +46,8 @@ Each phase produces a testable artifact and its own evidence. A design mockup, a
 
 ## Phase 4 — Full Windows Codex recovery workspace
 
+**Status:** Pending. Codex CLI is installed on the Windows build VM, but that is not proof of a supported recovery workspace, desktop GUI, voice session, or secure evidence handoff.
+
 **Outcome:** after the offline stage, an operator can explicitly start a full Windows workspace that runs the supported Codex desktop GUI and voice experience for guided diagnosis and reviewed repair.
 
 **Build work:** define the supported full-Windows workspace, network consent, Codex installation/sign-in boundary, evidence import, redaction rules, and repair approval model. Codex does not run inside minimal WinPE.
@@ -49,6 +57,8 @@ Each phase produces a testable artifact and its own evidence. A design mockup, a
 **Figma screens:** `04 — Workspace Handoff` and `05 — Guided Repair Review`. They distinguish offline evidence collection from online assistance and require review before any proposed repair.
 
 ## Phase 5 — Hardware validation and release
+
+**Status:** Pending. No physical USB or disposable physical test machine has been validated.
 
 **Outcome:** a physical USB made from the verified ISO boots on disposable hardware, preserves the read-only default, and produces a complete, redacted release record.
 
