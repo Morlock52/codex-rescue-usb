@@ -20,6 +20,14 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.unlocker = (
             ROOT / "winpe" / "Unlock-BitLockerWithRecoveryKey.cmd"
         ).read_text(encoding="utf-8")
+        recovery_password_path = (
+            ROOT / "winpe" / "Unlock-BitLockerWithRecoveryPassword.ps1"
+        )
+        self.recovery_password_unlocker = (
+            recovery_password_path.read_text(encoding="utf-8")
+            if recovery_password_path.exists()
+            else ""
+        )
 
     def test_destination_requires_explicit_marker_before_writing(self) -> None:
         marker_check = self.collector.index("CODEX_EVIDENCE.DEST")
@@ -102,6 +110,38 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.assertNotIn("Start-Transcript", self.unlocker)
         self.assertNotIn(">>", self.unlocker)
         self.assertIn('set "KEYFILE="', self.unlocker)
+
+    def test_recovery_password_unlock_uses_masked_in_process_wmi_path(self) -> None:
+        script = self.recovery_password_unlocker
+
+        self.assertIn("Read-Host", script)
+        self.assertIn("-AsSecureString", script)
+        self.assertIn("IsNumericalPasswordValid", script)
+        self.assertIn("UnlockWithNumericalPassword", script)
+        self.assertIn("GetLockStatus", script)
+        self.assertIn("Root\\CIMV2\\Security\\MicrosoftVolumeEncryption", script)
+        self.assertNotIn("manage-bde", script.lower())
+        self.assertNotIn("Start-Transcript", script)
+        self.assertNotIn("Set-Clipboard", script)
+
+    def test_recovery_password_unlock_requires_exact_target_and_clears_secret(self) -> None:
+        script = self.recovery_password_unlocker
+
+        self.assertIn("[ValidatePattern('^[D-WY-Zd-wy-z]$')]", script)
+        self.assertIn('"UNLOCK $target`:"', script)
+        self.assertIn("SecureStringToBSTR", script)
+        self.assertIn("ZeroFreeBSTR", script)
+        self.assertIn("$plainTextPassword = $null", script)
+        self.assertIn("RecoveryPasswordRetained = $false", script)
+        self.assertIn("RecoveryPasswordLogged = $false", script)
+
+    def test_recovery_password_unlock_is_included_in_image_and_banner(self) -> None:
+        self.assertIn(
+            "Unlock-BitLockerWithRecoveryPassword.ps1", self.builder
+        )
+        self.assertIn(
+            "Unlock-BitLockerWithRecoveryPassword.ps1", self.startup
+        )
 
 
 if __name__ == "__main__":
