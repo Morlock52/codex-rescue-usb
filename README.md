@@ -8,7 +8,7 @@ The current milestone includes a local fixture console plus a Windows PE ISO bui
 
 ## Building the bootable ISO (Windows build VM)
 
-The checked-in source now includes the first WinPE ISO build assets. On a Windows build VM with the Windows ADK Deployment Tools and matching WinPE add-on installed, run:
+The checked-in source now includes the first WinPE ISO build assets. On a Windows build VM, install the Windows ADK Deployment Tools, the matching WinPE add-on, and the current Microsoft ADK servicing patch before building. Then run:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
