@@ -12,7 +12,7 @@ class PhysicalUsbReadinessTests(unittest.TestCase):
         script = SCRIPT.read_text(encoding="utf-8")
 
         self.assertIn(
-            "5E2E1F90765DF00BAA3F9EA66282DBB4A1C981B87FBCAD9C6533ABF66AC58089",
+            "67E79C37021879BAE2BC405B4618B666D6FD11397227D95C111353020E64A794",
             script,
         )
         self.assertIn("Get-FileHash -LiteralPath $resolvedIso", script)

@@ -13,7 +13,7 @@
   Optional initial path to the verified Codex Rescue ISO.
 
 .PARAMETER ExpectedSha256
-  Expected SHA-256 for the ISO. The default is the verified alpha.12 artifact.
+  Expected SHA-256 for the ISO. The default is the verified alpha.13 artifact.
 
 .EXAMPLE
   .\Open-PhysicalUsbReadinessGui.ps1 -IsoPath 'C:\Rescue\Codex-Rescue.iso'
@@ -24,7 +24,7 @@ param(
     [string]$IsoPath = '',
 
     [ValidatePattern('^[A-Fa-f0-9]{64}$')]
-    [string]$ExpectedSha256 = '5E2E1F90765DF00BAA3F9EA66282DBB4A1C981B87FBCAD9C6533ABF66AC58089'
+    [string]$ExpectedSha256 = '67E79C37021879BAE2BC405B4618B666D6FD11397227D95C111353020E64A794'
 )
 
 Set-StrictMode -Version Latest

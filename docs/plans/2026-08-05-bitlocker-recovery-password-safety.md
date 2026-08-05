@@ -1,6 +1,6 @@
 # BitLocker recovery-password safety contract
 
-**Status:** Helper and WinPE command implemented; static tests pass. The exact alpha.11 candidate booted in dedicated VM 114 and verified the corrected launch command, a wrong confirmation-token refusal, and blocked `C:` and `X:` targets. The exact alpha.10 helper then passed confidential invalid-format, wrong-password, correct-unlock, fixture-file, cold-lock, and captured-stream leakage tests against a disposable encrypted volume. The clean post-fix alpha.12 artifact passed source/payload/package verification and a separate disconnected UEFI boot. Human masked entry, operating-system-volume recovery, and physical hardware remain open.
+**Status:** Helper and WinPE command implemented; static tests pass. The exact alpha.11 candidate booted in dedicated VM 114 and verified the corrected launch command, a wrong confirmation-token refusal, and blocked `C:` and `X:` targets. The exact alpha.10 helper then passed confidential invalid-format, wrong-password, correct-unlock, fixture-file, cold-lock, and captured-stream leakage tests against a disposable encrypted volume. The current alpha.13 artifact passed normalized source/payload/package verification, a separate disconnected UEFI boot, and a privacy-safe ten-file evidence export. Human masked entry, operating-system-volume recovery, and physical hardware remain open.
 
 ## Scope
 
@@ -38,4 +38,4 @@ The alpha.11 candidate is a derived validation image, not a clean ADK rebuild. I
 | Cold restart | Fixture returns to locked |
 | Output-boundary scan | No recovery-password pattern in logs, evidence, screenshots, source, Git history, or Codex context |
 
-The exact alpha.10 size and SHA-256, test-VM configuration, non-secret fixture audit, approved screenshots, and captured-stream leakage scan are recorded in the README. `ManualMaskedEntryValidated` remains false until a local operator completes that separate no-recording test. The clean post-fix alpha.12 artifact is 557,871,104 bytes with SHA-256 `5E2E1F90765DF00BAA3F9EA66282DBB4A1C981B87FBCAD9C6533ABF66AC58089`; its verifier JSON and separate VM 114 UEFI boot are recorded in the README.
+The exact alpha.10 size and SHA-256, test-VM configuration, non-secret fixture audit, approved screenshots, and captured-stream leakage scan are recorded in the README. `ManualMaskedEntryValidated` remains false until a local operator completes that separate no-recording test. The current alpha.13 artifact is 558,282,752 bytes with SHA-256 `67E79C37021879BAE2BC405B4618B666D6FD11397227D95C111353020E64A794`; its verifier JSON, separate VM 114 UEFI boot, and ten-file evidence export are recorded in the README.
