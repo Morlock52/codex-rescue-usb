@@ -338,6 +338,8 @@ This is the separate alpha.10 lab path for Microsoft's 48-digit numerical recove
 
 The first alpha.10 candidate (`558,180,352` bytes; SHA-256 `94CE0A744855FA777E54BC5B9CE2609D3BD7BE6D8A0121B30D09BE35CCCAD46C`) booted to the disconnected WinPE prompt, but runtime testing found that its banner omitted `-ExecutionPolicy Bypass`; the displayed command was therefore blocked before the recovery script could run. That artifact is retained as failed evidence, not as a release candidate. The corrected source is committed for the next build, whose full runtime gate remains pending.
 
+The exact alpha.11 validation candidate (`558,899,200` bytes; SHA-256 `7EFB41B96A247FEB49E9B9037AD379F6528EC9184A105D19AF819532152513B0`) was derived from the boot-verified alpha.10 WIM by replacing only `Windows\System32\startnet.cmd` with the committed correction. `wimlib-imagex verify` passed, the extracted in-WIM file hash matched the repository, and the rebuilt ISO reported one BIOS and one UEFI El Torito entry. It then booted in dedicated VM 114 with 2 vCPU, 2 GiB RAM, Windows UEFI CA 2023 keys, no data disks, and `link_down=1`. The corrected banner launched the recovery script and VM-verified wrong-token plus blocked `C:` and `X:` refusals. This proves the launch and early-refusal layer only. A clean ADK rebuild and the encrypted disposable-volume invalid-format, wrong-password, correct-unlock, fixture-file, cold-relock, and leakage gates remain open.
+
 Attach one new 1-GiB RAW virtual disk to the disposable full-Windows fixture VM. In a local elevated PowerShell console—not Codex, QEMU guest-agent execution, a transcript, redirected input/output, or a recorded screen—inspect the disk first:
 
 ```powershell
@@ -531,7 +533,7 @@ The two-stage architecture is partially VM-verified: WinPE boot/evidence, extern
 
 ## Recovery-media delivery roadmap
 
-The detailed phase plan, acceptance evidence, safety gates, and planned Figma screens are in [the recovery-media roadmap](docs/plans/2026-08-05-recovery-media-roadmap.md). Phases 1 and 2 are VM-verified. Phase 3's external-key sub-gate is VM-verified, while its recovery-password UI remains open. Phase 4's GUI/project handoff, exact network transition, offline-at-startup policy, real alpha.9 redacted-summary generation, and bounded manual Codex review are VM-verified. Voice/audio and physical-workflow least-privilege gates remain open. Physical USB and repair also remain open.
+The detailed phase plan, acceptance evidence, safety gates, and planned Figma screens are in [the recovery-media roadmap](docs/plans/2026-08-05-recovery-media-roadmap.md). Phases 1 and 2 are VM-verified. Phase 3's external-key sub-gate and recovery-password launch/early-refusal sub-gate are VM-verified, while its encrypted-volume recovery-password gate remains open. Phase 4's GUI/project handoff, exact network transition, offline-at-startup policy, real alpha.9 redacted-summary generation, and bounded manual Codex review are VM-verified. Voice/audio and physical-workflow least-privilege gates remain open. Physical USB and repair also remain open.
 
 ## References
 
