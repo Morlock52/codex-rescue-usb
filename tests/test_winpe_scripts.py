@@ -17,6 +17,12 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.builder = (ROOT / "scripts" / "Build-RescueIso.ps1").read_text(
             encoding="utf-8"
         )
+        verifier_path = ROOT / "scripts" / "Test-RescueIso.ps1"
+        self.verifier = (
+            verifier_path.read_text(encoding="utf-8")
+            if verifier_path.exists()
+            else ""
+        )
         self.unlocker = (
             ROOT / "winpe" / "Unlock-BitLockerWithRecoveryKey.cmd"
         ).read_text(encoding="utf-8")
@@ -153,6 +159,52 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.assertIn(
             "powershell -ExecutionPolicy Bypass -File", self.startup
         )
+
+    def test_builder_runs_post_build_iso_verifier(self) -> None:
+        self.assertIn("WindowsBuiltInRole]::Administrator", self.builder)
+        self.assertIn("Test-RescueIso.ps1", self.builder)
+        self.assertIn("-IsoPath $iso", self.builder)
+        self.assertIn("Created and verified", self.builder)
+
+    def test_iso_verifier_requires_bios_and_uefi_boot_files(self) -> None:
+        self.assertIn("boot\\etfsboot.com", self.verifier)
+        self.assertIn("efi\\microsoft\\boot\\efisys.bin", self.verifier)
+        self.assertIn("efi\\microsoft\\boot\\bcd", self.verifier)
+        self.assertIn("sources\\boot.wim", self.verifier)
+
+    def test_iso_verifier_matches_injected_sources_and_packages(self) -> None:
+        for source_file in (
+            "Collect-RescueEvidence.cmd",
+            "Unlock-BitLockerWithRecoveryKey.cmd",
+            "Unlock-BitLockerWithRecoveryPassword.ps1",
+            "New-EvidenceManifest.ps1",
+            "diskpart-list.txt",
+            "startnet.cmd",
+        ):
+            self.assertIn(source_file, self.verifier)
+
+        for component in (
+            "WinPE-WMI",
+            "WinPE-SecureStartup",
+            "WinPE-NetFx",
+            "WinPE-Scripting",
+            "WinPE-PowerShell",
+        ):
+            self.assertIn(component, self.verifier)
+
+        self.assertIn("Get-FileHash", self.verifier)
+        self.assertIn("Get-WindowsPackage", self.verifier)
+
+    def test_iso_verifier_records_exact_artifact_identity(self) -> None:
+        self.assertIn("WindowsBuiltInRole]::Administrator", self.verifier)
+        self.assertIn("IsoSize", self.verifier)
+        self.assertIn("IsoSha256", self.verifier)
+        self.assertIn("VerificationSucceeded", self.verifier)
+        self.assertIn("ContainsRecoveryMaterial = $false", self.verifier)
+        self.assertIn("Remove-Item -LiteralPath $OutputPath -Force", self.verifier)
+        self.assertIn("Verification output must not replace the ISO", self.verifier)
+        self.assertIn("The ISO is already mounted", self.verifier)
+        self.assertIn("ClockExternallyValidated = $false", self.verifier)
 
 
 if __name__ == "__main__":

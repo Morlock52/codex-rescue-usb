@@ -122,7 +122,7 @@ The helper below downloads only from Microsoft-owned hosts, rejects an MSP unles
 .\scripts\Install-AdkServicingUpdate.ps1 -Confirm:$false
 ```
 
-Then run:
+Then open an elevated Windows PowerShell session and run:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
@@ -137,7 +137,9 @@ For Proxmox guest-agent automation, run `scripts\Build-RescueIso-Unattended.cmd`
 
 When the repository is mounted in the build VM as a read-only virtual CD, open the CD in File Explorer and double-click `scripts\Stage-RescueSource.cmd`. It creates `Documents\CodexRescue` and copies the source there without changing the CD. If that destination already exists, the launcher stops without overwriting it. Open PowerShell in the staged folder and run the build command above.
 
-This produces `dist\Codex-Rescue-ISO.iso` using Microsoft's `/bootex` option and Windows UEFI CA 2023-signed boot files. Attach that ISO to a separate Proxmox test VM and verify it reaches the WinPE command prompt before using physical hardware. The build VM is not the test VM. A legacy Windows UEFI 2011 CA build is a separate compatibility choice and must be matched to the target device's Secure Boot revocation state.
+This produces `dist\Codex-Rescue-ISO.iso` using Microsoft's `/bootex` option and Windows UEFI CA 2023-signed boot files. The build then runs `scripts\Test-RescueIso.ps1`, which records the exact ISO size and SHA-256 in `Codex-Rescue-ISO.iso.verification.json`; requires the BIOS and UEFI boot payload files; mounts `boot.wim` read-only; verifies every embedded Codex Rescue file against the checked-in source; and confirms all required WinPE packages are installed. A failed verification removes any older success report for that output path.
+
+That JSON proves artifact identity and payload consistency, not bootability. Attach the exact ISO to a separate Proxmox test VM and verify it reaches the WinPE command prompt before using physical hardware. The build VM is not the test VM. A legacy Windows UEFI 2011 CA build is a separate compatibility choice and must be matched to the target device's Secure Boot revocation state.
 
 ### Repairing and auditing the Proxmox build VM
 

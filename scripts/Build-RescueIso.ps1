@@ -28,6 +28,11 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+$principal = [Security.Principal.WindowsPrincipal]::new($identity)
+if (!$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    throw 'Run the ISO build from an elevated Windows PowerShell session.'
+}
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
     $OutputDirectory = Join-Path $PSScriptRoot '..\dist'
 }
@@ -153,4 +158,6 @@ if ($Force) {
 }
 $mediaArguments += @($work, $iso, '/BOOTEX')
 Invoke-AdkCommand -Command $makeMedia -Arguments $mediaArguments
-Write-Host "Created $iso"
+$verifier = Join-Path $PSScriptRoot 'Test-RescueIso.ps1'
+& $verifier -IsoPath $iso -OutputPath "$iso.verification.json" | Out-Host
+Write-Output "Created and verified $iso"
