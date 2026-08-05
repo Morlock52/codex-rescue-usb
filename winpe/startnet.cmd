@@ -8,5 +8,5 @@ echo Recovery keys must never be saved in this environment or given to Codex.
 echo.
 echo Run X:\Rescue\Collect-RescueEvidence.cmd to collect offline evidence.
 echo Run X:\Rescue\Unlock-BitLockerWithRecoveryKey.cmd D only for an authorized volume and prepared external key drive.
-echo Run powershell -File X:\Rescue\Unlock-BitLockerWithRecoveryPassword.ps1 -TargetDrive D -ConfirmationToken "UNLOCK D:" -Confirm:$false for masked 48-digit recovery-password input.
+echo Run powershell -ExecutionPolicy Bypass -File X:\Rescue\Unlock-BitLockerWithRecoveryPassword.ps1 -TargetDrive D -ConfirmationToken "UNLOCK D:" -Confirm:$false for masked 48-digit recovery-password input.
 cmd

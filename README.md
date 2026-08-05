@@ -356,7 +356,7 @@ The script refuses redirected input/output so the generated password cannot retu
 Move that encrypted disposable disk to the stopped, network-disconnected WinPE test VM and boot the exact alpha.10 candidate. Identify the `CODEX-BL-PASS` volume by label, size, and locked state; never assume its drive letter. For a selected `E:` fixture, run:
 
 ```powershell
-powershell -File X:\Rescue\Unlock-BitLockerWithRecoveryPassword.ps1 `
+powershell -ExecutionPolicy Bypass -File X:\Rescue\Unlock-BitLockerWithRecoveryPassword.ps1 `
   -TargetDrive E `
   -ConfirmationToken 'UNLOCK E:' `
   -Confirm:$false

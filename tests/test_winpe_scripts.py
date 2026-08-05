@@ -150,6 +150,9 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.assertIn(
             "Unlock-BitLockerWithRecoveryPassword.ps1", self.startup
         )
+        self.assertIn(
+            "powershell -ExecutionPolicy Bypass -File", self.startup
+        )
 
 
 if __name__ == "__main__":
