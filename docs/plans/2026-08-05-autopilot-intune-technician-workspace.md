@@ -1,0 +1,155 @@
+# Autopilot and Intune technician-workspace implementation plan
+
+## Purpose
+
+Evolve Codex Rescue USB from its verified WinPE emergency image and fixture console into a two-environment recovery workbench for authorized Windows 11, Windows Autopilot, Microsoft Intune, and Microsoft Entra troubleshooting. This plan records the implementation boundary as of August 5, 2026. A planned feature is not release evidence.
+
+## Support boundary
+
+The release architecture remains two-stage:
+
+1. **WinPE emergency mode** is the supported offline recovery layer for disk inventory, guarded BitLocker recovery, offline Windows discovery, BCD inspection, DISM servicing, driver injection, file recovery, and Windows Setup.
+2. **Full Windows 11 technician workspace** is the online assistance layer for normal Wi-Fi, captive portals, browser sign-in, Windows PowerShell 5.1, PowerShell 7, Codex, Microsoft Graph, Intune tooling, reporting, and the WPF dashboard.
+
+Microsoft removed Windows To Go and documents limited application compatibility and general wireless constraints in WinPE. A bootable external Windows 11 VHDX or external-NVMe workspace therefore remains an experimental delivery option until licensing, update servicing, target-hardware compatibility, Secure Boot, driver coverage, activation, and physical boot are validated. The project must not relabel a booted build VM or WinPE image as that portable workspace.
+
+Primary references:
+
+- [Windows To Go overview and removal](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/deployment/windows-to-go/windows-to-go-overview)
+- [WinPE optional components and wireless limitation](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/winpe-add-packages--optional-components-reference?view=windows-11)
+- [Connect-MgGraph delegated authentication](https://learn.microsoft.com/en-us/powershell/module/microsoft.graph.authentication/connect-mggraph?view=graph-powershell-1.0)
+- [Microsoft Graph PowerShell authentication commands](https://learn.microsoft.com/en-us/powershell/microsoftgraph/authentication-commands?view=graph-powershell-1.0)
+- [Codex app on Windows](https://openai.com/index/introducing-the-codex-app/)
+- [Voice with Codex in the Windows desktop app](https://help.openai.com/en/articles/20001275-chatgpt-work-and-codex)
+
+## Phase 1 — local read-only diagnostics
+
+**Implementation status:** runtime-verified in Windows VM 111 on August 5, 2026 local time.
+
+The `CodexRescue` module exposes 14 Phase 1 functions and ten diagnostic check groups. Defaults are intentionally strict:
+
+- no repair commands;
+- no cloud requests;
+- no online connectivity tests;
+- no raw Intune or Windows event-log export;
+- no BitLocker recovery material;
+- no credentials, tokens, certificate private material, or automatic Codex import;
+- no overwrite of an existing evidence folder or ZIP.
+
+The export has two privacy zones:
+
+| Zone | Contents | Handling |
+| --- | --- | --- |
+| Detailed local folder | Device-specific JSON and HTML, manifest, optional consent-bound raw logs | Technician-controlled local review only |
+| Sanitized escalation ZIP | Sanitized JSON, sanitized HTML, privacy declaration | Operator review before sharing or Codex use |
+
+The sanitized ZIP is rejected if the structured result matches a BitLocker recovery-password, bearer-token, token assignment, private-key header, or `.bek` pattern. Privacy-sensitive fields are removed before the ZIP is created. These checks reduce risk but do not replace manual review.
+
+### Verified evidence
+
+- Windows PowerShell 5.1.26100.8875 imported 14 exported functions.
+- The default assessment returned all ten required checks and passed its schema validator.
+- It recorded zero repairs, zero cloud requests, zero online tests, zero raw management-log files, and no recovery or credential collection.
+- The sanitized ZIP contained exactly three files and passed the independent harness pattern scan.
+- The local suite passed 89 tests; every PowerShell file parsed; the module manifest validated.
+- Two privacy-reviewed screenshots preserve the sanitized overview and all ten check cards from that real Windows report.
+
+### Remaining Phase 1 work
+
+- Exercise a disposable offline Windows installation fixture through the full-Windows module.
+- Add optional raw-log runtime testing using synthetic or disposable management logs only.
+- Sign the module and record publisher-chain verification in the enterprise phase.
+
+## Phase 2 — technician dashboard and workspace image
+
+Build a WPF dashboard with the same visual language as the existing Figma Rescue Console. The first dashboard screen must include:
+
+- overall health score and explicit `Not tested` states;
+- local device and installed-Windows summary;
+- Autopilot, Intune, Entra, certificate, BitLocker, TPM, update, network, driver, and event cards;
+- a timeline and local audit trail;
+- separate controls for the detailed local report and sanitized escalation ZIP;
+- persistent offline/cloud state;
+- no repair button until an allowlisted repair module and approval contract exist.
+
+The dashboard reads only the module's structured objects. It must never scrape formatted console text and must HTML-encode every rendered value. Figma is the interaction and layout specification, not runtime evidence.
+
+The workspace image must be validated independently from the existing build VM. Required gates are:
+
+1. boots from a dedicated virtual disk or external-media representation;
+2. preserves UEFI Secure Boot expectations;
+3. detects Ethernet and Wi-Fi hardware without silently enabling a network;
+4. allows explicit browser-based Codex sign-in without storing tokens in the published image;
+5. runs PowerShell 5.1, PowerShell 7, the signed module, Codex, and the WPF dashboard;
+6. detects a separate offline Windows installation;
+7. survives reboot and an update-servicing cycle;
+8. leaves the Proxmox guest agent and recovery access available.
+
+## Phase 3 — delegated Microsoft Graph visibility
+
+Graph access starts read-only and opt-in. Use `Connect-MgGraph` with delegated scopes, device-code or interactive browser authentication, and `-ContextScope Process`. Do not embed an app secret or persist an access or refresh token in the repository, image, report, or escalation ZIP.
+
+The first cloud functions may query only the signed-in technician's authorized view of:
+
+- Microsoft Entra device registration and authentication state;
+- Intune managed-device enrollment, compliance, sync, and policy summaries;
+- Autopilot registration and profile assignment;
+- group membership needed to explain assignment;
+- BitLocker escrow **availability only**, not recovery-key material.
+
+Every report must distinguish `Not tested`, `Permission denied`, `Not found`, `Unavailable`, and actual unhealthy state. Local and cloud identifiers remain in the detailed local zone unless an explicit sanitizer rule approves a bounded alias.
+
+No delete, wipe, retire, Fresh Start, Autopilot Reset, group change, owner change, or recovery-key retrieval belongs in the read-only cloud phase.
+
+## Phase 4 — approval-bound repair engine
+
+Repairs are separate exported functions with `SupportsShouldProcess`, `ConfirmImpact`, parameter validation, an allowlist, target fingerprint, rollback or recovery prerequisite, exact technician confirmation, before/after evidence, and a typed receipt. High-risk operations require additional gates from the goal specification. Codex may recommend or review a plan; it does not bypass the broker or execute an unrestricted shell.
+
+Initial disposable-fixture candidates are:
+
+- DNS, Winsock, time, and one-selected-adapter repair;
+- Windows Update cache/service repair;
+- Intune Management Extension service and installation repair;
+- Company Portal package repair;
+- offline BCD and DISM repair;
+- driver injection into a disposable offline Windows image.
+
+Microsoft Entra leave/rejoin, certificate deletion, TPM clear, BitLocker protector changes, re-enrollment, wipe, retire, Fresh Start, Autopilot Reset, partitioning, formatting, and reinstallation remain high-impact operations with their own acceptance tests and explicit owner approval.
+
+## Phase 5 — Codex orchestration
+
+Codex receives only an operator-selected sanitized package. The default prompt must request root-cause analysis, supporting evidence, safest repair sequence, risks, compatible commands, validation after each step, and the affected boundary. Each proposed action is shown in the dashboard and remains inert until the technician approves the exact target and parameters.
+
+Success requires:
+
+- deterministic diagnostic JSON schema;
+- sanitized context manifest and hash;
+- command allowlist and signer verification;
+- one-time approval bound to a proposal digest;
+- repair receipt plus independent post-action validation;
+- final HTML report and escalation notes;
+- no credential, token, or recovery-key persistence.
+
+## Phase 6 — dual-boot packaging and physical validation
+
+The final boot menu is planned to expose:
+
+1. Windows 11 Technician Workspace
+2. WinPE Emergency Repair
+3. Windows 11 Setup
+4. Hardware Diagnostics
+5. Memory Test
+6. Restart
+7. Shut Down
+
+Release evidence must include both VM boot paths, a disposable offline Windows target, network and authentication gates, report export, cold reboots, update servicing, USB identity and write-plan validation, physical UEFI boot on disposable hardware, driver compatibility, and owner approval. Microsoft binaries and licensed commercial tools are not redistributed through GitHub; the repository publishes source, reproducible instructions, hashes, redacted screenshots, and validation records.
+
+## Immediate next acceptance gates
+
+1. Publish the Phase 1 module, harness, README instructions, and this plan after the checked-in diff and links pass validation.
+2. Add the Figma technician dashboard frame and publish a clearly labeled concept screenshot.
+3. Implement the WPF read-only dashboard against the module's structured objects.
+4. Add delegated, process-scoped, read-only Graph authentication behind an explicit online-consent gate.
+5. Build and boot-test a separately maintained full-Windows workspace image before describing it as portable media.
+6. Integrate and boot-test the two-environment menu in a disposable UEFI VM.
+7. Perform the final physical USB workflow only on an explicitly selected blank device and disposable test PC.

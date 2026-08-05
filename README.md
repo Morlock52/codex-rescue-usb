@@ -308,6 +308,106 @@ A controlled manual Codex review of the real alpha.9 aggregate summary is also V
 
 OpenAI currently documents the [Codex app on Windows](https://openai.com/index/introducing-the-codex-app/) and [Voice with Codex in the Windows desktop app](https://help.openai.com/en/articles/20001275-chatgpt-work-and-codex). Microsoft documents [WinPE's fixed-purpose application model](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/winpe-create-apps?view=windows-11) and the [removal of Windows To Go](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/deployment/windows-to-go/windows-to-go-overview).
 
+## Phase 1 full-Windows read-only diagnostics
+
+The checked-in `CodexRescue` PowerShell module is the first implementation layer for the planned Windows 11 technician workspace. It runs in full Windows PowerShell 5.1 or later and currently exports 14 commands covering ten local check groups: Autopilot signals, Intune enrollment and IME state, Microsoft Entra registration, certificate counts, BitLocker state, TPM and Secure Boot, Windows Update, networking, drivers, and selected Windows event-error aggregates.
+
+This module does **not** make a repair, authenticate to Microsoft Graph, change a cloud object, unlock BitLocker, or send results to Codex. Its default assessment is local and read-only. The detailed local folder can contain device-specific troubleshooting information and must remain under technician control. The separate escalation ZIP contains only the sanitized JSON report, sanitized HTML report, and a machine-readable privacy declaration; it still requires operator review before sharing.
+
+### Beginner quick start
+
+Open **Windows PowerShell as Administrator** from the repository root. Create an export parent and run one default assessment:
+
+```powershell
+New-Item -ItemType Directory -Path 'C:\Temp\CodexRescue' -Force
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\Invoke-CodexRescueReadOnlyAssessment.ps1 `
+  -DestinationPath 'C:\Temp\CodexRescue\Assessment-001' `
+  -Confirm:$false
+```
+
+Choose a new destination name every time. The exporter deliberately refuses an existing folder or ZIP instead of overwriting evidence. After it completes, review:
+
+```text
+Assessment-001\
+├── DeviceInfo\CodexRescueAssessment.local.json
+├── Reports\CodexRescueReport.local.html
+├── Reports\raw-log-collection.json
+├── CodexAnalysis\CodexRescueAssessment.sanitized.json
+├── CodexAnalysis\CodexRescueReport.sanitized.html
+└── manifest.json
+
+Assessment-001-sanitized.zip
+├── CodexRescueAssessment.sanitized.json
+├── CodexRescueReport.sanitized.html
+└── README.json
+```
+
+Open the local HTML report in a browser for technician review. Do not upload the detailed local directory. Inspect the sanitized ZIP before attaching it to a ticket or providing any part of it to Codex.
+
+### Professional options and safety gates
+
+The default command does not contact even the test endpoints. To add only the allowlisted DNS and HTTPS connectivity checks, the operator must supply the exact separate phrase:
+
+```powershell
+.\scripts\Invoke-CodexRescueReadOnlyAssessment.ps1 `
+  -DestinationPath 'C:\Temp\CodexRescue\Assessment-002' `
+  -IncludeOnlineNetworkTests `
+  -OnlineTestConfirmationToken 'RUN CODEX RESCUE ONLINE TESTS' `
+  -Confirm:$false
+```
+
+Raw Intune Management Extension logs and selected Windows event channels are privacy-sensitive and remain disabled by default. A local technician can collect them only with the exact phrase below. They stay in the detailed local folder and are always excluded from the sanitized ZIP:
+
+```powershell
+.\scripts\Invoke-CodexRescueReadOnlyAssessment.ps1 `
+  -DestinationPath 'C:\Temp\CodexRescue\Assessment-003' `
+  -IncludeRawManagementLogs `
+  -RawLogConfirmationToken 'INCLUDE RAW WINDOWS MANAGEMENT LOGS' `
+  -Confirm:$false
+```
+
+For interactive module use:
+
+```powershell
+Import-Module .\PowerShell\Modules\CodexRescue\CodexRescue.psd1 -Force
+$assessment = Get-CodexRescueDeviceHealth
+$assessment | Invoke-CodexRescueValidation -Strict
+$assessment.Checks | Format-Table CheckName, Status, Summary -AutoSize
+```
+
+The module withholds BitLocker protector IDs and recovery material, certificate subjects and thumbprints, raw `dsregcmd` output and cloud identifiers, network addresses, event messages, and credential material from its structured result. `Invoke-CodexRescueValidation` also rejects recovery-password, bearer-token, token-assignment, private-key, and `.bek` patterns before export. Sanitization is a defense-in-depth gate, not authorization to share results automatically.
+
+### Real Windows runtime evidence
+
+On August 5, 2026 local time, the module and harness source recorded in commit `625B060` was packaged as the read-only development source disc `CODEX_RESCUE_R3` (1,986,560 bytes; SHA-256 `8D0542AEA83D814378D9F9CA23871E8CB5AD90581E666FFFE166C409FFA5D0F5`), mounted in Proxmox Windows VM 111, and executed with Windows PowerShell 5.1.26100.8875. This small source-transfer disc is not the bootable WinPE rescue ISO. The VM remained configured with 4 vCPUs and 12 GB fixed RAM. The native Windows harness reported:
+
+| Verification | Result |
+| --- | --- |
+| Harness result | `PASS` |
+| Exported Phase 1 commands | 14 |
+| Required diagnostic checks | 10 |
+| Health score for this VM | 60/100; diagnostic result, not a harness failure |
+| Repair actions | 0 |
+| Cloud requests | 0 |
+| Online network tests | 0 |
+| Raw management-log files | 0 |
+| Sanitized ZIP entries | exactly 3 |
+| Detected prohibited secret patterns | 0 |
+| Sanitized ZIP SHA-256 | `EF10CEA5D92609B7AE5245966A5A4E11488B326259E4612D89121079286D617B` |
+
+The local Python suite passed all 89 tests, all PowerShell source files passed parser validation, and `Test-ModuleManifest` confirmed the 14-function PowerShell 5.1 module contract. This proves the checked-in Phase 1 diagnostic and export path in the dedicated Windows VM. It does not prove Graph authentication, cloud-side Autopilot or Intune lookup, repair actions, a bootable full-Windows portable image, or a physical USB.
+
+![Sanitized Phase 1 device-health report generated in Windows VM 111](docs/images/full-windows-phase1-report-overview.png)
+
+This is the real sanitized HTML generated by the final `CODEX_RESCUE_R3` Windows harness. The module redacted computer and user identity before the screenshot was created. It shows the VM's diagnostic score and visible 11.93 GB memory; it is not a Figma concept, bootable-workspace image, or physical-USB result.
+
+![All ten sanitized Phase 1 diagnostic cards from Windows VM 111](docs/images/full-windows-phase1-report-checks.png)
+
+The ten cards are from the same real sanitized report. `Warning`, `Failed`, and `NotTested` are preserved as findings; the test passed because the module produced a valid read-only assessment without repairs, cloud requests, online tests, raw logs, recovery material, or detected secret patterns.
+
+Implementation boundaries, Microsoft support constraints, delegated-auth design, and the next acceptance gates are documented in the [Autopilot and Intune technician-workspace plan](docs/plans/2026-08-05-autopilot-intune-technician-workspace.md).
+
 ### Physical USB readiness GUI (does not write the USB)
 
 On the separate Windows computer that will prepare the rescue drive, connect only the intended blank USB target and double-click:
@@ -544,6 +644,7 @@ The two screenshots in the fixture-console sections show the **fixture console**
 | Evidence package | The resulting `CodexRescueEvidence` folder on the prepared test destination. | Export verified above; folder screenshot pending |
 | Redacted handoff summary | Integrity-verified aggregate output with raw evidence, recovery material, and automatic import disabled. | **Verified above for alpha.13** |
 | Codex recovery workspace | The full-Windows GUI opened on the exact staged project with the Voice control visible. | **GUI/project verified above; spoken Voice pending** |
+| Phase 1 Windows report | Sanitized report overview and all ten diagnostic cards, with identity fields redacted. | **Verified above from the final VM 111 harness** |
 | Physical USB boot | UEFI boot and evidence collection on a disposable physical test machine. | Pending |
 
 Every screenshot will state what was tested, which environment produced it, and whether it is a fixture, VM, or physical-hardware result. Screens that could expose recovery keys, device identifiers, account data, or customer files are redacted before publication.
@@ -633,6 +734,7 @@ The detailed phase plan, acceptance evidence, safety gates, and planned Figma sc
 - [Fixture console implementation plan](docs/plans/2026-08-04-fixture-rescue-console-implementation.md)
 - [Windows PE and Codex recovery architecture](docs/plans/windows-pe-codex-recovery-architecture.md)
 - [Recovery-media delivery roadmap](docs/plans/2026-08-05-recovery-media-roadmap.md)
+- [Autopilot and Intune technician-workspace plan](docs/plans/2026-08-05-autopilot-intune-technician-workspace.md)
 - [BitLocker recovery-key safety contract](docs/plans/2026-08-05-bitlocker-recovery-safety.md)
 - [Full-Windows Codex recovery workspace](docs/plans/2026-08-05-full-windows-codex-workspace.md)
 - [Editable Figma Rescue Console](https://www.figma.com/design/sW9ctJbQnpgzx0DqJqwnbo)
