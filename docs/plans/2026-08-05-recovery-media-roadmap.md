@@ -22,13 +22,13 @@ Each phase produces a testable artifact and its own evidence. A design mockup, a
 
 ## Phase 2 — Read-only evidence collection
 
-**Status:** VM-verified on August 5, 2026. Prepared-destination discovery, zero/multiple-destination refusal, no-overwrite behavior, seven diagnostic files, a JSON manifest, SHA-256 checksums, and a separate read-only Proxmox inspection are verified against the exact alpha.4 ISO recorded in the README.
+**Status:** VM-verified on August 5, 2026 across three exact evidence layers. Alpha.4 verified prepared-destination discovery, zero/multiple-destination refusal, no-overwrite behavior, seven diagnostic files, a JSON manifest, SHA-256 checksums, and a separate read-only Proxmox inspection, but its BitLocker file recorded that `manage-bde` was missing. The exact alpha.7 image added SecureStartup, reran the collector, produced a real BitLocker volume/status block, passed all eight listed hashes from a separate read-only mount, and contained no recovery-key file or recovery-password-shaped text. The exact alpha.9 image then booted, preserved no-overwrite, exported a new checksum-valid package, and explicitly marked the WinPE system clock as externally unvalidated.
 
 **Outcome:** an operator can collect disk layout, BitLocker status, boot configuration, event-log names, driver inventory, and network configuration from a disposable test VM to an explicitly selected removable destination.
 
 **Build work:** keep the marker-gated destination discovery stable, reject WinPE's RAM drive and the ordinary internal system drive, include a manifest and checksums, refuse overwrite, and keep diagnostic commands read-only.
 
-**Acceptance evidence:** a disposable test VM result, the exported `CodexRescueEvidence` package, its manifest, and a screenshot of destination selection plus the resulting folder.
+**Acceptance evidence:** the disposable alpha.4 destination/no-overwrite/manifest package, the corrected alpha.7 integrated package, their exact artifact records, separate read-only checksum verification, and real screenshots of both export layers.
 
 **Figma screen:** `02 — Evidence Collection`. It shows source information as read-only, a prominent destination confirmation, collection progress, and a redacted export summary.
 
@@ -56,11 +56,15 @@ Each phase produces a testable artifact and its own evidence. A design mockup, a
 
 **Completed sub-gate:** the desktop shortcut now invokes the installed `codex:` protocol instead of searching for a nonexistent `codex.exe`. The guarded launcher verifies full Windows, project root, installed package, protocol registration, and audio-input state; requires the exact `START CODEX RECOVERY WORKSPACE` network-consent phrase; forbids recovery material; and disables automatic evidence import by design.
 
-**Remaining build work:** validate a trusted microphone/Voice path, prove network-off and network-on transitions, add a redacted summary handoff without raw-package import, configure least privilege for the physical recovery workflow, and validate the workspace on disposable hardware. Codex does not run inside WinPE. Windows To Go is removed, so a portable full-Windows VHDX is a separate experimental path rather than the supported release baseline.
+**Completed sub-gate:** the aggregate evidence-summary generator was run against the real alpha.7 and alpha.9 packages. It verified each manifest and all listed hashes, reported one BitLocker volume/status block in each package, excluded raw evidence and recovery material, refused automatic Codex import, and passed scans for private addresses, device identifiers, volume letters, key-file suffixes, and recovery-password patterns. The alpha.7 time discrepancy motivated alpha.9's explicit `ClockSource: WinPE system clock` and `ClockExternallyValidated: false` fields; recorded WinPE time remains untrusted without an independent clock check.
 
-**Collected acceptance evidence:** a booted full-Windows environment, installed package and protocol inventory, visible signed-in Codex GUI, exact `CodexRescue` project root, visible Voice control, source-CD audit with network consent false, and explicit no-key/no-auto-import fields. The real screenshot is cropped to remove unrelated thread and account names.
+**Completed offline sub-gate:** the guarded network policy was installed as a SYSTEM startup task bound to interface 6 in the dedicated VM. A cold-start edge test exposed that `Get-NetAdapter -Physical` omitted the already-disabled adapter; the corrected scripts now enumerate hidden hardware interfaces, exclude virtual interfaces, and treat `Disabled` and `Not Present` as offline. The final reboot preserved standard-user auto-logon and QEMU Guest Agent access while the task completed with result 0 and the adapter settled at Disabled/0 bps. The matching token-bound enable command recovered the same interface from cold-boot `Not Present` to Up/1 Gbps.
 
-**Open acceptance evidence:** a spoken Voice session, trusted microphone permission, explicit network transition, redacted evidence handoff, least-privilege access state, and an approved dry-run repair proposal with no recovery keys or sensitive raw evidence in context.
+**Remaining build work:** validate a trusted microphone/Voice path, perform a controlled manual Codex review of the redacted summary, configure least privilege for the physical recovery workflow, and validate the workspace on disposable hardware. Codex does not run inside WinPE. Windows To Go is removed, so a portable full-Windows VHDX is a separate experimental path rather than the supported release baseline.
+
+**Collected acceptance evidence:** a booted full-Windows environment, installed package and protocol inventory, visible signed-in Codex GUI, exact `CodexRescue` project root, visible Voice control, source-CD audit with network consent false, explicit no-key/no-auto-import fields, an exact interface-6 transition from Up/1 Gbps to Disabled/0 bps and back to Up/1 Gbps, and a reboot-verified offline-at-startup task with result 0. The real screenshot is cropped to remove unrelated thread and account names.
+
+**Open acceptance evidence:** a spoken Voice session, trusted microphone permission, controlled manual Codex review of the generated summary, least-privilege access state, and an approved dry-run repair proposal with no recovery keys or sensitive raw evidence in context.
 
 **Figma screens:** `04 — Workspace Handoff` and `05 — Guided Repair Review`. They distinguish offline evidence collection from online assistance and require review before any proposed repair.
 

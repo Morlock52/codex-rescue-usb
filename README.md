@@ -8,14 +8,15 @@ The verified Windows PE milestones are real VM evidence. They are not proof of p
 
 ## Verified WinPE milestones
 
-On August 5, 2026, the source was built with the serviced Windows ADK and booted in a separate disposable Proxmox UEFI VM using Windows UEFI CA 2023 keys. Two exact artifacts preserve the evidence boundary between the original read-only export test and the later BitLocker recovery-key test:
+On August 5, 2026, the source was built with the serviced Windows ADK and booted in a separate disposable Proxmox UEFI VM using Windows UEFI CA 2023 keys. Three exact artifacts preserve the evidence boundary between the original read-only export test, the BitLocker recovery-key test, and the latest clock-trust hardening:
 
 | Milestone | Exact artifact | Size | SHA-256 |
 | --- | --- | ---: | --- |
 | Read-only evidence export | `Codex-Rescue-ISO-v0.1.0-alpha.4.iso` | 557,518,848 bytes | `F7F6E3570F0DBF264D56CAAF8703C6FB6EAD99ABB53FDC420D9B4737C9584DFA` |
-| Guarded external recovery-key unlock | `Codex-Rescue-ISO-v0.1.0-alpha.7.iso` | 558,286,848 bytes | `A4FF89AD4FBF1BEB6BAECA4B92387F0153754B270BA3DF897DA11C99812DE947` |
+| Integrated BitLocker status export and guarded external-key unlock | `Codex-Rescue-ISO-v0.1.0-alpha.7.iso` | 558,286,848 bytes | `A4FF89AD4FBF1BEB6BAECA4B92387F0153754B270BA3DF897DA11C99812DE947` |
+| Explicit evidence-clock trust and latest UEFI boot | `Codex-Rescue-ISO-v0.1.0-alpha.9.iso` | 558,243,840 bytes | `7080E6D51AFADDD6531390FA8A6EDECE8AFCF1AC419FECE36E0C4EE96C087D29` |
 
-Both artifacts used the same 4-vCPU, 8-GB Windows 11 build VM with ADK 10.1.26100.2454 plus KB5101684. The isolated test VM used 2 vCPU, 2 GB RAM, UEFI, Windows UEFI CA 2023 keys, disconnected networking, and disposable virtual disks.
+All three artifacts used the same 4-vCPU, 8-GB Windows 11 build VM with ADK 10.1.26100.2454 plus KB5101684. The isolated test VM used 2 vCPU, 2 GB RAM, UEFI, Windows UEFI CA 2023 keys, disconnected networking, and disposable virtual disks.
 
 The alpha.4 evidence test verified all of the following:
 
@@ -27,6 +28,8 @@ The alpha.4 evidence test verified all of the following:
 - The image's supported WinPE PowerShell components generated `manifest.json` and `SHA256SUMS.txt` after revalidating the prepared destination.
 - A separate Proxmox-side read-only mount verified all nine package files, all eight listed hashes, the seven-entry manifest schema, and the successful DISM driver inventory.
 
+Alpha.4 did **not** have `WinPE-SecureStartup`; its `bitlocker-status.txt` recorded that `manage-bde` was not recognized. The destination, no-overwrite, manifest, checksum, and other diagnostic gates above remain valid alpha.4 evidence, but alpha.4 is not BitLocker-status proof. The exact alpha.7 image corrected that integration gap.
+
 The alpha.7 BitLocker test then verified all of the following:
 
 - WinPE booted the exact alpha.7 image with `WinPE-SecureStartup` present.
@@ -36,6 +39,16 @@ The alpha.7 BitLocker test then verified all of the following:
 - The native unlock output was suppressed so the key filename and key contents did not appear in the console capture, evidence package, source tree, or GitHub.
 - WinPE reported the selected data volume as unlocked, its root was accessible, and the known non-secret fixture file read `Codex Rescue disposable BitLocker fixture. No customer data.`
 - A cold VM restart discarded the unlock session and the same guard reported `Lock Status: Locked`; the test VM was then stopped.
+- A later cold alpha.7 boot replaced only the copied disposable evidence package and reran the collector. All eight listed hashes passed from a separate read-only Proxmox mount; `bitlocker-status.txt` contained a real volume/status block; and no `.bek` file or recovery-password-shaped text existed in the package.
+
+The alpha.9 clock-trust test then verified all of the following:
+
+- The exact alpha.9 artifact reached the read-only Codex Rescue command prompt in the disconnected UEFI VM.
+- The no-overwrite guard first refused the archived disposable alpha.7 package.
+- After only that archived fixture package was removed, alpha.9 created a fresh nine-file package.
+- A separate Proxmox read-only VFAT mount verified all eight listed hashes, exactly nine package files, manifest schema 1, `ClockSource: WinPE system clock`, and `ClockExternallyValidated: false`.
+- No `.bek` file or 48-digit recovery-password-shaped text existed in the package.
+- The redacted-summary generator verified the real alpha.9 package, counted one BitLocker volume/status block, and passed valid scans for private addresses, MAC addresses, volume paths, key-file suffixes, and recovery-password patterns.
 
 This verifies one external recovery-key sub-gate on disposable virtual media. It does **not** prove physical USB boot, a 48-digit recovery-password entry screen, operating-system-volume recovery, production-data access, decryption, protector changes, repair of Windows, or spoken Voice. Those remain separately gated phases.
 
@@ -44,6 +57,12 @@ This verifies one external recovery-key sub-gate on disposable virtual media. It
 ![Codex Rescue Disk booted in a disposable Proxmox UEFI VM](docs/images/winpe-proxmox-boot.png)
 
 Captured from the exact alpha.4 SHA-256 artifact above. This is real Proxmox VM evidence, not a Figma concept or fixture-console image.
+
+### Real alpha.9 boot screenshot
+
+![Exact alpha.9 ISO at the read-only Codex Rescue WinPE prompt](docs/images/winpe-alpha9-boot.png)
+
+Captured from the exact alpha.9 SHA-256 artifact above on the disconnected 2-vCPU, 2-GB UEFI validation VM. The test VM was stopped after the independent package inspection.
 
 ### Real no-overwrite screenshot
 
@@ -56,6 +75,12 @@ The final ISO found the prepared test destination and stopped because a prior pa
 ![Codex Rescue evidence collector completing export in the disposable VM](docs/images/winpe-evidence-export.png)
 
 After only the disposable prior package was removed, the same final ISO exported a fresh package to the prepared test destination.
+
+### Real alpha.7 integrated evidence screenshot
+
+![Alpha.7 exporting evidence with SecureStartup and BitLocker status support present](docs/images/winpe-alpha7-integrated-evidence-export.png)
+
+This privacy crop shows the exact alpha.7 collector replacing only the copied disposable package and producing its seven-entry manifest plus checksum file. A separate read-only mount verified every listed hash and confirmed that the BitLocker status command was present. The crop excludes the disposable volume serial number.
 
 ### Real BitLocker authorization screenshot
 
@@ -77,7 +102,7 @@ The known fixture file was read from the unlocked volume and contained no custom
 
 ### Artifact availability and Microsoft licensing
 
-The repository and GitHub pre-releases publish the original Codex Rescue source, reproducible build instructions, screenshots, verified artifact sizes, and SHA-256 values—not the Microsoft-built ISO binaries. The Windows ADK license installed on the verified build VM permits using WinPE to install and recover Windows, but prohibits publishing the Microsoft software for others to copy. Build the ISO locally from a properly licensed ADK installation and verify the resulting artifact in a disposable VM. The exact alpha.4 and alpha.7 ISOs identified above are retained privately on the Proxmox host for controlled validation.
+The repository and GitHub pre-releases publish the original Codex Rescue source, reproducible build instructions, screenshots, verified artifact sizes, and SHA-256 values—not the Microsoft-built ISO binaries. The Windows ADK license installed on the verified build VM permits using WinPE to install and recover Windows, but prohibits publishing the Microsoft software for others to copy. Build the ISO locally from a properly licensed ADK installation and verify the resulting artifact in a disposable VM. The exact alpha.4, alpha.7, and alpha.9 ISOs identified above are retained privately on the Proxmox host for controlled validation.
 
 ## Building the bootable ISO (Windows build VM)
 
@@ -128,7 +153,9 @@ After the audit, install the supported repository-maintenance baseline from the 
 
 This installs or updates Git, GitHub CLI, PowerShell 7, and Python 3.14, then records command discovery under `C:\CodexRescueVmAudit\Toolchain`. It does not reinstall Node.js, VS Code, Cursor, or Codex when they are already present. The audit reports `roc` and `rock` but the installer deliberately does not guess which similarly named product an operator means.
 
-The validated Proxmox build VM uses four logical processors and 8 GB assigned RAM. The fresh Windows audit reported 7.93 GiB visible, 2.42 GiB free immediately after the serviced ISO build, 21.54 GiB free on the system drive, QEMU Guest Agent running with automatic startup, and all ADK build commands present. Eight GB is the recommended baseline for running the ADK, editors, and Codex together; the earlier 6 GB assignment was saturated. Use 12 GB only when the Proxmox host has comfortable headroom. Reserve about 30 GB of free system-drive space for repeated workspaces, logs, and versioned ISOs.
+The validated Proxmox build VM uses four logical processors and now has 10 GB fixed RAM with ballooning disabled. The alpha artifacts above were built successfully at the earlier 8 GB allocation; that fresh Windows audit reported 7.93 GiB visible, 2.42 GiB free immediately after the serviced ISO build, 21.54 GiB free on the system drive, QEMU Guest Agent running with automatic startup, and all ADK build commands present. A later sizing reboot at 10 GB reported 9.93 GiB visible and 7.61 GiB free at idle while the Proxmox host retained about 5.65 GiB available. A 12 GB trial left only about 2.8 GiB host-available memory and was therefore rejected. Eight GB remains the minimum validated baseline; 10 GB is the current shared-host operating point for the ADK, editors, and Codex together. Use 12 GB or more only when the Proxmox host has comfortable measured headroom. Reserve about 30 GB of free system-drive space for repeated workspaces, logs, and versioned ISOs.
+
+VM 111 is configured with `onboot: 1`, startup order 20, a 30-second startup delay, a 60-second shutdown timeout, QEMU Guest Agent, and Proxmox deletion protection. Its system disk is on node-local storage, so the project does not claim cross-node HA failover; surviving a Proxmox-node failure requires a separate shared-storage or replicated-storage design.
 
 | Validated build tool | Version or state |
 | --- | --- |
@@ -171,6 +198,43 @@ Start it interactively:
 
 The launcher requires the exact phrase `START CODEX RECOVERY WORKSPACE`, verifies the project root and installed `OpenAI.Codex` package, checks the registered `codex:` protocol and audio-input state, and then opens the desktop app. It never imports evidence automatically and never searches for, logs, copies, or transmits recovery material. After launch, press `Ctrl+O` and select `Documents\CodexRescue`. Review the app's access mode before any task and use the least access required.
 
+Audit and change only one explicitly selected full-Windows network adapter with:
+
+```powershell
+.\scripts\Set-CodexRecoveryNetwork.ps1 -Action Audit
+.\scripts\Set-CodexRecoveryNetwork.ps1 -Action Disable -InterfaceIndex 6 -ConfirmationToken DISABLE-CODEX-RECOVERY-NETWORK-6
+.\scripts\Set-CodexRecoveryNetwork.ps1 -Action Enable -InterfaceIndex 6 -ConfirmationToken ENABLE-CODEX-RECOVERY-NETWORK-6
+```
+
+Replace `6` only with the exact index from the audit. The command includes hidden hardware adapters because Windows can report a cold-boot-disabled adapter as `Not Present`; it never selects virtual adapters. In the disposable VM, the guarded disable changed its sole hardware adapter from Up/1 Gbps to Disabled/0 bps while QEMU Guest Agent remained available. After a later cold boot, the corrected gate rediscovered the same hidden hardware interface and the matching enable returned it from `Not Present` to Up/1 Gbps. This verifies an explicit offline/online transition, not a physical-hardware policy.
+
+Install the full-Windows offline-at-startup policy only after confirming the same interface index:
+
+```powershell
+.\scripts\Set-CodexRecoveryOfflineStartup.ps1 -Action Audit
+.\scripts\Set-CodexRecoveryOfflineStartup.ps1 -Action Install -InterfaceIndex 6 -ConfirmationToken INSTALL-CODEX-RECOVERY-OFFLINE-BOOT-6
+```
+
+The installer creates a SYSTEM startup task and a locked `C:\ProgramData\CodexRescue\Disable-NetworkAtStartup.ps1` policy bound to that one hardware adapter. A controlled cold-boot edge test first exposed that `Get-NetAdapter -Physical` omitted an already-disabled adapter; the scripts now use the hidden hardware inventory and treat both `Disabled` and `Not Present` as offline. The final policy reboot verified that Windows remained running, the standard user auto-logged in, QEMU Guest Agent remained reachable, the task completed with result 0, and interface 6 settled at Disabled/0 bps while remaining discoverable for an exact-token enable. Windows reported 7.93 GiB visible RAM and 5.19 GiB free after that 8 GB boot. A later cold boot after increasing the VM to 10 GB independently reproduced the same offline state and result 0; Windows then reported 9.93 GiB visible RAM and 7.61 GiB free. Enable the adapter only through the exact network-consent command above. To roll back the startup policy without enabling networking, run:
+
+```powershell
+.\scripts\Set-CodexRecoveryOfflineStartup.ps1 -Action Remove -InterfaceIndex 6 -ConfirmationToken REMOVE-CODEX-RECOVERY-OFFLINE-BOOT-6
+```
+
+This proves the policy in the dedicated VM, not on physical recovery hardware.
+
+Create an integrity-checked aggregate summary outside the raw evidence package before opening Codex:
+
+```powershell
+.\scripts\New-CodexEvidenceSummary.ps1 `
+  -EvidenceDirectory 'E:\CodexRescueEvidence' `
+  -OutputPath "$env:USERPROFILE\Documents\CodexRescueSummary.md"
+```
+
+The command accepts exactly the documented nine package files, verifies the seven manifest entries and all eight checksum-list entries, refuses subdirectories, rejects external-key files and recovery-password-shaped text, and never copies raw disk, network, BCD, driver, event-log, or BitLocker output. The summary records only aggregate availability and integrity state. It must be written outside the source package, never enters Codex automatically, and still requires operator review.
+
+The command was run against both the archived alpha.7 package and the fresh alpha.9 package recovered from the disposable evidence disk. It verified package integrity, reported one BitLocker volume/status block with the BitLocker command available, and produced summaries whose valid privacy scans contained no private IP address, MAC address, volume path, `.bek` suffix, or 48-digit recovery-password pattern. Alpha.9 now records `ClockSource: WinPE system clock` and `ClockExternallyValidated: false` in the source manifest itself. The timestamp remains `SourceCreatedAtUtcAsRecorded` and is not accepted as a trusted incident time without independent clock validation.
+
 OpenAI currently documents the [Codex app on Windows](https://openai.com/index/introducing-the-codex-app/) and [Voice with Codex in the Windows desktop app](https://help.openai.com/en/articles/20001275-chatgpt-work-and-codex). Microsoft documents [WinPE's fixed-purpose application model](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/winpe-create-apps?view=windows-11) and the [removal of Windows To Go](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/deployment/windows-to-go/windows-to-go-overview).
 
 To make a physical USB after VM verification, use a dedicated USB-writing tool on a separate Windows machine. Select the verified ISO, confirm the exact removable drive, and write it. This overwrites that USB. The image contains no recovery keys and starts in read-only evidence-collection mode. Evidence export requires exactly one separate operator-prepared destination whose root contains an empty `CODEX_EVIDENCE.DEST` marker file. It never scans the internal `C:` volume or WinPE's `X:` RAM drive, refuses zero or multiple prepared destinations, and refuses an existing `CodexRescueEvidence` directory; it never silently overwrites an earlier package.
@@ -203,12 +267,12 @@ The resulting `CodexRescueEvidence` directory contains:
 | --- | --- |
 | `README.txt` | Collection mode and chosen destination |
 | `diskpart.txt` | Disk and volume inventory |
-| `bitlocker-status.txt` | Read-only `manage-bde -status` output |
+| `bitlocker-status.txt` | Read-only `manage-bde -status` output; runtime-verified in alpha.7, not alpha.4 |
 | `bcd.txt` | Current BCD enumeration output |
 | `event-log-index.txt` | Event-log names visible to WinPE |
 | `drivers.txt` | DISM third-party driver-store inventory |
 | `network.txt` | Current network-interface configuration |
-| `manifest.json` | UTC collection time, schema version, sizes, and SHA-256 hashes for the seven diagnostic files |
+| `manifest.json` | Recorded WinPE collection time, explicit unvalidated-clock state in alpha.9 and later builds, schema version, sizes, and SHA-256 hashes for the seven diagnostic files; verify the source clock independently |
 | `SHA256SUMS.txt` | SHA-256 verification list for the seven diagnostic files plus `manifest.json` |
 
 The package may contain device identifiers, network addresses, and machine-specific troubleshooting data. Review and redact it before sharing or publishing. It never intentionally collects BitLocker recovery keys, passwords, browser data, or user documents.
@@ -336,7 +400,7 @@ The BitLocker and failing-drive cases are expected safe stops: they intentionall
 
 ## Documentation screenshots and evidence
 
-The two screenshots in the fixture-console sections show the **fixture console** only. The verified sections contain one real build-VM audit screenshot, three real evidence-collection VM screenshots, three real BitLocker fixture VM screenshots, and one real full-Windows Codex project screenshot. None proves that a physical PC was recovered or that Voice audio worked. Each image is labeled by its evidence boundary.
+The two screenshots in the fixture-console sections show the **fixture console** only. The verified sections contain one real build-VM audit screenshot, two real WinPE boot screenshots, four real evidence-collection VM screenshots, three real BitLocker fixture VM screenshots, and one real full-Windows Codex project screenshot. None proves that a physical PC was recovered or that Voice audio worked. Each image is labeled by its evidence boundary.
 
 | Screenshot | What it must show | Evidence status required |
 | --- | --- | --- |
@@ -416,7 +480,7 @@ tests/             Unit and HTTP integration tests
 
 ## Current scope
 
-This release proves the fixture safety model, a VM-boot-verified read-only WinPE evidence path, one guarded external recovery-key unlock against a disposable virtual BitLocker data disk, and a partial full-Windows Codex GUI handoff. Alpha.4 enforced the prepared-destination and no-overwrite gates and exported the nine-file package documented above. Alpha.7 required an exact target and confirmation, kept recovery material out of its visible output, unlocked the selected fixture, verified the known file, and returned to a locked state after a cold restart. The separate Windows VM launched the installed Codex app on the exact staged project and exposed its Voice control, but it has no audio endpoint. The project is not yet a physical USB-validated recovery disk, a 48-digit recovery-password workflow, an operating-system-volume recovery tool, a repair engine for a real Windows installation, a spoken Voice workflow, or a supported portable full-Windows image.
+This release proves the fixture safety model, a VM-boot-verified read-only WinPE evidence path, one guarded external recovery-key unlock against a disposable virtual BitLocker data disk, and a partial full-Windows Codex GUI handoff. Alpha.4 enforced the prepared-destination and no-overwrite gates and exported the nine-file package, but its BitLocker file exposed the then-missing `manage-bde` dependency. Alpha.7 added SecureStartup, required an exact unlock target and confirmation, kept recovery material out of visible output, unlocked the selected fixture, verified the known file, returned to locked after a cold restart, and later exported a fresh checksum-valid package with real BitLocker status. Alpha.9 booted in the same isolated UEFI VM and exported a checksum-valid package whose manifest explicitly marks its WinPE clock as unvalidated. The separate Windows VM launched the installed Codex app on the exact staged project, verified an explicit offline/online transition and cold-boot-safe offline-at-startup policy, and exposed its Voice control, but it has no audio endpoint. The project is not yet a physical USB-validated recovery disk, a 48-digit recovery-password workflow, an operating-system-volume recovery tool, a repair engine for a real Windows installation, a spoken Voice workflow, or a supported portable full-Windows image.
 
 ## Planned real recovery USB
 
@@ -431,7 +495,7 @@ The two-stage architecture is partially VM-verified: WinPE boot/evidence, extern
 
 ## Recovery-media delivery roadmap
 
-The detailed phase plan, acceptance evidence, safety gates, and planned Figma screens are in [the recovery-media roadmap](docs/plans/2026-08-05-recovery-media-roadmap.md). Phases 1 and 2 are VM-verified. Phase 3's external-key sub-gate is VM-verified, while its recovery-password UI remains open. Phase 4's GUI/project handoff is VM-verified, while Voice/audio, network-transition, redacted-evidence, and least-privilege gates remain open. Physical USB and repair also remain open.
+The detailed phase plan, acceptance evidence, safety gates, and planned Figma screens are in [the recovery-media roadmap](docs/plans/2026-08-05-recovery-media-roadmap.md). Phases 1 and 2 are VM-verified. Phase 3's external-key sub-gate is VM-verified, while its recovery-password UI remains open. Phase 4's GUI/project handoff, exact network transition, and offline-at-startup policy are VM-verified, and the redacted-summary generator is verified against the real alpha.7 package. Voice/audio, manual Codex review, and least-privilege gates remain open. Physical USB and repair also remain open.
 
 ## References
 

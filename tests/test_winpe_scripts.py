@@ -63,6 +63,10 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.assertIn("manifest.json", self.manifest)
         self.assertIn("SHA256SUMS.txt", self.manifest)
 
+    def test_manifest_marks_the_winpe_clock_as_unvalidated(self) -> None:
+        self.assertIn("ClockSource = 'WinPE system clock'", self.manifest)
+        self.assertIn("ClockExternallyValidated = $false", self.manifest)
+
     def test_builder_adds_supported_powershell_dependencies_in_order(self) -> None:
         components = (
             "WinPE-WMI",

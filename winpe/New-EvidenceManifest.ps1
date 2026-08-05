@@ -51,6 +51,8 @@ $entries = foreach ($file in $evidenceFiles) {
 $manifest = [ordered]@{
     SchemaVersion = 1
     CreatedAtUtc = (Get-Date).ToUniversalTime().ToString('o')
+    ClockSource = 'WinPE system clock'
+    ClockExternallyValidated = $false
     CollectionMode = 'read-only diagnostics'
     Files = @($entries)
 }

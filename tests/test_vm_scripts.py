@@ -84,6 +84,91 @@ class BuildVmScriptTests(unittest.TestCase):
         self.assertIn("Open-CodexRecoveryWorkspace.ps1", launcher)
         self.assertIn("-ExecutionPolicy Bypass", launcher)
 
+    def test_network_gate_requires_exact_adapter_and_action_token(self) -> None:
+        gate = (ROOT / "scripts" / "Set-CodexRecoveryNetwork.ps1").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("Get-NetAdapter -IncludeHidden", gate)
+        self.assertIn("Where-Object HardwareInterface -eq $true", gate)
+        self.assertIn("InterfaceIndex", gate)
+        self.assertIn("DISABLE-CODEX-RECOVERY-NETWORK", gate)
+        self.assertIn("ENABLE-CODEX-RECOVERY-NETWORK", gate)
+        self.assertIn("SupportsShouldProcess", gate)
+        self.assertIn("Test-Administrator", gate)
+
+    def test_network_gate_changes_only_the_selected_adapter(self) -> None:
+        gate = (ROOT / "scripts" / "Set-CodexRecoveryNetwork.ps1").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("Disable-NetAdapter -Name $adapter.Name -IncludeHidden", gate)
+        self.assertIn("Enable-NetAdapter -Name $adapter.Name -IncludeHidden", gate)
+        self.assertIn("Where-Object ifIndex -eq $InterfaceIndex", gate)
+        self.assertIn("'Not Present'", gate)
+        self.assertNotIn("Disable-NetAdapter *", gate)
+        self.assertNotIn("Enable-NetAdapter *", gate)
+        self.assertNotIn("Invoke-WebRequest", gate)
+
+    def test_offline_startup_policy_is_exact_scoped_and_rollback_capable(self) -> None:
+        policy = (
+            ROOT / "scripts" / "Set-CodexRecoveryOfflineStartup.ps1"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("New-ScheduledTaskTrigger -AtStartup", policy)
+        self.assertIn("New-ScheduledTaskPrincipal -UserId 'SYSTEM'", policy)
+        self.assertIn("Get-NetAdapter -IncludeHidden", policy)
+        self.assertIn("Where-Object HardwareInterface -eq `$true", policy)
+        self.assertIn("Where-Object ifIndex -eq $InterfaceIndex", policy)
+        self.assertIn(
+            "Disable-NetAdapter -Name `$matches[0].Name -IncludeHidden", policy
+        )
+        self.assertIn("'Not Present'", policy)
+        self.assertIn("INSTALL-CODEX-RECOVERY-OFFLINE-BOOT", policy)
+        self.assertIn("REMOVE-CODEX-RECOVERY-OFFLINE-BOOT", policy)
+        self.assertIn("Unregister-ScheduledTask -TaskName $taskName", policy)
+        self.assertNotIn("Disable-NetAdapter *", policy)
+        self.assertNotIn("Invoke-WebRequest", policy)
+
+    def test_offline_startup_policy_locks_its_system_task_script(self) -> None:
+        policy = (
+            ROOT / "scripts" / "Set-CodexRecoveryOfflineStartup.ps1"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("Join-Path $env:ProgramData 'CodexRescue'", policy)
+        self.assertIn("icacls.exe", policy)
+        self.assertIn("S-1-5-18:(OI)(CI)(F)", policy)
+        self.assertIn("S-1-5-32-544:(OI)(CI)(F)", policy)
+        self.assertIn("S-1-5-32-545:(OI)(CI)(RX)", policy)
+        self.assertIn("Set-Content -LiteralPath $policyPath", policy)
+
+    def test_codex_evidence_summary_verifies_manifest_and_checksum_list(self) -> None:
+        summary = (ROOT / "scripts" / "New-CodexEvidenceSummary.ps1").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("manifest.json", summary)
+        self.assertIn("SHA256SUMS.txt", summary)
+        self.assertIn("Get-FileHash", summary)
+        self.assertIn("SchemaVersion -ne 1", summary)
+        self.assertIn("expectedDiagnosticFiles", summary)
+        self.assertIn("checksumEntries.Count -ne 8", summary)
+        self.assertIn("must not contain directories", summary)
+        self.assertIn("Refusing to write the summary inside", summary)
+
+    def test_codex_evidence_summary_excludes_raw_sensitive_details(self) -> None:
+        summary = (ROOT / "scripts" / "New-CodexEvidenceSummary.ps1").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("RawNetworkDetailsIncluded: false", summary)
+        self.assertIn("RecoveryMaterialIncluded: false", summary)
+        self.assertIn("SourceClockExternallyValidated: false", summary)
+        self.assertIn("recoveryPasswordPattern", summary)
+        self.assertNotIn("Invoke-WebRequest", summary)
+        self.assertNotIn("Start-Process", summary)
+        self.assertNotIn("Get-NetIPAddress", summary)
+
 
 if __name__ == "__main__":
     unittest.main()
