@@ -17,7 +17,7 @@ The full-Windows workspace was inspected on August 5, 2026 in the dedicated Prox
 
 | Property | Verified value |
 | --- | --- |
-| VM | 4 vCPU, 10 GB fixed RAM, QEMU Guest Agent, standard-user auto-login, on-host auto-start, ordered startup/shutdown, deletion protection |
+| VM | 4 vCPU, 12 GB fixed RAM, QEMU Guest Agent, standard-user auto-login, on-host auto-start, ordered startup/shutdown, deletion protection |
 | Installed Codex package | `OpenAI.Codex` 26.730.8199.0, AppX status `Ok` |
 | Installed ChatGPT package | `OpenAI.ChatGPT-Desktop` 1.2026.190.0 |
 | Launch contract | Package manifest registers the `codex:` protocol; the desktop shortcut now invokes `explorer.exe codex:` |
@@ -105,7 +105,7 @@ Audit, then install the policy against the same exact interface:
 
 The installer registers `Codex Rescue Offline Startup` as a SYSTEM startup task and writes its single-adapter policy under a ProgramData directory whose ACL grants full control only to SYSTEM and Administrators and read/execute to Users. Installation itself does not change the live adapter.
 
-The task first passed a manual Task Scheduler run with result 0 and changed interface 6 to Disabled/0 bps. A later cold start exposed that `Get-NetAdapter -Physical` omitted the already-disabled adapter and caused a result-1 policy run. The corrected policy enumerates hidden hardware interfaces and treats both `Disabled` and `Not Present` as offline. The final policy reboot independently verified the repaired startup behavior: Windows was running, the standard user auto-logged in, QEMU Guest Agent answered out of band, the task settled to Ready with result 0, and interface 6 was discoverable at Disabled/0 bps. The VM had 7.93 GiB visible memory and 5.19 GiB free at the then-current 8 GB allocation. A later sizing cycle rejected 12 GB because it left only about 2.8 GiB available on the shared Proxmox host. The accepted 10 GB cold boot left about 5.65 GiB host-available memory; Windows reported 9.93 GiB visible and 7.61 GiB free, and the offline task again settled to Ready with result 0. This proves the default-offline policy and current sizing in the dedicated VM, not on physical recovery hardware.
+The task first passed a manual Task Scheduler run with result 0 and changed interface 6 to Disabled/0 bps. A later cold start exposed that `Get-NetAdapter -Physical` omitted the already-disabled adapter and caused a result-1 policy run. The corrected policy enumerates hidden hardware interfaces and treats both `Disabled` and `Not Present` as offline. The final policy reboot independently verified the repaired startup behavior: Windows was running, the standard user auto-logged in, QEMU Guest Agent answered out of band, the task settled to Ready with result 0, and interface 6 was discoverable at Disabled/0 bps. The VM had 7.93 GiB visible memory and 5.19 GiB free at the then-current 8 GB allocation. An early 12 GB trial under heavier concurrent host load was rejected. After VM 115 was stopped and host headroom was rechecked, VM 111 was accepted at 12 GB fixed RAM: Windows reported 12,220 MB usable and about 9.5 GB free after startup, while the host retained roughly 4-6 GiB available during the measured alpha.13 build intervals with no sustained swap movement. This proves the default-offline policy and current sizing in the dedicated VM, not on physical recovery hardware.
 
 ### Clone-specific offline-policy gate
 
@@ -117,7 +117,7 @@ A cloned build VM must be treated as a new network-policy target. VM 115 receive
 4. Cold boot the clone.
 5. Require a fresh task result 0, `Disabled` or `Not Present`, 0 bps, and QEMU Guest Agent availability before proceeding.
 
-The 25-GiB Proxmox node does not have comfortable headroom for both 10-GB builders under load, so only VM 111 or its isolated clone may run at one time.
+The 25-GiB Proxmox node does not have comfortable headroom for two 12-GB builders under load, so only VM 111 or its isolated clone may run at one time.
 
 Rollback removes only the named task and generated policy file; it does not enable the adapter:
 

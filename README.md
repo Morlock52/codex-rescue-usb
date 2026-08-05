@@ -19,7 +19,7 @@ On August 5, 2026, the source was built with the serviced Windows ADK and booted
 | Clean post-fix ADK build and payload verification | `Codex-Rescue-ISO-v0.1.0-alpha.12-5E2E1F90.iso` | 557,871,104 bytes | `5E2E1F90765DF00BAA3F9EA66282DBB4A1C981B87FBCAD9C6533ABF66AC58089` |
 | Privacy-safe offline Windows inventory, normalized-payload verification, latest UEFI boot, and ten-file evidence export | `Codex-Rescue-ISO-v0.1.0-alpha.13-67E79C37.iso` | 558,282,752 bytes | `67E79C37021879BAE2BC405B4618B666D6FD11397227D95C111353020E64A794` |
 
-The first three artifacts used the same 4-vCPU, 8-GB Windows 11 build VM with ADK 10.1.26100.2454 plus KB5101684. The VM is now sized at 10 GB fixed RAM for ADK, Codex, and development work. The isolated test VM used 2 vCPU, 2 GB RAM, UEFI, Windows UEFI CA 2023 keys, disconnected networking, and disposable virtual disks.
+The first three artifacts used the same 4-vCPU, 8-GB Windows 11 build VM with ADK 10.1.26100.2454 plus KB5101684. The VM is now sized at 12 GB fixed RAM for ADK, Codex, and development work. The isolated test VM used 2 vCPU, 2 GB RAM, UEFI, Windows UEFI CA 2023 keys, disconnected networking, and disposable virtual disks.
 
 The alpha.4 evidence test verified all of the following:
 
@@ -71,12 +71,13 @@ The alpha.12 clean-build test then verified all of the following:
 
 The alpha.13 privacy-safe inventory build then verified all of the following:
 
-- The 85-file source disc and staged build tree matched repository commit `FDB13E2` with zero file-hash mismatches. The full local suite passed 81 tests, and the changed verifier passed PowerShell parsing and PSScriptAnalyzer.
+- The read-only source disc contained 85 committed files from repository commit `FDB13E2`. Before the build, the hashes of the evidence collector, offline-Windows inventory, builder, and verifier matched that commit. The full local suite passed 81 tests, and every PowerShell file passed parser validation. PSScriptAnalyzer was not installed and is not claimed as evidence.
 - `Test-RescueIso.ps1` matched seven embedded files to their checked-in sources, reproducing the builder's Windows ASCII line normalization for the three `.cmd` files while retaining both checked-in and embedded hashes. It also required all six BIOS/UEFI boot files and all five supported WinPE packages.
 - The success JSON is 5,694 bytes with SHA-256 `C25905BDD61AA65F2522E8DE7EA865A51C84E8ACE1CD540F41ADC0E915477E6C`, records `VerificationSucceeded: true` and `ContainsRecoveryMaterial: false`, and matches the exact ISO size and SHA-256 above.
 - That exact ISO reached the Codex Rescue prompt in VM 114 with 2 vCPU, 2 GiB RAM, OVMF with Windows UEFI CA 2023 keys, and `link_down=1`.
 - With exactly one eligible prepared destination, the collector produced the current ten-file package: eight diagnostic files, `manifest.json`, and `SHA256SUMS.txt`. A separate Proxmox-side read-only mount verified all nine checksum-list entries and found no recovery-password, bearer-token, or private-key pattern.
-- `windows-installations.json` excluded the destination and WinPE RAM drive, found no offline Windows installation in the diskless boot test, recorded the ISO's two BCD stores only as bounded aggregates, and set recovery-material, raw-event, event-message, raw-BCD, and user-name inclusion flags to `false`.
+- `windows-installations.json` excluded the destination and WinPE RAM drive, found no offline Windows installation on the two disposable non-Windows disks, recorded the ISO's two BCD stores only as bounded aggregates, and set recovery-material, raw-event, event-message, raw-BCD, and user-name inclusion flags to `false`.
+- The checked-in redacted-summary generator then reverified the same package and wrote a 1,663-byte summary outside it. The summary SHA-256 is `191CC0786EC8FB49FC2D973B0AF06A242A6DDB8216B36FD7B42233FA9D3013B7`; independent scans found no recovery-password pattern, private IPv4 address, MAC address, `.bek` suffix, or standard-user name. It explicitly records `RawEvidenceIncluded: false`, `RecoveryMaterialIncluded: false`, `AutomaticCodexImport: false`, and `OperatorReviewRequiredBeforeSharing: true`.
 
 This verifies the external recovery-key path and the numerical recovery-password code path on disposable virtual media. The numerical test used a confidential automated input boundary, so it does **not** prove the operator-typed masked prompt. Physical USB boot, operating-system-volume recovery, production-data access, decryption, protector changes, repair of Windows, and spoken Voice also remain separately gated phases.
 
@@ -97,6 +98,24 @@ Captured from the exact alpha.9 SHA-256 artifact above on the disconnected 2-vCP
 ![Exact clean alpha.12 ISO at the corrected offline Codex Rescue WinPE prompt](docs/images/winpe-alpha12-boot.png)
 
 Captured from the exact alpha.12 SHA-256 artifact above in disconnected UEFI VM 114 after its post-build source, payload, package, size, and hash verifier passed. This proves VM bootability of that exact artifact, not physical USB compatibility.
+
+### Real alpha.13 offline-inventory boot screenshot
+
+![Exact alpha.13 ISO at the read-only Codex Rescue WinPE prompt](docs/images/winpe-alpha13-boot.png)
+
+Captured from the exact alpha.13 SHA-256 artifact above in disconnected UEFI VM 114. This verifies the current ISO's VM boot path and startup boundary, not physical USB compatibility.
+
+### Real alpha.13 destination-confirmation screenshot
+
+![Alpha.13 showing the disposable evidence destination identity and exact confirmation token](docs/images/winpe-alpha13-evidence-confirmation.png)
+
+The collector found one eligible prepared destination, displayed its disposable label and serial, named the new package path, and required `COLLECT TO D:` before its first write. `C:` remained excluded by policy.
+
+### Real alpha.13 redacted-summary screenshot
+
+![Alpha.13 redacted-summary generator verifying the ten-file package without importing raw evidence](docs/images/winpe-alpha13-redacted-summary.png)
+
+The checked-in generator verified package integrity and reported aggregate state only. Recovery material and raw evidence were excluded, automatic Codex import remained disabled, and operator review remained required.
 
 ### Real no-overwrite screenshot
 
@@ -201,11 +220,11 @@ After the audit, install the supported repository-maintenance baseline from the 
 
 This installs or updates Git, GitHub CLI, PowerShell 7, and Python 3.14, then records command discovery under `C:\CodexRescueVmAudit\Toolchain`. It does not reinstall Node.js, VS Code, Cursor, or Codex when they are already present. The audit reports `roc` and `rock` but the installer deliberately does not guess which similarly named product an operator means.
 
-The validated Proxmox build VM uses four logical processors and now has 10 GB fixed RAM with ballooning disabled. The alpha artifacts above were built successfully at the earlier 8 GB allocation; that fresh Windows audit reported 7.93 GiB visible, 2.42 GiB free immediately after the serviced ISO build, 21.54 GiB free on the system drive, QEMU Guest Agent running with automatic startup, and all ADK build commands present. A later sizing reboot at 10 GB reported 9.93 GiB visible and 7.61 GiB free at idle while the Proxmox host retained about 5.65 GiB available. A 12 GB trial left only about 2.8 GiB host-available memory and was therefore rejected. Eight GB remains the minimum validated baseline; 10 GB is the current shared-host operating point for the ADK, editors, and Codex together. Use 12 GB or more only when the Proxmox host has comfortable measured headroom. Reserve about 30 GB of free system-drive space for repeated workspaces, logs, and versioned ISOs.
+The validated Proxmox build VM uses four logical processors and now has 12 GB fixed RAM with ballooning disabled. The alpha artifacts were buildable at the earlier 8 GB allocation, so 8 GB remains the build-only validated floor. The current 12 GB configuration is the project recommendation when ADK, editors, coding tools, and Codex share the VM: Windows reports 12,220 MB usable and about 9.5 GB free after startup. During the alpha.13 build, even two inadvertently concurrent ADK servicing jobs left roughly 7 GB free inside Windows; the 25-GiB Proxmox host retained roughly 4-6 GB available and showed no sustained swap-in or swap-out in the sampled intervals. Serial builds are still required. Reserve about 30 GB of free system-drive space for repeated workspaces, logs, and versioned ISOs.
 
 VM 111 is configured with `onboot: 1`, startup order 20, a 30-second startup delay, a 60-second shutdown timeout, QEMU Guest Agent, and Proxmox deletion protection. Its system disk is on node-local storage, so the project does not claim cross-node HA failover; surviving a Proxmox-node failure requires a separate shared-storage or replicated-storage design.
 
-After cloning this VM, do not trust the cloned scheduled-task history as proof of the clone's live network state. Proxmox assigns the clone a different virtual NIC identity, and VM 115 first booted online even though its inherited task history reported result 0. Before staging source on a clone: disable the clone's audited hardware adapter, reinstall `Set-CodexRecoveryOfflineStartup.ps1` for that clone's exact interface index, cold boot, and require a fresh task result 0 plus `Disabled` or `Not Present` at 0 bps. Run only one 10-GB builder at a time on this 25-GiB shared host.
+After cloning this VM, do not trust the cloned scheduled-task history as proof of the clone's live network state. Proxmox assigns the clone a different virtual NIC identity, and VM 115 first booted online even though its inherited task history reported result 0. Before staging source on a clone: disable the clone's audited hardware adapter, reinstall `Set-CodexRecoveryOfflineStartup.ps1` for that clone's exact interface index, cold boot, and require a fresh task result 0 plus `Disabled` or `Not Present` at 0 bps. Keep VM 115 stopped and run only one 12-GB builder at a time on this 25-GiB shared host.
 
 | Validated build tool | Version or state |
 | --- | --- |
@@ -298,6 +317,8 @@ scripts\Open-PhysicalUsbReadinessGui.cmd
 ```
 
 The GUI defaults to the verified alpha.13 SHA-256, checks the selected ISO, and accepts exactly one online writable USB disk whose Windows storage identity says `BusType: USB` and which is neither the boot disk nor a system disk. It shows the disk number, model, serial, size, bus type, media type, and partition style. Changing the ISO or refreshing the disk list clears the earlier validation and operator confirmation.
+
+The live zero-device safety path is VM-verified. The exact commit `DDF0F58` GUI ran in offline Windows VM 111 against the hash-matched alpha.13 ISO while `Get-Disk` reported no USB disks. Refresh displayed `Expected exactly one online, writable, non-system USB disk; found 0`, and the Validate, physical-identity confirmation, and Save Plan controls remained disabled. The temporary interactive task and GUI process were removed after the test. This proves rejection when no target exists; the positive exactly-one-USB path, plan save, physical write, and hardware boot remain pending.
 
 After the operator physically checks those identity fields, the GUI can save a new JSON readiness plan to local non-USB storage. It refuses the target and every other USB disk as a plan destination, refuses an existing plan filename, re-hashes the ISO, and re-checks the USB identity immediately before saving. The plan explicitly records `WritePerformed: false`; the GUI contains no target-disk erasure, partitioning, formatting, raw-write, download, or external-writer launch operation. This is a guardrail and handoff record, not proof that the GUI has written or booted physical media. Its live Windows GUI run and physical-hardware validation remain pending.
 
@@ -507,7 +528,7 @@ The BitLocker and failing-drive cases are expected safe stops: they intentionall
 
 ## Documentation screenshots and evidence
 
-The two screenshots in the fixture-console sections show the **fixture console** only. The verified sections contain one real build-VM audit screenshot, two real WinPE boot screenshots, four real evidence-collection VM screenshots, three real BitLocker fixture VM screenshots, and one real full-Windows Codex project screenshot. None proves that a physical PC was recovered or that Voice audio worked. Each image is labeled by its evidence boundary.
+The two screenshots in the fixture-console sections show the **fixture console** only. The verified sections contain one real build-VM audit screenshot, four real WinPE boot screenshots, five real evidence/summary VM screenshots, five real BitLocker fixture VM screenshots, and one real full-Windows Codex project screenshot. None proves that a physical PC was recovered or that Voice audio worked. Each image is labeled by its evidence boundary.
 
 | Screenshot | What it must show | Evidence status required |
 | --- | --- | --- |
@@ -519,7 +540,9 @@ The two screenshots in the fixture-console sections show the **fixture console**
 | BitLocker unlock | Protection remains on, lock state becomes unlocked, root access succeeds, and no recovery material is displayed. | **Verified above for an external-key fixture** |
 | BitLocker fixture content | A known non-secret file is readable after unlock. | **Verified above; no customer data** |
 | Evidence no-overwrite gate | Refusal to replace a prior `CodexRescueEvidence` package. | **Verified above** |
+| Evidence destination approval | Disposable destination identity, new package path, and exact `COLLECT TO <drive>:` token. | **Verified above for alpha.13** |
 | Evidence package | The resulting `CodexRescueEvidence` folder on the prepared test destination. | Export verified above; folder screenshot pending |
+| Redacted handoff summary | Integrity-verified aggregate output with raw evidence, recovery material, and automatic import disabled. | **Verified above for alpha.13** |
 | Codex recovery workspace | The full-Windows GUI opened on the exact staged project with the Voice control visible. | **GUI/project verified above; spoken Voice pending** |
 | Physical USB boot | UEFI boot and evidence collection on a disposable physical test machine. | Pending |
 
