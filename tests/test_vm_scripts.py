@@ -51,6 +51,39 @@ class BuildVmScriptTests(unittest.TestCase):
         self.assertNotIn("RecoveryPassword", fixture)
         self.assertNotIn("externalKeyFiles[0]", fixture)
 
+    def test_codex_workspace_launcher_requires_package_and_exact_consent(self) -> None:
+        launcher = (
+            ROOT / "scripts" / "Open-CodexRecoveryWorkspace.ps1"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("Get-AppxPackage", launcher)
+        self.assertIn("Get-AppxPackage -AllUsers", launcher)
+        self.assertIn("OpenAI.Codex", launcher)
+        self.assertIn("START CODEX RECOVERY WORKSPACE", launcher)
+        self.assertIn("NetworkConsentGranted", launcher)
+        self.assertIn("Start-Process 'codex:'", launcher)
+        self.assertIn("AuditOnly", launcher)
+
+    def test_codex_workspace_launcher_never_imports_recovery_material(self) -> None:
+        launcher = (
+            ROOT / "scripts" / "Open-CodexRecoveryWorkspace.ps1"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("AutomaticEvidenceImport = $false", launcher)
+        self.assertIn("RecoveryMaterialAllowed = $false", launcher)
+        self.assertNotIn("RecoveryPassword", launcher)
+        self.assertNotIn("*.bek", launcher)
+        self.assertNotIn("CODEX_BITLOCKER.KEY", launcher)
+        self.assertNotIn("Invoke-WebRequest", launcher)
+
+    def test_codex_workspace_cmd_runs_the_guarded_powershell_launcher(self) -> None:
+        launcher = (
+            ROOT / "scripts" / "Open-CodexRecoveryWorkspace.cmd"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("Open-CodexRecoveryWorkspace.ps1", launcher)
+        self.assertIn("-ExecutionPolicy Bypass", launcher)
+
 
 if __name__ == "__main__":
     unittest.main()

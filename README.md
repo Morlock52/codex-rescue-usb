@@ -4,7 +4,7 @@
 
 Codex Rescue USB contains two deliberately separate deliverables: a host-runnable fixture console that demonstrates the approval model without touching a real PC, and a Windows PE image that has booted in a disposable UEFI VM, exported read-only troubleshooting evidence, and completed a guarded external recovery-key unlock against a disposable BitLocker data volume.
 
-The verified Windows PE milestones are real VM evidence. They are not proof of physical USB compatibility, a 48-digit recovery-password flow, an operating-system-volume recovery, real repair, or a full-Windows Codex GUI/voice workspace. Those claims remain gated until their own tests exist.
+The verified Windows PE milestones are real VM evidence. They are not proof of physical USB compatibility, a 48-digit recovery-password flow, operating-system-volume recovery, real repair, a spoken Voice session, or a portable full-Windows workspace. Those claims remain gated until their own tests exist.
 
 ## Verified WinPE milestones
 
@@ -37,7 +37,7 @@ The alpha.7 BitLocker test then verified all of the following:
 - WinPE reported the selected data volume as unlocked, its root was accessible, and the known non-secret fixture file read `Codex Rescue disposable BitLocker fixture. No customer data.`
 - A cold VM restart discarded the unlock session and the same guard reported `Lock Status: Locked`; the test VM was then stopped.
 
-This verifies one external recovery-key sub-gate on disposable virtual media. It does **not** prove physical USB boot, a 48-digit recovery-password entry screen, operating-system-volume recovery, production-data access, decryption, protector changes, repair of Windows, or a supported Codex desktop/voice workspace. Those remain separately gated phases.
+This verifies one external recovery-key sub-gate on disposable virtual media. It does **not** prove physical USB boot, a 48-digit recovery-password entry screen, operating-system-volume recovery, production-data access, decryption, protector changes, repair of Windows, or spoken Voice. Those remain separately gated phases.
 
 ### Real VM-boot screenshot
 
@@ -139,11 +139,39 @@ The validated Proxmox build VM uses four logical processors and 8 GB assigned RA
 | Python | 3.14.6 |
 | Node.js | 24.17.0 |
 | Codex CLI | 0.142.0 |
+| OpenAI Codex Windows package | 26.730.8199.0 |
+| ChatGPT Desktop Windows package | 1.2026.190.0 |
 | VS Code and Cursor | Present and command-discoverable |
 
 ![Verified Proxmox build VM capacity, toolchain, artifact, and evidence status](docs/images/build-vm-verified-audit.png)
 
 This cropped, redacted console view was generated from the fresh machine audit after alpha.4 completed. It deliberately omits unrelated desktop content and keeps each unverified phase labeled **OPEN**.
+
+## Full-Windows Codex recovery workspace
+
+The native Windows Codex GUI is now partially VM-verified as a separate stage from WinPE. On August 5, 2026, the installed `OpenAI.Codex` AppX package reported status `Ok`, its manifest exposed the supported `codex:` protocol, and that protocol opened the signed-in desktop app. The staged `C:\Users\morlock\Documents\CodexRescue` folder was then selected through **File → Open Folder** and appeared as the active project.
+
+![Full-Windows Codex desktop opened on the staged CodexRescue project](docs/images/full-windows-codex-workspace.png)
+
+This is a real, privacy-cropped Proxmox Windows screenshot. It removes unrelated thread and account names but does not alter the recovery project or controls. The microphone and Voice controls are visible. The `Full access` label is the trusted disposable build VM's current setting; it is **not** the approved default for a recovered physical drive. The VM exposes no Windows sound or microphone endpoint, so this screenshot verifies the GUI and available Voice control—not a spoken Voice session.
+
+Microsoft documents WinPE as a fixed-purpose recovery/deployment environment with limited application compatibility, while OpenAI distributes Codex as a full-Windows desktop app. Microsoft also removed Windows To Go in Windows 10 version 2004 and later. For those reasons, the supported project architecture remains two-stage: offline WinPE first, then a maintained full-Windows Codex workspace after explicit network consent. A native-boot VHDX can be researched separately, but it is not labeled a supported portable Codex release.
+
+Audit the workspace without launching Codex or granting network consent:
+
+```powershell
+.\scripts\Open-CodexRecoveryWorkspace.ps1 -AuditOnly
+```
+
+Start it interactively:
+
+```powershell
+.\scripts\Open-CodexRecoveryWorkspace.ps1
+```
+
+The launcher requires the exact phrase `START CODEX RECOVERY WORKSPACE`, verifies the project root and installed `OpenAI.Codex` package, checks the registered `codex:` protocol and audio-input state, and then opens the desktop app. It never imports evidence automatically and never searches for, logs, copies, or transmits recovery material. After launch, press `Ctrl+O` and select `Documents\CodexRescue`. Review the app's access mode before any task and use the least access required.
+
+OpenAI currently documents the [Codex app on Windows](https://openai.com/index/introducing-the-codex-app/) and [Voice with Codex in the Windows desktop app](https://help.openai.com/en/articles/20001275-chatgpt-work-and-codex). Microsoft documents [WinPE's fixed-purpose application model](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/winpe-create-apps?view=windows-11) and the [removal of Windows To Go](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/deployment/windows-to-go/windows-to-go-overview).
 
 To make a physical USB after VM verification, use a dedicated USB-writing tool on a separate Windows machine. Select the verified ISO, confirm the exact removable drive, and write it. This overwrites that USB. The image contains no recovery keys and starts in read-only evidence-collection mode. Evidence export requires exactly one separate operator-prepared destination whose root contains an empty `CODEX_EVIDENCE.DEST` marker file. It never scans the internal `C:` volume or WinPE's `X:` RAM drive, refuses zero or multiple prepared destinations, and refuses an existing `CodexRescueEvidence` directory; it never silently overwrites an earlier package.
 
@@ -257,6 +285,7 @@ Never copy the `.bek` file into the repository, evidence destination, screenshot
 - The separate external-key command can unlock only an explicitly selected data volume after the marker, unique-drive, unique-file, and typed-confirmation gates succeed. It does not accept a 48-digit recovery password, target `C:` or `X:`, decrypt a drive, change protectors, or repair Windows.
 - The fixture console never requests BitLocker keys, passwords, tokens, or credentials. Recovery material stays on the separate owner-controlled key drive and out of logs, screenshots, evidence exports, GitHub, and Codex context.
 - The fixture console contacts no Codex, model, or network service. The WinPE evidence script reports network configuration only; it does not enable or use a network connection.
+- The full-Windows launcher requires explicit network consent, imports no evidence automatically, and never authorizes recovery material in Codex context. The operator must redact evidence and select the least app access needed before analysis or repair.
 
 Do not use this pre-release image on production or customer hardware. Use disposable test systems until the physical-USB, BitLocker, repair, and full-Windows workspace gates are independently verified.
 
@@ -307,7 +336,7 @@ The BitLocker and failing-drive cases are expected safe stops: they intentionall
 
 ## Documentation screenshots and evidence
 
-The two screenshots in the fixture-console sections show the **fixture console** only. The verified sections contain one real build-VM audit screenshot, three real evidence-collection VM screenshots, and three real BitLocker fixture VM screenshots. None proves that a physical PC was recovered. Each image is labeled by its evidence boundary.
+The two screenshots in the fixture-console sections show the **fixture console** only. The verified sections contain one real build-VM audit screenshot, three real evidence-collection VM screenshots, three real BitLocker fixture VM screenshots, and one real full-Windows Codex project screenshot. None proves that a physical PC was recovered or that Voice audio worked. Each image is labeled by its evidence boundary.
 
 | Screenshot | What it must show | Evidence status required |
 | --- | --- | --- |
@@ -320,7 +349,7 @@ The two screenshots in the fixture-console sections show the **fixture console**
 | BitLocker fixture content | A known non-secret file is readable after unlock. | **Verified above; no customer data** |
 | Evidence no-overwrite gate | Refusal to replace a prior `CodexRescueEvidence` package. | **Verified above** |
 | Evidence package | The resulting `CodexRescueEvidence` folder on the prepared test destination. | Export verified above; folder screenshot pending |
-| Codex recovery workspace | The full Windows GUI and voice workspace, visibly labeled as a later staged environment. | Pending |
+| Codex recovery workspace | The full-Windows GUI opened on the exact staged project with the Voice control visible. | **GUI/project verified above; spoken Voice pending** |
 | Physical USB boot | UEFI boot and evidence collection on a disposable physical test machine. | Pending |
 
 Every screenshot will state what was tested, which environment produced it, and whether it is a fixture, VM, or physical-hardware result. Screens that could expose recovery keys, device identifiers, account data, or customer files are redacted before publication.
@@ -387,22 +416,22 @@ tests/             Unit and HTTP integration tests
 
 ## Current scope
 
-This release proves the fixture safety model, a VM-boot-verified read-only WinPE evidence path, and one guarded external recovery-key unlock against a disposable virtual BitLocker data disk. Alpha.4 enforced the prepared-destination and no-overwrite gates and exported the nine-file package documented above. Alpha.7 required an exact target and confirmation, kept recovery material out of its visible output, unlocked the selected fixture, verified the known file, and returned to a locked state after a cold restart. It is not yet a physical USB-validated recovery disk, a 48-digit recovery-password workflow, an operating-system-volume recovery tool, a repair engine for a real Windows installation, or a full Windows Codex workspace.
+This release proves the fixture safety model, a VM-boot-verified read-only WinPE evidence path, one guarded external recovery-key unlock against a disposable virtual BitLocker data disk, and a partial full-Windows Codex GUI handoff. Alpha.4 enforced the prepared-destination and no-overwrite gates and exported the nine-file package documented above. Alpha.7 required an exact target and confirmation, kept recovery material out of its visible output, unlocked the selected fixture, verified the known file, and returned to a locked state after a cold restart. The separate Windows VM launched the installed Codex app on the exact staged project and exposed its Voice control, but it has no audio endpoint. The project is not yet a physical USB-validated recovery disk, a 48-digit recovery-password workflow, an operating-system-volume recovery tool, a repair engine for a real Windows installation, a spoken Voice workflow, or a supported portable full-Windows image.
 
 ## Planned real recovery USB
 
 The next build is designed as a two-stage Windows recovery medium:
 
 1. **Windows PE recovery stage:** boots a PC, inventories storage and BitLocker state, collects read-only troubleshooting evidence, and hands owner-controlled recovery material directly to the local Windows BitLocker recovery flow without retaining it. The external `.bek` fixture path is VM-verified; the 48-digit recovery-password interface remains pending.
-2. **Full Windows recovery workspace:** starts only when the operator selects it, then provides the supported Codex desktop GUI and voice experience for guided diagnosis and reviewed repair.
+2. **Full Windows recovery workspace:** starts only after exact network consent in a maintained Windows environment, then provides the supported Codex desktop GUI and, when a trusted microphone endpoint exists, Voice for guided diagnosis and reviewed repair.
 
 Planned safeguards include an offline-by-default recovery workspace, explicit network enablement for Codex, no recovery-key logging or storage, target-specific confirmation before any write, rollback requirements, and independent post-action verification.
 
-The two-stage architecture is planned beyond the verified read-only WinPE milestone. A physical USB and disposable hardware machine are still required for hardware validation.
+The two-stage architecture is partially VM-verified: WinPE boot/evidence, external-key BitLocker unlock, and the full-Windows Codex GUI project handoff have direct evidence. Spoken Voice, redacted evidence handoff, physical USB, and disposable hardware validation remain open. Windows To Go is not used as the release baseline.
 
 ## Recovery-media delivery roadmap
 
-The detailed phase plan, acceptance evidence, safety gates, and planned Figma screens are in [the recovery-media roadmap](docs/plans/2026-08-05-recovery-media-roadmap.md). Phases 1 and 2 are VM-verified. Phase 3's external-key sub-gate is VM-verified, while its recovery-password UI remains open. Physical USB, repair, and Codex workspace gates also remain open.
+The detailed phase plan, acceptance evidence, safety gates, and planned Figma screens are in [the recovery-media roadmap](docs/plans/2026-08-05-recovery-media-roadmap.md). Phases 1 and 2 are VM-verified. Phase 3's external-key sub-gate is VM-verified, while its recovery-password UI remains open. Phase 4's GUI/project handoff is VM-verified, while Voice/audio, network-transition, redacted-evidence, and least-privilege gates remain open. Physical USB and repair also remain open.
 
 ## References
 
@@ -411,4 +440,5 @@ The detailed phase plan, acceptance evidence, safety gates, and planned Figma sc
 - [Windows PE and Codex recovery architecture](docs/plans/windows-pe-codex-recovery-architecture.md)
 - [Recovery-media delivery roadmap](docs/plans/2026-08-05-recovery-media-roadmap.md)
 - [BitLocker recovery-key safety contract](docs/plans/2026-08-05-bitlocker-recovery-safety.md)
+- [Full-Windows Codex recovery workspace](docs/plans/2026-08-05-full-windows-codex-workspace.md)
 - [Editable Figma Rescue Console](https://www.figma.com/design/sW9ctJbQnpgzx0DqJqwnbo)

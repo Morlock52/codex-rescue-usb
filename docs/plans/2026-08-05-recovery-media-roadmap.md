@@ -50,13 +50,17 @@ Each phase produces a testable artifact and its own evidence. A design mockup, a
 
 ## Phase 4 — Full Windows Codex recovery workspace
 
-**Status:** Pending. Codex CLI is installed on the Windows build VM, but that is not proof of a supported recovery workspace, desktop GUI, voice session, or secure evidence handoff.
+**Status:** Partially VM-verified on August 5, 2026. The installed `OpenAI.Codex` 26.730.8199.0 package launched through its registered `codex:` protocol in the signed-in standard-user Windows session, and `C:\Users\morlock\Documents\CodexRescue` opened as the visible project. Microphone and Voice controls are visible, but the Proxmox/noVNC VM has no audio endpoint, so a spoken Voice session is not verified.
 
 **Outcome:** after the offline stage, an operator can explicitly start a full Windows workspace that runs the supported Codex desktop GUI and voice experience for guided diagnosis and reviewed repair.
 
-**Build work:** define the supported full-Windows workspace, network consent, Codex installation/sign-in boundary, evidence import, redaction rules, and repair approval model. Codex does not run inside minimal WinPE.
+**Completed sub-gate:** the desktop shortcut now invokes the installed `codex:` protocol instead of searching for a nonexistent `codex.exe`. The guarded launcher verifies full Windows, project root, installed package, protocol registration, and audio-input state; requires the exact `START CODEX RECOVERY WORKSPACE` network-consent phrase; forbids recovery material; and disables automatic evidence import by design.
 
-**Acceptance evidence:** a booted workspace, a visible network-consent state, a successful Codex session without recovery keys or sensitive evidence in context, and an approved dry-run repair proposal.
+**Remaining build work:** validate a trusted microphone/Voice path, prove network-off and network-on transitions, add a redacted summary handoff without raw-package import, configure least privilege for the physical recovery workflow, and validate the workspace on disposable hardware. Codex does not run inside WinPE. Windows To Go is removed, so a portable full-Windows VHDX is a separate experimental path rather than the supported release baseline.
+
+**Collected acceptance evidence:** a booted full-Windows environment, installed package and protocol inventory, visible signed-in Codex GUI, exact `CodexRescue` project root, visible Voice control, source-CD audit with network consent false, and explicit no-key/no-auto-import fields. The real screenshot is cropped to remove unrelated thread and account names.
+
+**Open acceptance evidence:** a spoken Voice session, trusted microphone permission, explicit network transition, redacted evidence handoff, least-privilege access state, and an approved dry-run repair proposal with no recovery keys or sensitive raw evidence in context.
 
 **Figma screens:** `04 — Workspace Handoff` and `05 — Guided Repair Review`. They distinguish offline evidence collection from online assistance and require review before any proposed repair.
 
