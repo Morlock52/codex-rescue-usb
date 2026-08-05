@@ -21,6 +21,10 @@ Set-ExecutionPolicy -Scope Process Bypass
 .\scripts\Build-RescueIso.ps1 -Force
 ```
 
+### Staging source from a Proxmox virtual CD
+
+When the repository is mounted in the build VM as a read-only virtual CD, open the CD in File Explorer and double-click `scripts\Stage-RescueSource.cmd`. It creates `Documents\CodexRescue` and copies the source there without changing the CD. If that destination already exists, the launcher stops without overwriting it. Open PowerShell in the staged folder and run the build command above.
+
 This produces `dist\Codex-Rescue-ISO.iso`. Attach that ISO to a separate Proxmox test VM and verify it reaches the WinPE command prompt before using physical hardware. The build VM is not the test VM.
 
 To make a physical USB after VM verification, use a dedicated USB-writing tool on a separate Windows machine. Select the verified ISO, confirm the exact removable drive, and write it. This overwrites that USB. The image contains no recovery keys and starts in read-only evidence-collection mode. Evidence collection asks the operator to select a removable destination drive and then writes only to `CodexRescueEvidence` on that selected drive.
