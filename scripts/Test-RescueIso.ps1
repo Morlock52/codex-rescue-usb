@@ -161,17 +161,21 @@ try {
         }
     }
 
-    $installedPackageNames = @(
+    $installedPackages = @(
         Get-WindowsPackage -Path $wimMount |
-            Where-Object PackageState -eq 'Installed' |
-            ForEach-Object PackageName
+            Where-Object PackageState -eq 'Installed'
     )
     foreach ($requiredPackage in $requiredPackages) {
-        $packageMatches = @($installedPackageNames | Where-Object {
-            $_ -like "*-$($requiredPackage)-Package*"
+        $packageMatches = @($installedPackages | Where-Object {
+            $_.PackageName -like "*$requiredPackage*"
         })
         if ($packageMatches.Count -eq 0) {
-            throw "Required WinPE package is not installed: $requiredPackage"
+            $observedWinPePackages = @(
+                $installedPackages |
+                    Where-Object PackageName -like '*WinPE*' |
+                    ForEach-Object PackageName
+            ) -join ', '
+            throw "Required WinPE package is not installed: $requiredPackage. Observed installed WinPE packages: $observedWinPePackages"
         }
     }
 

@@ -198,6 +198,8 @@ class WinPEScriptSafetyTests(unittest.TestCase):
 
         self.assertIn("Get-FileHash", self.verifier)
         self.assertIn("Get-WindowsPackage", self.verifier)
+        self.assertIn('PackageName -like "*$requiredPackage*"', self.verifier)
+        self.assertIn("Observed installed WinPE packages", self.verifier)
 
     def test_iso_verifier_records_exact_artifact_identity(self) -> None:
         self.assertIn("WindowsBuiltInRole]::Administrator", self.verifier)
