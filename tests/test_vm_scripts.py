@@ -115,6 +115,18 @@ class BuildVmScriptTests(unittest.TestCase):
         self.assertIn("Open-CodexRecoveryWorkspace.ps1", launcher)
         self.assertIn("-ExecutionPolicy Bypass", launcher)
 
+    def test_dashboard_runtime_harness_checks_read_only_wpf_contract(self) -> None:
+        harness = (
+            ROOT / "tests" / "windows" / "Test-CodexRescueDashboard.ps1"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("Get-CodexRescueDeviceHealth", harness)
+        self.assertIn("Invoke-CodexRescueValidation", harness)
+        self.assertIn("$model.CheckCards.Count -eq 10", harness)
+        self.assertIn("$model.RepairControlsAvailable -eq $false", harness)
+        self.assertIn("$model.AutomaticCodexUpload -eq $false", harness)
+        self.assertIn("Windows.Markup.XamlReader", harness)
+
     def test_network_gate_requires_exact_adapter_and_action_token(self) -> None:
         gate = (ROOT / "scripts" / "Set-CodexRecoveryNetwork.ps1").read_text(
             encoding="utf-8"

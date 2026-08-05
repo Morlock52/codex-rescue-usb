@@ -62,7 +62,9 @@ The sanitized ZIP is rejected if the structured result matches a BitLocker recov
 
 ## Phase 2 — technician dashboard and workspace image
 
-Build a WPF dashboard with the same visual language as the existing Figma Rescue Console. The first dashboard screen must include:
+### Verified WPF dashboard milestone
+
+The native WPF dashboard is implemented with the same visual language as the Figma Rescue Console. Its checked-in script consumes only the module's structured assessment object and requires strict validation before rendering. It includes:
 
 - overall health score and explicit `Not tested` states;
 - local device and installed-Windows summary;
@@ -72,7 +74,11 @@ Build a WPF dashboard with the same visual language as the existing Figma Rescue
 - persistent offline/cloud state;
 - no repair button until an allowlisted repair module and approval contract exist.
 
-The dashboard reads only the module's structured objects. It must never scrape formatted console text and must HTML-encode every rendered value. Figma is the interaction and layout specification, not runtime evidence.
+The implementation never scrapes formatted console text. WPF binds bounded display strings as text instead of interpreting them as XAML, and the separate HTML-report path retains its existing encode-every-value rule. Figma remains the interaction and layout specification, not runtime evidence.
+
+The `CODEX_DASH_R2` source-transfer image was validated in Windows PowerShell 5.1 on VM 111. The harness passed with exactly ten cards, three local audit entries, no repair controls, no automatic Codex upload, cloud disabled, and separately enabled controls for existing local HTML and sanitized ZIP artifacts. The real WPF XAML loaded and two runtime screenshots were captured. This proves the dashboard milestone only; the transfer image is not bootable media.
+
+### Remaining Phase 2 workspace-image gates
 
 The workspace image must be validated independently from the existing build VM. Required gates are:
 
@@ -146,9 +152,9 @@ Release evidence must include both VM boot paths, a disposable offline Windows t
 
 ## Immediate next acceptance gates
 
-1. Publish the Phase 1 module, harness, README instructions, and this plan after the checked-in diff and links pass validation.
-2. Add the Figma technician dashboard frame and publish a clearly labeled concept screenshot.
-3. Implement the WPF read-only dashboard against the module's structured objects.
+1. **Complete:** publish the Phase 1 module, harness, README instructions, and plan with verified VM evidence.
+2. **Complete:** add the Figma technician dashboard design with explicit concept labeling.
+3. **Complete:** implement and VM-validate the WPF read-only dashboard against structured module objects.
 4. Add delegated, process-scoped, read-only Graph authentication behind an explicit online-consent gate.
 5. Build and boot-test a separately maintained full-Windows workspace image before describing it as portable media.
 6. Integrate and boot-test the two-environment menu in a disposable UEFI VM.

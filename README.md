@@ -408,7 +408,75 @@ The ten cards are from the same real sanitized report. `Warning`, `Failed`, and 
 
 Implementation boundaries, Microsoft support constraints, delegated-auth design, and the next acceptance gates are documented in the [Autopilot and Intune technician-workspace plan](docs/plans/2026-08-05-autopilot-intune-technician-workspace.md).
 
-### Physical USB readiness GUI (does not write the USB)
+## Phase 2 native Windows technician dashboard
+
+The first native WPF dashboard is implemented for full Windows PowerShell 5.1. It is a read-only operator view over the Phase 1 module's structured assessment object. It does not parse formatted console output, run a repair, enable a network adapter, authenticate to Microsoft Graph, unlock BitLocker, or send evidence to Codex. A strict `Invoke-CodexRescueValidation` pass is required before the window is created.
+
+The screen follows the [editable Figma Rescue Console design](https://www.figma.com/design/sW9ctJbQnpgzx0DqJqwnbo) and includes:
+
+- all ten local diagnostic cards with distinct `Healthy`, `Warning`, `Failed`, and `Not tested` states;
+- the local health score, tested/not-tested counts, device summary, and offline-Windows count;
+- persistent `READ ONLY`, offline-test, and cloud-disabled state labels;
+- a local audit timeline showing assessment generation, strict validation, and the zero-repair/zero-cloud boundary;
+- separate controls for an existing detailed local HTML report and an existing sanitized escalation ZIP;
+- a persistent warning that no content is uploaded to Codex automatically;
+- no repair button or hidden repair command.
+
+### Beginner quick start: run a fresh local dashboard
+
+From the repository root in Windows, double-click:
+
+```text
+scripts\Open-CodexRescueDashboard.cmd
+```
+
+The launcher opens Windows PowerShell in STA mode, which WPF requires. With no options, the dashboard runs one fresh default local assessment. Online network tests and cloud requests remain disabled. Because this path does not create an export, the two report buttons remain disabled.
+
+Use the middle scrollbar to review every diagnostic card. Use the right scrollbar for evidence controls and the audit timeline. A red or yellow card is a diagnostic finding, not a dashboard or harness failure. `Not tested` means the check lacked a safe local signal or belongs to a later consent-bound phase.
+
+### Operator workflow: open an exported assessment
+
+First create a new validated export using the Phase 1 command above. Then open the dashboard with all three existing artifact paths:
+
+```powershell
+.\scripts\Open-CodexRescueDashboard.ps1 `
+  -AssessmentPath 'C:\Temp\CodexRescue\Assessment-001\DeviceInfo\CodexRescueAssessment.local.json' `
+  -DetailedReportPath 'C:\Temp\CodexRescue\Assessment-001\Reports\CodexRescueReport.local.html' `
+  -SanitizedZipPath 'C:\Temp\CodexRescue\Assessment-001-sanitized.zip'
+```
+
+The dashboard refuses a missing file, a mismatched extension, assessment JSON larger than 16 MB, invalid schema, duplicate or missing checks, non-read-only state, reported repair/cloud activity, and prohibited secret-material patterns. Display strings are bound as text, stripped of unsafe control characters, and length-bounded; they are never evaluated as XAML.
+
+**Open detailed local report** opens the supplied local HTML file. This report can contain device-specific troubleshooting details and must remain under technician control. **Show sanitized escalation ZIP** reveals the supplied ZIP in Explorer; it does not upload, email, extract, or alter the package. Both controls are disabled when their explicit paths are absent. Sanitized still means operator review is required.
+
+![Native WPF device-health dashboard running in Windows VM 111](docs/images/full-windows-wpf-dashboard-overview.png)
+
+This is the real R2 WPF runtime in the logged-in Windows VM at 1280 by 800, not a Figma frame or browser mock-up. It shows the live VM assessment score, local-only state labels, the first diagnostic cards, and the approval gate closed.
+
+![Native WPF evidence controls and audit timeline in Windows VM 111](docs/images/full-windows-wpf-dashboard-evidence.png)
+
+This is the same real R2 session scrolled to the bounded handoff controls and local audit timeline. The detailed-report and sanitized-ZIP buttons are enabled because the native harness supplied two existing validated artifacts. No file was uploaded and no repair control exists.
+
+### Native Windows validation evidence
+
+On August 5, 2026 local time, the exact dashboard implementation source was packaged as the read-only transfer disc `CODEX_DASH_R2` (2,306,048 bytes; SHA-256 `1C7CB16FC4FC07DBE763114780990CC9D219F5E783E0E640B279E4C9BB1B52BA`) and mounted in Proxmox Windows VM 111. This small transfer disc is not bootable recovery media. The native Windows PowerShell 5.1.26100.8875 harness reported:
+
+| Verification | Result |
+| --- | --- |
+| Harness result | `PASS` |
+| Dashboard cards | exactly 10 |
+| Local audit entries | 3 |
+| WPF XAML load | passed in Windows |
+| Repair controls available | `false` |
+| Automatic Codex upload | `false` |
+| Cloud state | `CLOUD DISABLED` |
+| Detailed local report control | enabled for an existing `.html` file |
+| Sanitized ZIP control | enabled for an existing `.zip` file |
+| Sanitized ZIP SHA-256 | `983A4B851ADB4D38EE2B5130D109E5FB4C57440FDFD6D0C5CEDC5B382A2FB92A` |
+
+The complete local Python suite passed all 95 tests, all PowerShell files passed parser validation, and the runtime harness loaded the real WPF window from checked-in XAML. This proves the dashboard source, view-model contract, artifact gating, and WPF compatibility in VM 111. It does not prove Graph access, a repair engine, the separately maintained portable Windows workspace, dual-environment boot, or a physical USB.
+
+## Physical USB readiness GUI (does not write the USB)
 
 On the separate Windows computer that will prepare the rescue drive, connect only the intended blank USB target and double-click:
 
@@ -628,7 +696,7 @@ The BitLocker and failing-drive cases are expected safe stops: they intentionall
 
 ## Documentation screenshots and evidence
 
-The two screenshots in the fixture-console sections show the **fixture console** only. The verified sections contain one real build-VM audit screenshot, four real WinPE boot screenshots, five real evidence/summary VM screenshots, five real BitLocker fixture VM screenshots, and one real full-Windows Codex project screenshot. None proves that a physical PC was recovered or that Voice audio worked. Each image is labeled by its evidence boundary.
+The two screenshots in the fixture-console sections show the **fixture console** only. The verified sections contain one real build-VM audit screenshot, four real WinPE boot screenshots, five real evidence/summary VM screenshots, five real BitLocker fixture VM screenshots, one real full-Windows Codex project screenshot, two real Phase 1 report screenshots, and two real native WPF dashboard screenshots. None proves that a physical PC was recovered or that Voice audio worked. Each image is labeled by its evidence boundary.
 
 | Screenshot | What it must show | Evidence status required |
 | --- | --- | --- |
@@ -645,6 +713,8 @@ The two screenshots in the fixture-console sections show the **fixture console**
 | Redacted handoff summary | Integrity-verified aggregate output with raw evidence, recovery material, and automatic import disabled. | **Verified above for alpha.13** |
 | Codex recovery workspace | The full-Windows GUI opened on the exact staged project with the Voice control visible. | **GUI/project verified above; spoken Voice pending** |
 | Phase 1 Windows report | Sanitized report overview and all ten diagnostic cards, with identity fields redacted. | **Verified above from the final VM 111 harness** |
+| Native WPF dashboard | Local health, explicit states, offline/cloud boundary, and closed approval gate. | **Verified above from the R2 VM 111 runtime** |
+| WPF evidence controls | Separate existing local-report and sanitized-ZIP controls plus the local audit timeline. | **Verified above from the same R2 VM 111 runtime** |
 | Physical USB boot | UEFI boot and evidence collection on a disposable physical test machine. | Pending |
 
 Every screenshot will state what was tested, which environment produced it, and whether it is a fixture, VM, or physical-hardware result. Screens that could expose recovery keys, device identifiers, account data, or customer files are redacted before publication.
