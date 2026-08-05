@@ -332,6 +332,38 @@ On success, the script checks the selected volume status and verifies its root i
 
 Never copy the `.bek` file into the repository, evidence destination, screenshots, chat, clipboard history, or Codex context. Keep the key drive separate from the encrypted drive when it is not actively being used by the owner.
 
+## Disposable BitLocker recovery-password test
+
+This is the separate alpha.10 lab path for Microsoft's 48-digit numerical recovery password. The helper is implemented and statically tested, but its WinPE runtime gate is still open. Do not describe it as VM-verified until the exact rebuilt ISO completes the disposable test and the output review below.
+
+Attach one new 1-GiB RAW virtual disk to the disposable full-Windows fixture VM. In a local elevated PowerShell console—not Codex, QEMU guest-agent execution, a transcript, redirected input/output, or a recorded screen—inspect the disk first:
+
+```powershell
+Get-Disk | Sort-Object Number | Format-Table Number, FriendlyName, PartitionStyle, IsBoot, IsSystem, Size
+```
+
+Replace `1` only after verifying that the selected disk is RAW, approximately 1 GiB, and neither the boot nor system disk:
+
+```powershell
+.\scripts\New-BitLockerRecoveryPasswordFixture.ps1 `
+  -DataDiskNumber 1 `
+  -ConfirmationToken 'CREATE DISPOSABLE RECOVERY PASSWORD FIXTURE 1' `
+  -Confirm:$false
+```
+
+The script refuses redirected input/output so the generated password cannot return through guest-agent or Codex command output. It initializes only the confirmed disposable disk, opens Microsoft's `manage-bde` in a separate local console, and asks the operator to write the generated recovery password down without pasting, saving, photographing, or speaking it. After the operator closes that one-time display, the script verifies exactly one numerical-password protector, waits for full encryption, records only non-secret fixture state, and locks the volume.
+
+Move that encrypted disposable disk to the stopped, network-disconnected WinPE test VM and boot the exact alpha.10 candidate. Identify the `CODEX-BL-PASS` volume by label, size, and locked state; never assume its drive letter. For a selected `E:` fixture, run:
+
+```powershell
+powershell -File X:\Rescue\Unlock-BitLockerWithRecoveryPassword.ps1 `
+  -TargetDrive E `
+  -ConfirmationToken 'UNLOCK E:' `
+  -Confirm:$false
+```
+
+Type the recovery password only into the masked local prompt. The command validates Microsoft's numerical-password format and invokes `UnlockWithNumericalPassword` only on that explicit volume. Acceptance requires wrong token, blocked-drive, invalid-format, and wrong-password refusal checks; one correct unlock; the known non-secret fixture file; a cold restart returning the volume to locked; and an independent scan confirming no 48-digit password entered source, logs, evidence, screenshots, or Codex context. Microsoft documents the local [`UnlockWithNumericalPassword` WMI method](https://learn.microsoft.com/en-us/windows/win32/secprov/unlockwithnumericalpassword-win32-encryptablevolume) and the accepted [48-digit numerical-password format](https://learn.microsoft.com/en-us/windows/win32/secprov/isnumericalpasswordvalid-win32-encryptablevolume).
+
 ![Boot-loop diagnosis and proposed simulated repair](docs/images/rescue-console-overview.jpg)
 
 ## Fixture console features
@@ -348,7 +380,7 @@ Never copy the `.bek` file into the repository, evidence destination, screenshot
 - Checked-in Windows PE source alone is not boot evidence. The verified milestone above identifies the exact VM-tested artifact and hash; every later build requires its own separate boot test.
 - The fixture console never touches a real disk, volume, boot file, or host command.
 - A booted WinPE image can query the machine it was booted on for disk layout, BitLocker status, boot configuration, event-log names, driver inventory, and network state. Its evidence command does not unlock, repair, or write to those system components.
-- The separate external-key command can unlock only an explicitly selected data volume after the marker, unique-drive, unique-file, and typed-confirmation gates succeed. It does not accept a 48-digit recovery password, target `C:` or `X:`, decrypt a drive, change protectors, or repair Windows.
+- The external-key and recovery-password commands are separate. Each can unlock only an explicitly selected data volume after its own exact confirmation gate; neither can target `C:` or `X:`, decrypt a drive, change protectors, export evidence, enable networking, or repair Windows. Only the external-key path is VM-verified today; the recovery-password path remains an alpha.10 runtime gate.
 - The fixture console never requests BitLocker keys, passwords, tokens, or credentials. Recovery material stays on the separate owner-controlled key drive and out of logs, screenshots, evidence exports, GitHub, and Codex context.
 - The fixture console contacts no Codex, model, or network service. The WinPE evidence script reports network configuration only; it does not enable or use a network connection.
 - The full-Windows launcher requires explicit network consent, imports no evidence automatically, and never authorizes recovery material in Codex context. The operator must redact evidence and select the least app access needed before analysis or repair.

@@ -4,10 +4,11 @@ Unlocks one authorized BitLocker data volume with masked recovery-password input
 
 .DESCRIPTION
 Requires an exact target drive and confirmation token, prompts locally for a
-48-digit BitLocker recovery password as a SecureString, validates the password
-through the MicrosoftVolumeEncryption WMI provider, and unlocks only the
-selected locked volume. The password is never accepted as a command-line
-parameter, written to output, copied to the clipboard, or included in evidence.
+48-digit BitLocker recovery password as a SecureString, validates Microsoft's
+documented numerical-password format, and unlocks only the selected locked
+volume through the MicrosoftVolumeEncryption WMI provider. The password is
+never accepted as a command-line parameter, written to output, copied to the
+clipboard, or included in evidence.
 
 .PARAMETER TargetDrive
 One authorized data-volume letter. C and the WinPE X RAM drive are blocked.
@@ -37,6 +38,34 @@ $namespace = 'Root\CIMV2\Security\MicrosoftVolumeEncryption'
 $target = $TargetDrive.ToUpperInvariant()
 $targetMount = "$target`:"
 $requiredConfirmation = "UNLOCK $target`:"
+
+function Test-RecoveryPasswordFormat {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$RecoveryPassword
+    )
+
+    if ($RecoveryPassword -notmatch '^\d{6}(?:-\d{6}){7}$') {
+        return $false
+    }
+
+    foreach ($group in $RecoveryPassword.Split('-')) {
+        $groupValue = [int]$group
+        if ($groupValue -ge 720896 -or ($groupValue % 11) -ne 0) {
+            return $false
+        }
+
+        $digits = @($group.ToCharArray() | ForEach-Object { [int]$_ - [int][char]'0' })
+        $checksum = -$digits[0] + $digits[1] - $digits[2] + $digits[3] - $digits[4]
+        $checksum = (($checksum % 11) + 11) % 11
+        if ($checksum -ne $digits[5]) {
+            return $false
+        }
+    }
+
+    return $true
+}
 
 if ($ConfirmationToken -cne $requiredConfirmation) {
     throw "Confirmation token mismatch. Required: $requiredConfirmation"
@@ -79,9 +108,7 @@ try {
     $passwordBstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
     $plainTextPassword = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($passwordBstr)
 
-    $format = Invoke-WmiMethod -Namespace $namespace -Class Win32_EncryptableVolume `
-        -Name IsNumericalPasswordValid -ArgumentList $plainTextPassword -ErrorAction Stop
-    if ([uint32]$format.ReturnValue -ne 0 -or !$format.IsNumericalPasswordValid) {
+    if (!(Test-RecoveryPasswordFormat -RecoveryPassword $plainTextPassword)) {
         throw 'The recovery password format is invalid. Nothing was unlocked.'
     }
 

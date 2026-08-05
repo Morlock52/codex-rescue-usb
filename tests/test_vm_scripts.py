@@ -51,6 +51,37 @@ class BuildVmScriptTests(unittest.TestCase):
         self.assertNotIn("RecoveryPassword", fixture)
         self.assertNotIn("externalKeyFiles[0]", fixture)
 
+    def test_recovery_password_fixture_requires_one_new_exact_disk_and_console(self) -> None:
+        fixture = (
+            ROOT / "scripts" / "New-BitLockerRecoveryPasswordFixture.ps1"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("PartitionStyle -ne 'RAW'", fixture)
+        self.assertIn("Refusing boot or system disk", fixture)
+        self.assertIn("expected disposable 1 GiB disk", fixture)
+        self.assertIn("CREATE DISPOSABLE RECOVERY PASSWORD FIXTURE", fixture)
+        self.assertIn("SupportsShouldProcess", fixture)
+        self.assertIn("[Console]::IsInputRedirected", fixture)
+        self.assertIn("[Console]::IsOutputRedirected", fixture)
+        self.assertIn("Do not run this command through Codex", fixture)
+
+    def test_recovery_password_fixture_keeps_secret_out_of_parent_and_audit(self) -> None:
+        fixture = (
+            ROOT / "scripts" / "New-BitLockerRecoveryPasswordFixture.ps1"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("manage-bde.exe", fixture)
+        self.assertIn("-RecoveryPassword", fixture)
+        self.assertIn("-UsedSpaceOnly", fixture)
+        self.assertIn("-SkipHardwareTest", fixture)
+        self.assertIn("Start-Process", fixture)
+        self.assertIn("-Wait", fixture)
+        self.assertIn("RecoveryPasswordProtectorCount", fixture)
+        self.assertIn("ContainsRecoveryMaterial = $false", fixture)
+        self.assertNotIn("GetKeyProtectorNumericalPassword", fixture)
+        self.assertNotIn("Set-Clipboard", fixture)
+        self.assertNotIn("Start-Transcript", fixture)
+
     def test_codex_workspace_launcher_requires_package_and_exact_consent(self) -> None:
         launcher = (
             ROOT / "scripts" / "Open-CodexRecoveryWorkspace.ps1"
