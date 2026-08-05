@@ -91,6 +91,24 @@ The BitLocker and failing-drive cases are expected safe stops: they intentionall
 
 ![Approved one-time simulated repair plan](docs/images/rescue-console-approved.jpg)
 
+## Documentation screenshots and evidence
+
+The two screenshots above show the **fixture console** only. They do not prove that an ISO booted or that a physical PC was recovered. As each real-media phase is verified, the README will add a labeled screenshot for the following evidence:
+
+| Screenshot | What it must show | Evidence status required |
+| --- | --- | --- |
+| Build prerequisites | Windows ADK Deployment Tools, matching WinPE add-on, and servicing patch selected on the build VM. | Build-host verification |
+| ISO build completion | The completed build output and generated ISO file. | Build artifact verification |
+| Proxmox test VM | A separate test VM configured to boot the generated ISO. | VM configuration verification |
+| WinPE first boot | The Codex Rescue Disk read-only startup banner at the WinPE command prompt. | VM-boot verification |
+| Storage and BitLocker inventory | Read-only status output from a disposable test VM. | Test-fixture evidence only |
+| Evidence destination prompt | The operator selecting a removable destination drive. | Workflow verification |
+| Evidence package | The resulting `CodexRescueEvidence` folder on that selected removable drive. | Export verification |
+| Codex recovery workspace | The full Windows GUI and voice workspace, visibly labeled as a later staged environment. | Workspace verification |
+| Physical USB boot | UEFI boot and evidence collection on a disposable physical test machine. | Hardware verification |
+
+Every screenshot will state what was tested, which environment produced it, and whether it is a fixture, VM, or physical-hardware result. Screens that could expose recovery keys, device identifiers, account data, or customer files are redacted before publication.
+
 ## Feature guide
 
 ### Problem categories and fixtures
@@ -166,9 +184,14 @@ Planned safeguards include an offline-by-default recovery workspace, explicit ne
 
 These are planned capabilities, not features of the current fixture console. The build requires a Windows ADK host and a disposable USB drive for hardware validation.
 
+## Recovery-media delivery roadmap
+
+The detailed phase plan, acceptance evidence, safety gates, and planned Figma screens are in [the recovery-media roadmap](docs/plans/2026-08-05-recovery-media-roadmap.md). No phase is presented as complete until its listed evidence is captured and reviewed.
+
 ## References
 
 - [Product and safety design](docs/plans/2026-08-04-codex-rescue-usb-design.md)
 - [Fixture console implementation plan](docs/plans/2026-08-04-fixture-rescue-console-implementation.md)
 - [Windows PE and Codex recovery architecture](docs/plans/windows-pe-codex-recovery-architecture.md)
+- [Recovery-media delivery roadmap](docs/plans/2026-08-05-recovery-media-roadmap.md)
 - [Editable Figma Rescue Console](https://www.figma.com/design/sW9ctJbQnpgzx0DqJqwnbo)
