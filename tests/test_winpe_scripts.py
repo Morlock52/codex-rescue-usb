@@ -167,10 +167,14 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.assertIn("Created and verified", self.builder)
 
     def test_iso_verifier_requires_bios_and_uefi_boot_files(self) -> None:
-        self.assertIn("boot\\etfsboot.com", self.verifier)
-        self.assertIn("efi\\microsoft\\boot\\efisys.bin", self.verifier)
+        self.assertIn("'bootmgr'", self.verifier)
+        self.assertIn("boot\\bcd", self.verifier)
+        self.assertIn("boot\\boot.sdi", self.verifier)
+        self.assertIn("efi\\boot\\bootx64.efi", self.verifier)
         self.assertIn("efi\\microsoft\\boot\\bcd", self.verifier)
         self.assertIn("sources\\boot.wim", self.verifier)
+        self.assertNotIn("boot\\etfsboot.com", self.verifier)
+        self.assertNotIn("efi\\microsoft\\boot\\efisys.bin", self.verifier)
 
     def test_iso_verifier_matches_injected_sources_and_packages(self) -> None:
         for source_file in (

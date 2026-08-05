@@ -82,8 +82,10 @@ function Invoke-DismCommand {
 }
 
 $requiredBootFiles = @(
-    'boot\etfsboot.com',
-    'efi\microsoft\boot\efisys.bin',
+    'bootmgr',
+    'boot\bcd',
+    'boot\boot.sdi',
+    'efi\boot\bootx64.efi',
     'efi\microsoft\boot\bcd',
     'sources\boot.wim'
 )
