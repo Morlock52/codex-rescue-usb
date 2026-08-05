@@ -76,7 +76,9 @@ Each phase produces a testable artifact and its own evidence. A design mockup, a
 
 **Outcome:** a physical USB made from the verified ISO boots on disposable hardware, preserves the read-only default, and produces a complete, redacted release record.
 
-**Build work:** create the USB only after VM verification; test UEFI boot, storage discovery, a BitLocker test volume, evidence export, and the recovery workspace handoff. Test repair actions only on disposable targets with a documented rollback.
+**Readiness sub-gate:** the repository includes a Windows Forms readiness GUI that validates the selected ISO against the expected SHA-256, requires exactly one online writable non-system USB disk, shows its stable identity fields for physical confirmation, and emits a fresh JSON plan with `WritePerformed: false` to local non-USB storage only. Static safety tests forbid target-disk mutation and external-writer launch operations. A live Windows GUI run is still required; this sub-gate does not create or validate physical media.
+
+**Build work:** run the readiness GUI on the separate Windows writer computer; independently re-check the resulting ISO and target identity in a dedicated USB-writing tool; create the USB only after VM verification; test UEFI boot, storage discovery, a BitLocker test volume, evidence export, and the recovery workspace handoff. Test repair actions only on disposable targets with a documented rollback.
 
 **Acceptance evidence:** physical boot photos or screenshots, hardware inventory, export checksum, tested recovery scenarios, known limitations, and owner approval for release.
 

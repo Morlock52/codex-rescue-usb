@@ -279,7 +279,19 @@ A controlled manual Codex review of the real alpha.9 aggregate summary is also V
 
 OpenAI currently documents the [Codex app on Windows](https://openai.com/index/introducing-the-codex-app/) and [Voice with Codex in the Windows desktop app](https://help.openai.com/en/articles/20001275-chatgpt-work-and-codex). Microsoft documents [WinPE's fixed-purpose application model](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/winpe-create-apps?view=windows-11) and the [removal of Windows To Go](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/deployment/windows-to-go/windows-to-go-overview).
 
-To make a physical USB after VM verification, use a dedicated USB-writing tool on a separate Windows machine. Select the verified ISO, confirm the exact removable drive, and write it. This overwrites that USB. The image contains no recovery keys and starts in read-only evidence-collection mode. Evidence export requires exactly one separate operator-prepared destination whose root contains an empty `CODEX_EVIDENCE.DEST` marker file. It never scans the internal `C:` volume or WinPE's `X:` RAM drive, refuses zero or multiple prepared destinations, and refuses an existing `CodexRescueEvidence` directory; it never silently overwrites an earlier package.
+### Physical USB readiness GUI (does not write the USB)
+
+On the separate Windows computer that will prepare the rescue drive, connect only the intended blank USB target and double-click:
+
+```text
+scripts\Open-PhysicalUsbReadinessGui.cmd
+```
+
+The GUI defaults to the verified alpha.12 SHA-256, checks the selected ISO, and accepts exactly one online writable USB disk whose Windows storage identity says `BusType: USB` and which is neither the boot disk nor a system disk. It shows the disk number, model, serial, size, bus type, media type, and partition style. Changing the ISO or refreshing the disk list clears the earlier validation and operator confirmation.
+
+After the operator physically checks those identity fields, the GUI can save a new JSON readiness plan to local non-USB storage. It refuses the target and every other USB disk as a plan destination, refuses an existing plan filename, re-hashes the ISO, and re-checks the USB identity immediately before saving. The plan explicitly records `WritePerformed: false`; the GUI contains no target-disk erasure, partitioning, formatting, raw-write, download, or external-writer launch operation. This is a guardrail and handoff record, not proof that the GUI has written or booted physical media. Its live Windows GUI run and physical-hardware validation remain pending.
+
+To make a physical USB after that readiness check, use a dedicated USB-writing tool on the separate Windows machine. Independently select the same verified ISO and re-confirm the exact removable drive before accepting the tool's erase warning. Writing overwrites that USB. The image contains no recovery keys and starts in read-only evidence-collection mode. Evidence export requires exactly one separate operator-prepared destination whose root contains an empty `CODEX_EVIDENCE.DEST` marker file. It never scans the internal `C:` volume or WinPE's `X:` RAM drive, refuses zero or multiple prepared destinations, and refuses an existing `CodexRescueEvidence` directory; it never silently overwrites an earlier package.
 
 ### Preparing the separate evidence destination
 
