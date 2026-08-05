@@ -94,6 +94,7 @@ $embeddedSourceMap = [ordered]@{
     'Unlock-BitLockerWithRecoveryKey.cmd' = 'Rescue\Unlock-BitLockerWithRecoveryKey.cmd'
     'Unlock-BitLockerWithRecoveryPassword.ps1' = 'Rescue\Unlock-BitLockerWithRecoveryPassword.ps1'
     'New-EvidenceManifest.ps1' = 'Rescue\New-EvidenceManifest.ps1'
+    'Collect-OfflineWindowsInventory.ps1' = 'Rescue\Collect-OfflineWindowsInventory.ps1'
     'diskpart-list.txt' = 'Rescue\diskpart-list.txt'
     'startnet.cmd' = 'Windows\System32\startnet.cmd'
 }

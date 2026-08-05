@@ -99,6 +99,19 @@ function Invoke-DismCommand {
     }
 }
 
+function Copy-BatchFile {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Source,
+
+        [Parameter(Mandatory)]
+        [string]$Destination
+    )
+
+    Get-Content -LiteralPath $Source |
+        Set-Content -LiteralPath $Destination -Encoding ASCII
+}
+
 $work = Join-Path $OutputDirectory 'work'
 $iso = Join-Path $OutputDirectory "$Name.iso"
 if (Test-Path $work) { if (!$Force) { throw "Build workspace exists: $work. Re-run with -Force." }; Remove-Item -Recurse -Force $work }
@@ -135,12 +148,13 @@ try {
 
     $rescueDirectory = Join-Path $mount 'Rescue'
     New-Item -ItemType Directory -Force $rescueDirectory | Out-Null
-    Copy-Item (Join-Path $PSScriptRoot '..\winpe\Collect-RescueEvidence.cmd') (Join-Path $rescueDirectory 'Collect-RescueEvidence.cmd')
-    Copy-Item (Join-Path $PSScriptRoot '..\winpe\Unlock-BitLockerWithRecoveryKey.cmd') (Join-Path $rescueDirectory 'Unlock-BitLockerWithRecoveryKey.cmd')
+    Copy-BatchFile -Source (Join-Path $PSScriptRoot '..\winpe\Collect-RescueEvidence.cmd') -Destination (Join-Path $rescueDirectory 'Collect-RescueEvidence.cmd')
+    Copy-BatchFile -Source (Join-Path $PSScriptRoot '..\winpe\Unlock-BitLockerWithRecoveryKey.cmd') -Destination (Join-Path $rescueDirectory 'Unlock-BitLockerWithRecoveryKey.cmd')
     Copy-Item (Join-Path $PSScriptRoot '..\winpe\Unlock-BitLockerWithRecoveryPassword.ps1') (Join-Path $rescueDirectory 'Unlock-BitLockerWithRecoveryPassword.ps1')
     Copy-Item (Join-Path $PSScriptRoot '..\winpe\New-EvidenceManifest.ps1') (Join-Path $rescueDirectory 'New-EvidenceManifest.ps1')
+    Copy-Item (Join-Path $PSScriptRoot '..\winpe\Collect-OfflineWindowsInventory.ps1') (Join-Path $rescueDirectory 'Collect-OfflineWindowsInventory.ps1')
     Copy-Item (Join-Path $PSScriptRoot '..\winpe\diskpart-list.txt') (Join-Path $rescueDirectory 'diskpart-list.txt')
-    Copy-Item (Join-Path $PSScriptRoot '..\winpe\startnet.cmd') (Join-Path $mount 'Windows\System32\startnet.cmd') -Force
+    Copy-BatchFile -Source (Join-Path $PSScriptRoot '..\winpe\startnet.cmd') -Destination (Join-Path $mount 'Windows\System32\startnet.cmd')
 
     Invoke-DismCommand -Arguments @('/Unmount-Image', "/MountDir:$mount", '/Commit')
     $mounted = $false

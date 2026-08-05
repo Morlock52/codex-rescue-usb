@@ -14,6 +14,12 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.manifest = (ROOT / "winpe" / "New-EvidenceManifest.ps1").read_text(
             encoding="utf-8"
         )
+        offline_inventory_path = ROOT / "winpe" / "Collect-OfflineWindowsInventory.ps1"
+        self.offline_inventory = (
+            offline_inventory_path.read_text(encoding="utf-8")
+            if offline_inventory_path.exists()
+            else ""
+        )
         self.builder = (ROOT / "scripts" / "Build-RescueIso.ps1").read_text(
             encoding="utf-8"
         )
@@ -54,6 +60,31 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.assertIn('if "!DEST_COUNT!"=="0" goto :unprepared', self.collector)
         self.assertIn('if not "!DEST_COUNT!"=="1" goto :ambiguous', self.collector)
 
+    def test_destination_marker_is_a_file_and_exactly_one_is_rechecked(self) -> None:
+        self.assertIn('if exist "%%D:\\CODEX_EVIDENCE.DEST\\"', self.collector)
+        self.assertIn('if not "!INVALID_MARKER_COUNT!"=="0" goto :invalidmarker', self.collector)
+        self.assertIn('set "RECHECK_COUNT=0"', self.collector)
+        self.assertIn('if not "!RECHECK_INVALID!"=="0" goto :destinationchanged', self.collector)
+        self.assertIn('if not "!RECHECK_COUNT!"=="1" goto :destinationchanged', self.collector)
+        self.assertIn(
+            'if /I not "!RECHECK_DRIVE!"=="!OUTDRIVE!" goto :destinationchanged',
+            self.collector,
+        )
+        self.assertLess(
+            self.collector.index('set "RECHECK_COUNT=0"'),
+            self.collector.index('mkdir "!OUT!"'),
+        )
+
+    def test_collection_requires_explicit_destination_confirmation(self) -> None:
+        self.assertIn("vol !OUTDRIVE!:", self.collector)
+        self.assertIn("Type COLLECT TO !OUTDRIVE!:", self.collector)
+        self.assertIn('if /I not "!CONFIRM!"=="COLLECT TO !OUTDRIVE!:"', self.collector)
+        self.assertIn("goto :notconfirmed", self.collector)
+        self.assertLess(
+            self.collector.index("Type COLLECT TO !OUTDRIVE!:"),
+            self.collector.index('mkdir "!OUT!"'),
+        )
+
     def test_startup_banner_describes_the_enforced_marker_gate(self) -> None:
         self.assertIn("CODEX_EVIDENCE.DEST", self.startup)
         self.assertNotIn("only to a removable drive", self.startup)
@@ -69,6 +100,70 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.assertLess(first_diagnostic, manifest_call)
         self.assertIn("if errorlevel 1 goto :manifestfailed", self.collector)
         self.assertIn("package is incomplete", self.collector)
+
+    def test_offline_windows_inventory_is_integrated_into_evidence_contract(self) -> None:
+        self.assertTrue(self.offline_inventory)
+        self.assertIn("Collect-OfflineWindowsInventory.ps1", self.collector)
+        self.assertIn("windows-installations.json", self.collector)
+        self.assertLess(
+            self.collector.index("Collect-OfflineWindowsInventory.ps1"),
+            self.collector.index("New-EvidenceManifest.ps1"),
+        )
+        self.assertIn("Collect-OfflineWindowsInventory.ps1", self.builder)
+        self.assertIn("Collect-OfflineWindowsInventory.ps1", self.verifier)
+
+    def test_offline_windows_inventory_reports_only_redacted_metadata(self) -> None:
+        script = self.offline_inventory
+
+        for expected_path in (
+            r"Windows\Panther\setuperr.log",
+            r"Windows\Logs\DISM\dism.log",
+            "Microsoft-Windows-ModernDeployment-Diagnostics-Provider%4Autopilot.evtx",
+            "Microsoft-Windows-DeviceManagement-Enterprise-Diagnostics-Provider%4Admin.evtx",
+            r"Users\Public\Documents\MDMDiagnostics",
+            r"ProgramData\Microsoft\IntuneManagementExtension\Logs",
+        ):
+            self.assertIn(expected_path, script)
+
+        self.assertIn("ProfileAlias", script)
+        self.assertIn("KnownFoldersPresent", script)
+        self.assertIn("UserNamesIncluded = $false", script)
+        self.assertIn("RawEventPayloadsIncluded = $false", script)
+        self.assertIn("RecoveryMaterialIncluded = $false", script)
+        self.assertIn("FileVersionInfo", script)
+        self.assertIn("Get-WinEvent -Path", script)
+        self.assertIn("EventIdCounts", script)
+        self.assertIn("ErrorCount", script)
+        self.assertIn("WarningCount", script)
+        self.assertIn("EventMessagesIncluded = $false", script)
+        self.assertIn("bcdedit.exe", script)
+        self.assertIn("'/store'", script)
+        self.assertIn("OfflineBootStores", script)
+        self.assertIn("RawBcdOutputIncluded = $false", script)
+
+        for forbidden_operation in (
+            "reg.exe",
+            "reg load",
+            "Get-Content",
+            "wevtutil",
+            "Copy-Item",
+            "mdmdiagnosticstool",
+        ):
+            self.assertNotIn(forbidden_operation.lower(), script.lower())
+
+    def test_offline_windows_inventory_tolerates_unavailable_probe_paths(self) -> None:
+        script = self.offline_inventory
+
+        self.assertIn("function Test-PathSafely", script)
+        self.assertIn("-ErrorAction SilentlyContinue", script)
+        self.assertIn("Test-PathSafely -LiteralPath $kernelPath -PathType Leaf", script)
+        self.assertIn("Test-PathSafely -LiteralPath $systemHivePath -PathType Leaf", script)
+        self.assertIn("Test-PathSafely -LiteralPath $softwareHivePath -PathType Leaf", script)
+        candidate_probe = script.split("foreach ($driveLetter in $scannedDriveLetters)", 1)[1]
+        candidate_probe = candidate_probe.split("if (!(Test-PathSafely", 1)[0]
+        self.assertNotIn("Join-Path $installationRoot", candidate_probe)
+        self.assertNotIn("Join-Path $InstallationRoot", script)
+        self.assertNotIn("Join-Path $DriveRoot", script)
 
     def test_manifest_revalidates_destination_and_hashes_evidence(self) -> None:
         self.assertIn("CODEX_EVIDENCE.DEST", self.manifest)
@@ -97,6 +192,13 @@ class WinPEScriptSafetyTests(unittest.TestCase):
         self.assertIn('"/Image:$mount"', self.builder)
         self.assertIn('"/PackagePath:$componentCab"', self.builder)
         self.assertNotIn("'/Image:' + $mount", self.builder)
+
+    def test_builder_normalizes_embedded_batch_files_for_windows_cmd(self) -> None:
+        self.assertIn("function Copy-BatchFile", self.builder)
+        self.assertIn("Set-Content -LiteralPath $Destination -Encoding ASCII", self.builder)
+        self.assertIn("Collect-RescueEvidence.cmd", self.builder)
+        self.assertIn("Unlock-BitLockerWithRecoveryKey.cmd", self.builder)
+        self.assertIn("startnet.cmd", self.builder)
 
     def test_bitlocker_unlock_requires_exact_local_key_and_target_gates(self) -> None:
         self.assertIn("CODEX_BITLOCKER.KEY", self.unlocker)

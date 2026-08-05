@@ -183,7 +183,8 @@ class BuildVmScriptTests(unittest.TestCase):
         self.assertIn("Get-FileHash", summary)
         self.assertIn("SchemaVersion -ne 1", summary)
         self.assertIn("expectedDiagnosticFiles", summary)
-        self.assertIn("checksumEntries.Count -ne 8", summary)
+        self.assertIn("windows-installations.json", summary)
+        self.assertIn("expectedChecksumCount", summary)
         self.assertIn("must not contain directories", summary)
         self.assertIn("Refusing to write the summary inside", summary)
 
@@ -199,6 +200,41 @@ class BuildVmScriptTests(unittest.TestCase):
         self.assertNotIn("Invoke-WebRequest", summary)
         self.assertNotIn("Start-Process", summary)
         self.assertNotIn("Get-NetIPAddress", summary)
+
+    def test_codex_evidence_summary_redacts_offline_windows_inventory(self) -> None:
+        summary = (ROOT / "scripts" / "New-CodexEvidenceSummary.ps1").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("OfflineWindowsInventoryCaptured", summary)
+        self.assertIn("OfflineWindowsInstallationCount", summary)
+        self.assertIn("OfflineUserProfileCount", summary)
+        self.assertIn("AutopilotEventLogPresentCount", summary)
+        self.assertIn("MdmAdminEventLogPresentCount", summary)
+        self.assertIn("AutopilotEventCountSampled", summary)
+        self.assertIn("AutopilotErrorCount", summary)
+        self.assertIn("AutopilotWarningCount", summary)
+        self.assertIn("MdmAdminEventCountSampled", summary)
+        self.assertIn("MdmAdminErrorCount", summary)
+        self.assertIn("MdmAdminWarningCount", summary)
+        self.assertIn("OfflineBootStorePresentCount", summary)
+        self.assertIn("OfflineBootStoreEnumeratedCount", summary)
+        self.assertIn("OfflineBootEntryCount", summary)
+        self.assertIn("UserNamesIncluded", summary)
+        self.assertIn("RawEventPayloadsIncluded", summary)
+        self.assertIn("RecoveryMaterialIncluded", summary)
+        self.assertNotIn("RedactedRoot", summary)
+        self.assertNotIn("KnownFoldersPresent", summary)
+
+    def test_codex_evidence_summary_requires_explicit_false_privacy_flags(self) -> None:
+        summary = (ROOT / "scripts" / "New-CodexEvidenceSummary.ps1").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("function Assert-ExplicitFalse", summary)
+        self.assertIn("PSObject.Properties", summary)
+        self.assertIn("FileNamesEnumerated", summary)
+        self.assertIn("FileContentsRead", summary)
 
 
 if __name__ == "__main__":

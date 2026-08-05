@@ -3,10 +3,11 @@
 Creates an allowlisted, aggregate summary from a verified evidence package.
 
 .DESCRIPTION
-Validates the nine-file Codex Rescue evidence package against manifest.json and
-SHA256SUMS.txt, rejects recovery-key files and recovery-password-shaped text,
-and writes a new Markdown summary outside the source package. The summary never
-copies raw disk, network, BCD, driver, event-log, or BitLocker output.
+Validates either the legacy nine-file or current ten-file Codex Rescue evidence
+package against manifest.json and SHA256SUMS.txt, rejects recovery-key files and
+recovery-password-shaped text, and writes a new Markdown summary outside the
+source package. The summary never copies raw disk, network, BCD, driver,
+event-log, offline-Windows, or BitLocker output.
 
 .EXAMPLE
 .\scripts\New-CodexEvidenceSummary.ps1 -EvidenceDirectory 'E:\CodexRescueEvidence'
@@ -27,7 +28,27 @@ if (!(Test-Path -LiteralPath $evidenceRoot -PathType Container)) {
     throw "Evidence directory not found: $evidenceRoot"
 }
 
-$expectedDiagnosticFiles = @(
+function Assert-ExplicitFalse {
+    param(
+        [Parameter(Mandatory)]
+        [object]$InputObject,
+
+        [Parameter(Mandatory)]
+        [string]$PropertyName,
+
+        [Parameter(Mandatory)]
+        [string]$Context
+    )
+
+    $property = $InputObject.PSObject.Properties[$PropertyName]
+    if ($null -eq $property -or
+        $property.Value -isnot [bool] -or
+        $property.Value -ne $false) {
+        throw "$Context must declare $PropertyName as the Boolean value false."
+    }
+}
+
+$baseDiagnosticFiles = @(
     'bcd.txt',
     'bitlocker-status.txt',
     'diskpart.txt',
@@ -36,7 +57,11 @@ $expectedDiagnosticFiles = @(
     'network.txt',
     'README.txt'
 )
-$expectedPackageFiles = @($expectedDiagnosticFiles + 'manifest.json' + 'SHA256SUMS.txt')
+$offlineWindowsInventoryFile = 'windows-installations.json'
+$legacyPackageFiles = @($baseDiagnosticFiles + 'manifest.json' + 'SHA256SUMS.txt')
+$currentPackageFiles = @(
+    $baseDiagnosticFiles + $offlineWindowsInventoryFile + 'manifest.json' + 'SHA256SUMS.txt'
+)
 $actualEntries = @(Get-ChildItem -LiteralPath $evidenceRoot -Force)
 if (@($actualEntries | Where-Object { !($_ -is [IO.FileInfo]) }).Count) {
     throw 'The evidence package must not contain directories or other non-file entries. No summary was written.'
@@ -46,9 +71,18 @@ $actualFiles = @(
         Select-Object -ExpandProperty Name |
         Sort-Object
 )
-$expectedSorted = @($expectedPackageFiles | Sort-Object)
-if (($actualFiles -join "`n") -cne ($expectedSorted -join "`n")) {
-    throw 'The evidence package must contain exactly the nine allowlisted files. No summary was written.'
+$legacySorted = @($legacyPackageFiles | Sort-Object)
+$currentSorted = @($currentPackageFiles | Sort-Object)
+if (($actualFiles -join "`n") -ceq ($currentSorted -join "`n")) {
+    $expectedDiagnosticFiles = @($baseDiagnosticFiles + $offlineWindowsInventoryFile)
+    $expectedPackageFiles = $currentPackageFiles
+}
+elseif (($actualFiles -join "`n") -ceq ($legacySorted -join "`n")) {
+    $expectedDiagnosticFiles = $baseDiagnosticFiles
+    $expectedPackageFiles = $legacyPackageFiles
+}
+else {
+    throw 'The evidence package must contain exactly the nine-file legacy or ten-file current allowlist. No summary was written.'
 }
 
 $manifestPath = Join-Path $evidenceRoot 'manifest.json'
@@ -61,7 +95,7 @@ if ($manifest.CollectionMode -cne 'read-only diagnostics') {
 }
 $manifestEntries = @($manifest.Files)
 if ($manifestEntries.Count -ne $expectedDiagnosticFiles.Count) {
-    throw "Expected seven diagnostic manifest entries; found $($manifestEntries.Count)."
+    throw "Expected $($expectedDiagnosticFiles.Count) diagnostic manifest entries; found $($manifestEntries.Count)."
 }
 
 foreach ($name in $expectedDiagnosticFiles) {
@@ -90,8 +124,9 @@ foreach ($line in Get-Content -LiteralPath (Join-Path $evidenceRoot 'SHA256SUMS.
         Name = $Matches.Name
     }
 }
-if ($checksumEntries.Count -ne 8) {
-    throw "Expected eight checksum entries; found $($checksumEntries.Count)."
+$expectedChecksumCount = $expectedDiagnosticFiles.Count + 1
+if ($checksumEntries.Count -ne $expectedChecksumCount) {
+    throw "Expected $expectedChecksumCount checksum entries; found $($checksumEntries.Count)."
 }
 $expectedChecksumNames = @($expectedDiagnosticFiles + 'manifest.json' | Sort-Object)
 $actualChecksumNames = @($checksumEntries.Name | Sort-Object)
@@ -144,6 +179,144 @@ $eventLogLineCount = @(
     Get-Content -LiteralPath (Join-Path $evidenceRoot 'event-log-index.txt') |
         Where-Object { ![string]::IsNullOrWhiteSpace($_) }
 ).Count
+$offlineWindowsInventoryCaptured = $expectedDiagnosticFiles -contains $offlineWindowsInventoryFile
+$offlineWindowsInstallationCount = 0
+$offlineUserProfileCount = 0
+$autopilotEventLogPresentCount = 0
+$mdmAdminEventLogPresentCount = 0
+$autopilotEventCountSampled = 0
+$autopilotCriticalCount = 0
+$autopilotErrorCount = 0
+$autopilotWarningCount = 0
+$mdmAdminEventCountSampled = 0
+$mdmAdminCriticalCount = 0
+$mdmAdminErrorCount = 0
+$mdmAdminWarningCount = 0
+$offlineBootStorePresentCount = 0
+$offlineBootStoreEnumeratedCount = 0
+$offlineBootEntryCount = 0
+$existingMdmDiagnosticsDirectoryCount = 0
+$intuneManagementExtensionLogDirectoryCount = 0
+if ($offlineWindowsInventoryCaptured) {
+    $offlineInventoryPath = Join-Path $evidenceRoot $offlineWindowsInventoryFile
+    $offlineInventory = Get-Content -LiteralPath $offlineInventoryPath -Raw | ConvertFrom-Json
+    if ($offlineInventory.SchemaVersion -ne 1 -or
+        $offlineInventory.CollectionMode -cne 'read-only offline Windows inventory') {
+        throw 'The offline Windows inventory schema or collection mode is invalid.'
+    }
+    foreach ($privacyProperty in @(
+        'UserNamesIncluded',
+        'RawEventPayloadsIncluded',
+        'EventMessagesIncluded',
+        'RawBcdOutputIncluded',
+        'RecoveryMaterialIncluded'
+    )) {
+        Assert-ExplicitFalse -InputObject $offlineInventory -PropertyName $privacyProperty -Context (
+            'The offline Windows inventory'
+        )
+    }
+    $offlineInstallations = @($offlineInventory.WindowsInstallations)
+    $offlineWindowsInstallationCount = $offlineInstallations.Count
+    if ([int]$offlineInventory.WindowsInstallationCount -ne $offlineWindowsInstallationCount) {
+        throw 'The offline Windows installation count is inconsistent.'
+    }
+    $offlineBootStores = @($offlineInventory.OfflineBootStores)
+    if ([int]$offlineInventory.OfflineBootStoreCount -ne $offlineBootStores.Count) {
+        throw 'The offline boot-store count is inconsistent.'
+    }
+    foreach ($bootStore in $offlineBootStores) {
+        Assert-ExplicitFalse -InputObject $bootStore -PropertyName 'RawBcdOutputIncluded' -Context (
+            'Each offline boot-store inventory'
+        )
+    }
+    $offlineBootStorePresentCount = @($offlineBootStores | Where-Object Present -eq $true).Count
+    $offlineBootStoreEnumeratedCount = @(
+        $offlineBootStores | Where-Object EnumerationSucceeded -eq $true
+    ).Count
+    $offlineBootEntryCount = [int](
+        $offlineBootStores | Measure-Object -Property EntryCount -Sum
+    ).Sum
+    foreach ($installation in $offlineInstallations) {
+        foreach ($privacyProperty in @('UserNamesIncluded', 'RawEventPayloadsIncluded')) {
+            Assert-ExplicitFalse -InputObject $installation -PropertyName $privacyProperty -Context (
+                'Each offline Windows installation'
+            )
+        }
+        foreach ($managementEventLog in @(
+            $installation.ManagementIndicators.AutopilotEventLog,
+            $installation.ManagementIndicators.MdmAdminEventLog
+        )) {
+            foreach ($privacyProperty in @('EventMessagesIncluded', 'RawPayloadsIncluded')) {
+                Assert-ExplicitFalse -InputObject $managementEventLog -PropertyName $privacyProperty -Context (
+                    'Each management event-log inventory'
+                )
+            }
+        }
+        $profiles = @($installation.Profiles)
+        if ([int]$installation.ProfileCount -ne $profiles.Count) {
+            throw 'An offline Windows profile count is inconsistent.'
+        }
+        foreach ($profileEntry in $profiles) {
+            foreach ($privacyProperty in @('FileNamesEnumerated', 'FileContentsRead')) {
+                Assert-ExplicitFalse -InputObject $profileEntry -PropertyName $privacyProperty -Context (
+                    'Each redacted profile inventory entry'
+                )
+            }
+        }
+    }
+    $offlineUserProfileCount = [int](
+        $offlineInstallations |
+            Measure-Object -Property ProfileCount -Sum
+    ).Sum
+    $autopilotEventLogPresentCount = @(
+        $offlineInstallations |
+            Where-Object { $_.ManagementIndicators.AutopilotEventLog.Present -eq $true }
+    ).Count
+    $mdmAdminEventLogPresentCount = @(
+        $offlineInstallations |
+            Where-Object { $_.ManagementIndicators.MdmAdminEventLog.Present -eq $true }
+    ).Count
+    $autopilotEventCountSampled = [int](
+        $offlineInstallations.ManagementIndicators.AutopilotEventLog |
+            Measure-Object -Property EventCountSampled -Sum
+    ).Sum
+    $autopilotCriticalCount = [int](
+        $offlineInstallations.ManagementIndicators.AutopilotEventLog |
+            Measure-Object -Property CriticalCount -Sum
+    ).Sum
+    $autopilotErrorCount = [int](
+        $offlineInstallations.ManagementIndicators.AutopilotEventLog |
+            Measure-Object -Property ErrorCount -Sum
+    ).Sum
+    $autopilotWarningCount = [int](
+        $offlineInstallations.ManagementIndicators.AutopilotEventLog |
+            Measure-Object -Property WarningCount -Sum
+    ).Sum
+    $mdmAdminEventCountSampled = [int](
+        $offlineInstallations.ManagementIndicators.MdmAdminEventLog |
+            Measure-Object -Property EventCountSampled -Sum
+    ).Sum
+    $mdmAdminCriticalCount = [int](
+        $offlineInstallations.ManagementIndicators.MdmAdminEventLog |
+            Measure-Object -Property CriticalCount -Sum
+    ).Sum
+    $mdmAdminErrorCount = [int](
+        $offlineInstallations.ManagementIndicators.MdmAdminEventLog |
+            Measure-Object -Property ErrorCount -Sum
+    ).Sum
+    $mdmAdminWarningCount = [int](
+        $offlineInstallations.ManagementIndicators.MdmAdminEventLog |
+            Measure-Object -Property WarningCount -Sum
+    ).Sum
+    $existingMdmDiagnosticsDirectoryCount = @(
+        $offlineInstallations |
+            Where-Object { $_.ManagementIndicators.ExistingMdmDiagnostics.Present -eq $true }
+    ).Count
+    $intuneManagementExtensionLogDirectoryCount = @(
+        $offlineInstallations |
+            Where-Object { $_.ManagementIndicators.IntuneManagementExtensionLogs.Present -eq $true }
+    ).Count
+}
 $totalDiagnosticBytes = [long](
     $manifestEntries |
         Measure-Object -Property Length -Sum
@@ -173,6 +346,24 @@ $summaryLines = @(
     "- BootConfigurationCaptured: $([bool]($manifestEntries.Name -contains 'bcd.txt'))",
     "- DriverInventoryCaptured: $([bool]($manifestEntries.Name -contains 'drivers.txt'))",
     "- NetworkInventoryCapturedButWithheld: $([bool]($manifestEntries.Name -contains 'network.txt'))",
+    "- OfflineWindowsInventoryCaptured: $offlineWindowsInventoryCaptured",
+    "- OfflineWindowsInstallationCount: $offlineWindowsInstallationCount",
+    "- OfflineUserProfileCount: $offlineUserProfileCount",
+    "- OfflineBootStorePresentCount: $offlineBootStorePresentCount",
+    "- OfflineBootStoreEnumeratedCount: $offlineBootStoreEnumeratedCount",
+    "- OfflineBootEntryCount: $offlineBootEntryCount",
+    "- AutopilotEventLogPresentCount: $autopilotEventLogPresentCount",
+    "- AutopilotEventCountSampled: $autopilotEventCountSampled",
+    "- AutopilotCriticalCount: $autopilotCriticalCount",
+    "- AutopilotErrorCount: $autopilotErrorCount",
+    "- AutopilotWarningCount: $autopilotWarningCount",
+    "- MdmAdminEventLogPresentCount: $mdmAdminEventLogPresentCount",
+    "- MdmAdminEventCountSampled: $mdmAdminEventCountSampled",
+    "- MdmAdminCriticalCount: $mdmAdminCriticalCount",
+    "- MdmAdminErrorCount: $mdmAdminErrorCount",
+    "- MdmAdminWarningCount: $mdmAdminWarningCount",
+    "- ExistingMdmDiagnosticsDirectoryCount: $existingMdmDiagnosticsDirectoryCount",
+    "- IntuneManagementExtensionLogDirectoryCount: $intuneManagementExtensionLogDirectoryCount",
     "- EventLogIndexNonBlankLineCount: $eventLogLineCount",
     "- BitLockerCommandAvailable: $bitLockerCommandAvailable",
     "- BitLockerVolumeBlockCount: $bitLockerVolumeBlocks",
@@ -208,5 +399,19 @@ if ($PSCmdlet.ShouldProcess($OutputPath, 'Write redacted Codex evidence summary'
     RawEvidenceIncluded = $false
     BitLockerCommandAvailable = $bitLockerCommandAvailable
     BitLockerVolumeBlockCount = $bitLockerVolumeBlocks
+    OfflineWindowsInventoryCaptured = $offlineWindowsInventoryCaptured
+    OfflineWindowsInstallationCount = $offlineWindowsInstallationCount
+    OfflineUserProfileCount = $offlineUserProfileCount
+    OfflineBootStorePresentCount = $offlineBootStorePresentCount
+    OfflineBootStoreEnumeratedCount = $offlineBootStoreEnumeratedCount
+    OfflineBootEntryCount = $offlineBootEntryCount
+    AutopilotEventLogPresentCount = $autopilotEventLogPresentCount
+    AutopilotEventCountSampled = $autopilotEventCountSampled
+    AutopilotErrorCount = $autopilotErrorCount
+    AutopilotWarningCount = $autopilotWarningCount
+    MdmAdminEventLogPresentCount = $mdmAdminEventLogPresentCount
+    MdmAdminEventCountSampled = $mdmAdminEventCountSampled
+    MdmAdminErrorCount = $mdmAdminErrorCount
+    MdmAdminWarningCount = $mdmAdminWarningCount
     OperatorReviewRequired = $true
 } | Format-List
