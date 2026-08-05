@@ -1,10 +1,12 @@
 # Codex Rescue USB
 
-> A safety-first recovery project with a fixture console and a VM-verified Windows PE recovery ISO.
+> A safety-first recovery project with a fixture console, a VM-verified Windows PE recovery ISO, and a VM-verified full-Windows diagnostic workspace.
 
 Codex Rescue USB contains two deliberately separate deliverables: a host-runnable fixture console that demonstrates the approval model without touching a real PC, and a Windows PE image that has booted in a disposable UEFI VM, exported read-only troubleshooting evidence, completed a guarded external recovery-key unlock, and completed a lab-confidential numerical recovery-password unlock against disposable BitLocker data volumes.
 
 The verified Windows PE milestones are real VM evidence. They are not proof of physical USB compatibility, operator-typed masked recovery-password entry, operating-system-volume recovery, real repair, a spoken Voice session, or a portable full-Windows workspace. Those claims remain gated until their own tests exist.
+
+The full-Windows side now includes a read-only local diagnostic module, a native WPF dashboard, and an opt-in Microsoft Graph module for bounded Entra, Intune, Autopilot, direct-membership-count, and BitLocker escrow-availability checks. The Graph implementation and its safety contract are native-Windows VM verified with deterministic mock responses; a real tenant sign-in and tenant-side results are **not yet validated**.
 
 ## Verified WinPE milestones
 
@@ -222,7 +224,7 @@ This installs or updates Git, GitHub CLI, PowerShell 7, and Python 3.14, then re
 
 The validated Proxmox build VM uses four logical processors and now has 12 GB fixed RAM with ballooning disabled. The alpha artifacts were buildable at the earlier 8 GB allocation, so 8 GB remains the build-only validated floor. The current 12 GB configuration is the project recommendation when ADK, editors, coding tools, and Codex share the VM: Windows reports 12,220 MB usable and about 9.5 GB free after startup. During the alpha.13 build, even two inadvertently concurrent ADK servicing jobs left roughly 7 GB free inside Windows; the 25-GiB Proxmox host retained roughly 4-6 GB available and showed no sustained swap-in or swap-out in the sampled intervals. Serial builds are still required. Reserve about 30 GB of free system-drive space for repeated workspaces, logs, and versioned ISOs.
 
-VM 111 is configured with `onboot: 1`, startup order 20, a 30-second startup delay, a 60-second shutdown timeout, QEMU Guest Agent, and Proxmox deletion protection. Its system disk is on node-local storage, so the project does not claim cross-node HA failover; surviving a Proxmox-node failure requires a separate shared-storage or replicated-storage design.
+VM 111 is configured with `onboot: 1`, startup order 20, a 30-second startup delay, a 60-second shutdown timeout, QEMU Guest Agent, and Proxmox deletion protection. The guest-agent service is automatic and has restart recovery after 5, 15, and 60 seconds with a one-day failure-count reset. This improves remote recovery after a service failure; it is not node-level high availability. The system disk is on node-local storage, so the project does not claim cross-node HA failover; surviving a Proxmox-node failure requires a separate shared-storage or replicated-storage design.
 
 After cloning this VM, do not trust the cloned scheduled-task history as proof of the clone's live network state. Proxmox assigns the clone a different virtual NIC identity, and VM 115 first booted online even though its inherited task history reported result 0. Before staging source on a clone: disable the clone's audited hardware adapter, reinstall `Set-CodexRecoveryOfflineStartup.ps1` for that clone's exact interface index, cold boot, and require a fresh task result 0 plus `Disabled` or `Not Present` at 0 bps. Keep VM 115 stopped and run only one 12-GB builder at a time on this 25-GiB shared host.
 
@@ -235,6 +237,7 @@ After cloning this VM, do not trust the cloned scheduled-task history as proof o
 | Python | 3.14.6 |
 | Node.js | 24.17.0 |
 | Codex CLI | 0.142.0 |
+| Microsoft Graph authentication module | 2.39.0 |
 | OpenAI Codex Windows package | 26.730.8199.0 |
 | ChatGPT Desktop Windows package | 1.2026.190.0 |
 | VS Code and Cursor | Present and command-discoverable |
@@ -475,6 +478,121 @@ On August 5, 2026 local time, the exact dashboard implementation source was pack
 | Sanitized ZIP SHA-256 | `983A4B851ADB4D38EE2B5130D109E5FB4C57440FDFD6D0C5CEDC5B382A2FB92A` |
 
 The complete local Python suite passed all 95 tests, all PowerShell files passed parser validation, and the runtime harness loaded the real WPF window from checked-in XAML. This proves the dashboard source, view-model contract, artifact gating, and WPF compatibility in VM 111. It does not prove Graph access, a repair engine, the separately maintained portable Windows workspace, dual-environment boot, or a physical USB.
+
+## Phase 3 delegated read-only Microsoft Graph visibility
+
+`CodexRescue.Graph` is a separate, opt-in PowerShell 5.1 module. It can inspect only the signed-in technician's authorized view of the current device in Microsoft Entra, Microsoft Intune, Windows Autopilot, direct directory memberships, and BitLocker escrow availability. It does not belong to WinPE, does not run automatically, and does not share a token with Codex.
+
+This phase is deliberately narrow:
+
+- delegated work-or-school authentication only;
+- authentication context limited to the current PowerShell process;
+- one exact connection-consent phrase;
+- five allowlisted Microsoft Graph v1.0 endpoint shapes;
+- `GET` requests only and zero write operations;
+- no app secret, certificate credential, supplied access token, persisted token, or unattended app-only identity;
+- no user, tenant, device, group, or recovery-key identifier in the returned assessment;
+- no raw Graph response or raw exception in the returned assessment;
+- no BitLocker recovery-key value request, collection, display, or export.
+
+### Required permissions and why they exist
+
+The module requests exactly four delegated read-only scopes:
+
+| Delegated scope | Bounded use | Explicitly excluded stronger permission |
+| --- | --- | --- |
+| [`Device.Read.All`](https://learn.microsoft.com/en-us/graph/api/device-get?view=graph-rest-1.0) | Read the matching Entra device properties and count direct memberships. | `Device.ReadWrite.All`, `Directory.Read.All`, `Directory.ReadWrite.All` |
+| [`DeviceManagementManagedDevices.Read.All`](https://learn.microsoft.com/en-us/graph/api/intune-devices-manageddevice-list?view=graph-rest-1.0) | Read bounded Intune enrollment, compliance, management, OS, and last-sync fields. | `DeviceManagementManagedDevices.ReadWrite.All` |
+| [`DeviceManagementServiceConfig.Read.All`](https://learn.microsoft.com/en-us/graph/api/intune-enrollment-windowsautopilotdeviceidentity-list?view=graph-rest-1.0) | Read bounded Windows Autopilot enrollment state and last-contact time. | `DeviceManagementServiceConfig.ReadWrite.All` |
+| [`BitlockerKey.ReadBasic.All`](https://learn.microsoft.com/en-us/graph/api/bitlocker-list-recoverykeys?view=graph-rest-1.0) | Determine whether one or more escrow records exist and retain only count, backup time, and volume type. | `BitlockerKey.Read.All` |
+
+Microsoft documents `Device.Read.All` as the least privileged delegated permission for both the addressed device and its direct membership collection. The Intune and Autopilot endpoints require an active Intune tenant license. Microsoft also states that the BitLocker list operation does not return the actual `key` property; retrieving that value requires the stronger permission and an explicit key-property request. The module blocks recovery-key item paths, blocks `select=key`, never requests `BitlockerKey.Read.All`, and follows the list endpoint's current `$filter`-only query contract. The API's basic list response can contain object identifiers internally; the module discards those values, returns no raw response, and rejects a final assessment containing any GUID-shaped identifier.
+
+### Beginner quick start
+
+Run these steps only in the maintained full-Windows technician workspace. Start offline and first check the local prerequisite; this command makes no network request and installs nothing:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+Import-Module .\PowerShell\Modules\CodexRescue.Graph\CodexRescue.Graph.psd1 -Force
+Test-CodexRescueGraphPrerequisite | Format-List
+```
+
+If `GraphAuthenticationModuleInstalled` is `False`, explicitly enable only the audited recovery-workspace adapter, install the authentication module from PowerShell Gallery, and return the workspace offline when installation is complete:
+
+```powershell
+.\scripts\Set-CodexRecoveryNetwork.ps1 -Action Audit
+.\scripts\Set-CodexRecoveryNetwork.ps1 `
+  -Action Enable `
+  -InterfaceIndex 6 `
+  -ConfirmationToken ENABLE-CODEX-RECOVERY-NETWORK-6 `
+  -Confirm:$false
+
+Install-Module Microsoft.Graph.Authentication `
+  -Scope AllUsers `
+  -Repository PSGallery `
+  -Force `
+  -AllowClobber
+
+.\scripts\Set-CodexRecoveryNetwork.ps1 `
+  -Action Disable `
+  -InterfaceIndex 6 `
+  -ConfirmationToken DISABLE-CODEX-RECOVERY-NETWORK-6 `
+  -Confirm:$false
+```
+
+Replace `6` only with the exact hardware interface index shown by the audit. Installation is a separate maintenance operation; it does not authorize Microsoft Graph sign-in.
+
+When an authorized technician is ready for a cloud check, re-enable that exact adapter, review the four requested scopes in the sign-in window, and connect with the exact module phrase:
+
+```powershell
+$connection = Connect-CodexRescueGraphReadOnly `
+  -ConfirmationToken 'CONNECT CODEX RESCUE READ ONLY GRAPH'
+
+$cloud = Get-CodexRescueCloudDeviceHealth
+$cloud.Checks | Format-Table CheckName, Status, Outcome, Summary -AutoSize
+
+Disconnect-CodexRescueGraphReadOnly
+```
+
+Use `-UseDeviceCode` on `Connect-CodexRescueGraphReadOnly` when the operator explicitly chooses device-code authentication. The default is Microsoft's interactive browser flow. In both cases the module passes `ContextScope = Process`; Microsoft documents that process scope as limiting sign-in to the current PowerShell session. Disconnect when finished, then disable the selected network adapter with the exact command above.
+
+The current device ID is resolved locally from one unambiguous Entra CloudDomainJoin record and used only in memory. A professional operator may instead supply an already verified ID to `Get-CodexRescueCloudDeviceHealth -DeviceId '<guid>'`; the returned object still rejects GUID-shaped output.
+
+### Reading the outcomes
+
+| Outcome | Meaning | Operator response |
+| --- | --- | --- |
+| `Healthy` | The bounded query returned a record whose checked state met this module's narrow healthy rule. | Review the supporting bounded fields; do not treat it as whole-device health. |
+| `Warning` | The record exists, but a bounded state such as disabled, noncompliant, or not-enrolled needs review. | Correlate with local Phase 1 evidence before proposing any repair. |
+| `NotFound` | No matching cloud record was returned. | Confirm device identity, tenant, enrollment history, and replication timing. |
+| `PermissionDenied` | Graph rejected the read-only query for this identity or consent state. | Use an appropriately authorized technician account; do not add broader scopes reflexively. |
+| `Unavailable` | The bounded query could not complete. | Check network, service status, and retry policy without relabeling the device unhealthy. |
+| `NotTested` | The prerequisite or unambiguous local device identity was unavailable, so the check was not run. | Fix the prerequisite or establish device identity first. |
+
+`PermissionDenied`, `NotFound`, and `Unavailable` map to a `NotTested` status rather than a device failure. A successful Graph response is evidence only for the selected fields at that time; it is not permission to wipe, retire, reset, re-enroll, change groups, retrieve recovery keys, or alter any tenant object.
+
+### Native Windows validation evidence
+
+On August 5, 2026 local time, the final scope-hardened Graph source was packaged as read-only transfer disc `CODEX_GRAPH_R3` (921,600 bytes; SHA-256 `0E51E093BE9FEB3B27C78504CF4A5CB6048DA543337153B134EAB337AE836E1B`) and mounted in Proxmox Windows VM 111. The disc contains source and the native harness; it is not bootable recovery media. VM 111 had four vCPUs, 12 GB fixed RAM, automatic standard-user logon, QEMU Guest Agent running automatically, and the offline-at-startup network task ready with last result 0. The Microsoft Graph authentication module 2.39.0 was installed from PowerShell Gallery during one explicit online maintenance window, after which the selected adapter returned to `Disabled` and the native Windows PowerShell 5.1.26100.8875 harness reported:
+
+| Verification | Result |
+| --- | --- |
+| Harness result | `PASS` |
+| Exported Phase 3 commands | 4 |
+| Graph authentication prerequisite | installed and manifest-valid |
+| Deterministic mock cloud requests | 5 |
+| Bounded cloud checks | 5 |
+| HTTP methods observed | `GET` only |
+| Write requests | 0 |
+| Identifiers in returned assessment | `false` |
+| Recovery-key material requested or collected | `false` / `false` |
+| Permission-denied distinction | `PermissionDenied` |
+| Recovery-key value guard | passed |
+| BitLocker query-contract guard | passed |
+| Unrelated-scope rejection guard | passed |
+
+The complete local suite passes 102 tests, all PowerShell files parse, and both the module manifest and the native Windows mock harness pass. This proves the checked-in module surface, consent guard, process-scope requirement, endpoint/method allowlist, output sanitizer, dependency compatibility, and error distinctions. It does **not** prove consent in a real tenant, real Entra/Intune/Autopilot data, BitLocker escrow availability for a real device, a portable full-Windows image, dual-environment boot, or a physical USB. A live tenant sign-in remains an explicit operator-attended acceptance gate because it can trigger organizational consent and disclose authorized tenant data.
 
 ## Physical USB readiness GUI (does not write the USB)
 

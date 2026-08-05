@@ -93,7 +93,9 @@ The workspace image must be validated independently from the existing build VM. 
 
 ## Phase 3 — delegated Microsoft Graph visibility
 
-Graph access starts read-only and opt-in. Use `Connect-MgGraph` with delegated scopes, device-code or interactive browser authentication, and `-ContextScope Process`. Do not embed an app secret or persist an access or refresh token in the repository, image, report, or escalation ZIP.
+**Implementation status:** module contract and native Windows mock harness complete; live tenant authentication and tenant-side results pending.
+
+`CodexRescue.Graph` implements read-only, opt-in Graph access with four exported functions. Its exact operator token opens delegated device-code or interactive browser authentication through `Connect-MgGraph -ContextScope Process`. It rejects app-only identity, missing or expanded scopes, write scopes, persistent context, Graph beta, non-GET methods, unapproved endpoint shapes, recovery-key item paths, and `select=key`. No app secret, certificate credential, supplied token, access token, or refresh token belongs in the repository, image, report, or escalation ZIP.
 
 The first cloud functions may query only the signed-in technician's authorized view of:
 
@@ -103,9 +105,19 @@ The first cloud functions may query only the signed-in technician's authorized v
 - group membership needed to explain assignment;
 - BitLocker escrow **availability only**, not recovery-key material.
 
-Every report must distinguish `Not tested`, `Permission denied`, `Not found`, `Unavailable`, and actual unhealthy state. Local and cloud identifiers remain in the detailed local zone unless an explicit sanitizer rule approves a bounded alias.
+Every report distinguishes `Not tested`, `Permission denied`, `Not found`, `Unavailable`, and actual unhealthy state. The current result schema is stricter than the earlier plan: it includes no local or cloud identifier, raw response, or raw exception. The BitLocker list operation uses only its documented device filter; it discards the API's object identifiers and retains only bounded availability count, backup time, and volume type.
 
 No delete, wipe, retire, Fresh Start, Autopilot Reset, group change, owner change, or recovery-key retrieval belongs in the read-only cloud phase.
+
+### Verified implementation evidence
+
+- Required delegated scopes are fixed to `Device.Read.All`, `DeviceManagementManagedDevices.Read.All`, `DeviceManagementServiceConfig.Read.All`, and `BitlockerKey.ReadBasic.All`.
+- `CODEX_GRAPH_R3` is a 921,600-byte read-only source-transfer image with SHA-256 `0E51E093BE9FEB3B27C78504CF4A5CB6048DA543337153B134EAB337AE836E1B`; it is not bootable media.
+- Windows VM 111 had Microsoft.Graph.Authentication 2.39.0 installed with a manifest-valid module and then returned to its disabled-network state.
+- Windows PowerShell 5.1.26100.8875 passed the deterministic harness with four exports, five mocked GET requests, five checks, zero writes, no returned identifiers, no recovery-key material, a distinct permission-denied outcome, and key-value, unsupported-query, and unrelated-scope guards passing.
+- The local suite passes 102 tests and every PowerShell file parses.
+
+These results do not constitute a live Graph call. The next Phase 3 acceptance test requires an operator-attended sign-in to a disposable or expressly authorized tenant, review of the exact requested scopes, redacted result inspection, disconnect verification, and immediate return to the offline-default network state.
 
 ## Phase 4 — approval-bound repair engine
 
@@ -155,7 +167,7 @@ Release evidence must include both VM boot paths, a disposable offline Windows t
 1. **Complete:** publish the Phase 1 module, harness, README instructions, and plan with verified VM evidence.
 2. **Complete:** add the Figma technician dashboard design with explicit concept labeling.
 3. **Complete:** implement and VM-validate the WPF read-only dashboard against structured module objects.
-4. Add delegated, process-scoped, read-only Graph authentication behind an explicit online-consent gate.
+4. **Implementation complete; live acceptance pending:** delegated, process-scoped, read-only Graph authentication behind an explicit online-consent gate.
 5. Build and boot-test a separately maintained full-Windows workspace image before describing it as portable media.
 6. Integrate and boot-test the two-environment menu in a disposable UEFI VM.
 7. Perform the final physical USB workflow only on an explicitly selected blank device and disposable test PC.
