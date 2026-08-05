@@ -336,6 +336,8 @@ Never copy the `.bek` file into the repository, evidence destination, screenshot
 
 This is the separate alpha.10 lab path for Microsoft's 48-digit numerical recovery password. The helper is implemented and statically tested, but its WinPE runtime gate is still open. Do not describe it as VM-verified until the exact rebuilt ISO completes the disposable test and the output review below.
 
+The first alpha.10 candidate (`558,180,352` bytes; SHA-256 `94CE0A744855FA777E54BC5B9CE2609D3BD7BE6D8A0121B30D09BE35CCCAD46C`) booted to the disconnected WinPE prompt, but runtime testing found that its banner omitted `-ExecutionPolicy Bypass`; the displayed command was therefore blocked before the recovery script could run. That artifact is retained as failed evidence, not as a release candidate. The corrected source is committed for the next build, whose full runtime gate remains pending.
+
 Attach one new 1-GiB RAW virtual disk to the disposable full-Windows fixture VM. In a local elevated PowerShell console—not Codex, QEMU guest-agent execution, a transcript, redirected input/output, or a recorded screen—inspect the disk first:
 
 ```powershell

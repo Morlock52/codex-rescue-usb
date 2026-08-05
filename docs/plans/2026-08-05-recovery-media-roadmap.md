@@ -34,7 +34,7 @@ Each phase produces a testable artifact and its own evidence. A design mockup, a
 
 ## Phase 3 — Owner-mediated BitLocker recovery
 
-**Status:** Partially VM-verified on August 5, 2026. The exact alpha.7 ISO completed the external `.bek` recovery-key sub-gate against one disposable encrypted data disk in an isolated Proxmox VM. The masked 48-digit recovery-password command and a separately guarded fixture helper are implemented and statically tested, but their alpha.10 runtime gate remains pending. Operating-system-volume recovery, physical hardware, and production-data gates also remain pending.
+**Status:** Partially VM-verified on August 5, 2026. The exact alpha.7 ISO completed the external `.bek` recovery-key sub-gate against one disposable encrypted data disk in an isolated Proxmox VM. A first alpha.10 candidate booted in the disconnected UEFI VM, but its displayed PowerShell command was blocked by WinPE execution policy before reaching the recovery script. The command is corrected and regression-tested for the next build; the masked 48-digit recovery-password runtime gate remains pending. Operating-system-volume recovery, physical hardware, and production-data gates also remain pending.
 
 **Outcome:** the environment can show BitLocker state and guide an owner through Microsoft’s local recovery steps without retaining recovery material.
 
