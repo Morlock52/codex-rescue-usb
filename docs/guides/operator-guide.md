@@ -232,6 +232,30 @@ Disconnect-CodexRescueGraphReadOnly
 
 The module requests four delegated read-only scopes, allows five Microsoft Graph v1.0 endpoint shapes, uses `GET` only, and blocks BitLocker recovery-key value retrieval. Real tenant acceptance is pending; use only an appropriately authorized technician identity and review the consent screen.
 
+## Review an inert UEFI boot-repair proposal
+
+The repository can now transform an allowlisted, secret-free lab discovery contract into a target-bound UEFI boot-repair proposal. This is a design and review feature only: it has no live discovery path, never produces an approval token from fixture evidence, exposes no executor, and writes no boot data.
+
+Print the proposal as JSON:
+
+```powershell
+.\scripts\New-CodexRescueUefiBootRepairPlan.ps1 `
+  -ContractFixturePath '.\lab\uefi-discovery-contract.json' `
+  -AsJson
+```
+
+Or save it to a new review artifact:
+
+```powershell
+.\scripts\New-CodexRescueUefiBootRepairPlan.ps1 `
+  -ContractFixturePath '.\lab\uefi-discovery-contract.json' `
+  -OutputPath '.\lab\uefi-boot-repair-plan.json'
+```
+
+Before considering the output, confirm that `LiveEvidence`, `ReadyForApproval`, `ExecutionAvailable`, and `WritePerformed` are all `false`. Verify the evidence digest, target fingerprint, Windows and EFI disk identities, rollback digest, and stop conditions. Do not execute the described command manually; the live discovery, approval, disposable-VM repair, and restore evidence gates are still open.
+
+The complete field example and rationale are in the [UEFI boot-repair proposal contract](../reference/uefi-boot-repair-proposal.md).
+
 ## Physical-media handoff
 
 ### Windows readiness GUI

@@ -8,11 +8,11 @@ Fresh local verification on August 6, 2026:
 
 ```text
 python3 -W error::ResourceWarning -m unittest discover -s tests -v
-Ran 125 tests
+Ran 129 tests
 OK
 ```
 
-The suite covers fixture validation, safety contracts, approval binding, receipts, audit chaining, WinPE source and ISO-verifier behavior, evidence destination gates, BitLocker target/secret handling, full-Windows diagnostics, WPF schema enforcement, Graph scope/query/output restrictions, build-VM scripts, toolchain plans, and Windows/macOS physical-readiness no-write behavior.
+The suite covers fixture validation, safety contracts, approval binding, receipts, audit chaining, WinPE source and ISO-verifier behavior, evidence destination gates, BitLocker target/secret handling, full-Windows diagnostics, WPF schema enforcement, Graph scope/query/output restrictions, build-VM scripts, toolchain plans, the inert target-bound UEFI proposal contract, and Windows/macOS physical-readiness no-write behavior.
 
 Automated tests do not prove a physical USB or production recovery.
 
@@ -113,6 +113,18 @@ No real tenant sign-in or result set is claimed.
 
 The installed Windows desktop app opened on the exact staged project. A separately generated alpha.9 aggregate summary passed integrity and privacy validation, and one controlled read-only review ran in **Ask for approval** mode. The VM screenshot shows the available Voice control, but the VM had no audio input endpoint and no spoken session is claimed.
 
+## UEFI boot-repair proposal evidence
+
+The source tree now contains an inert schema-v1 proposal generator and four focused runtime/static tests. Current proof covers:
+
+- a valid secret-free fixture producing a target-bound JSON proposal;
+- a proposal digest and a separate Windows/EFI target fingerprint;
+- rejection of recovery-material declarations, mismatched disk identities, and rollback artifacts without a restore test;
+- no-overwrite output behavior; and
+- a static contract with no command-execution or disk-mutation path.
+
+Fixture proposals always record `LiveEvidence: false`, `ReadyForApproval: false`, `ExecutionAvailable: false`, and `WritePerformed: false`. This is source-contract evidence, not a live discovery, approval, repair, boot, or rollback result. See the [UEFI boot-repair proposal contract](uefi-boot-repair-proposal.md).
+
 ## Physical USB readiness evidence
 
 The GUI’s live **zero eligible USB disks** path ran in offline Windows VM 111 against the hash-matched alpha.13 ISO. It displayed the expected refusal and kept validation, physical-identity confirmation, and plan-save controls disabled.
@@ -142,7 +154,9 @@ This is safe-refusal evidence only. It does not establish:
 - [ ] Least-privilege physical Codex workflow
 - [ ] Working microphone/audio endpoint and spoken Voice acceptance
 - [ ] Real authorized tenant Graph consent and bounded result validation
-- [ ] Repair-engine design, rollback, independent post-action evidence, and hardware test
+- [ ] Live UEFI discovery and independently restore-tested EFI backup
+- [ ] Target-bound UEFI approval/executor design and disposable-VM repair/rollback evidence
+- [ ] Additional repair-engine designs, independent post-action evidence, and hardware tests
 - [ ] Support, release, and production owner acceptance
 
 Until those gates pass, the accurate label is **Enterprise Technical Preview — VM verified, physical validation open**.
