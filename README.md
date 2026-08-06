@@ -64,6 +64,23 @@ OpenAI's current [Codex CLI instructions](https://developers.openai.com/codex/cl
 
 The manifest also keeps Graph cloud writes and BitLocker recovery-key retrieval disabled. Quick Assist, Company Portal, and licensed Remote Help remain post-image operator steps until their Store, licensing, tenant, and generalization behavior is validated. Disk-writing utilities are not part of the booted technician image; physical-media creation remains a separate writer-computer workflow.
 
+Preview the exact plan without installing anything or making a network request:
+
+```powershell
+.\scripts\Install-TechnicianWorkspaceToolchain.ps1 -Mode Plan -AsJson
+```
+
+Apply is intentionally a separate, high-impact path. Run it only after the live prerequisite audit reports `ReadyForProvisioning: true`, the hypervisor network window is explicitly approved, and the operator has reviewed the WinGet source and individual package agreements:
+
+```powershell
+.\scripts\Install-TechnicianWorkspaceToolchain.ps1 `
+  -Mode Apply `
+  -ConfirmationToken 'INSTALL CODEX RESCUE TOOLCHAIN' `
+  -PackageAgreementsApproved
+```
+
+The Apply path requires elevation and PowerShell confirmation, uses exact WinGet IDs, installs exact PowerShell module versions, compares npm's current `dist.integrity` for the pinned Codex package to the checked-in SHA-512 value, and writes a new non-secret receipt instead of overwriting one. It does not sign in to Codex or Graph. After provisioning, the hypervisor link must return to disconnected and the installed versions, receipt, offline-startup policy, and cold reboot must be independently verified. The provisioner currently has parser and deterministic plan-contract evidence only; it has **not yet run in the clean Windows VM**.
+
 ## Verified WinPE milestones
 
 On August 5, 2026, the source was built with the serviced Windows ADK and booted in a separate disposable Proxmox UEFI VM using Windows UEFI CA 2023 keys. Six exact artifacts preserve the evidence boundary between the original read-only export test, the external BitLocker recovery-key test, the clock-trust hardening, the confidential numerical recovery-password code-path test, the first clean post-fix build, and the current privacy-safe offline-inventory build:

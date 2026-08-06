@@ -101,6 +101,8 @@ The source ISO is 7,092,807,680 bytes with SHA-256 `A61ADEAB895EF5A4DB436E0A7011
 
 `config/technician-workspace-tools.json` now records the initial provider and package allowlist, the August 5 version pins for Codex CLI and PowerShell Gallery modules, the resolve-and-record policy for exact WinGet package IDs, and the no-credential/no-cloud-write boundary. It does not prove any package is installed in the new VM.
 
+`scripts/Install-TechnicianWorkspaceToolchain.ps1` now implements a read-only plan and a separately guarded Apply path. The deterministic plan reports zero changes and zero network requests. Apply requires an elevated full-Windows session, passing live prerequisites, exact install confirmation, explicit agreement review, `ShouldProcess`, exact package/module versions, Codex npm-integrity verification, and a non-secret receipt. Native installation and the post-install offline reboot remain open gates.
+
 ## Phase 3 — delegated Microsoft Graph visibility
 
 **Implementation status:** module contract and native Windows mock harness complete; live tenant authentication and tenant-side results pending.
