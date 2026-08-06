@@ -32,6 +32,24 @@ Official build-source references:
 - [Capture and apply a Windows image](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/capture-and-apply-windows-using-a-single-wim?view=windows-11)
 - [BCDBoot command-line options](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/bcdboot-command-line-options-techref-di?view=windows-11)
 
+### Audit the clean Windows provisioning baseline
+
+After Windows and the signed QEMU Guest Agent are installed—but before any networked tool installation—run the read-only prerequisite auditor from Windows PowerShell 5.1:
+
+```powershell
+.\scripts\Test-TechnicianWorkspacePrerequisite.ps1
+```
+
+For a machine-readable result:
+
+```powershell
+.\scripts\Test-TechnicianWorkspacePrerequisite.ps1 -AsJson
+```
+
+The auditor makes no network requests and changes nothing. Its eleven required checks cover full Windows rather than WinPE, Windows 11, 64-bit architecture, Windows PowerShell 5.1, at least 12 GiB RAM, at least 64 GiB free on the system drive, UEFI, Secure Boot, a present and ready TPM 2.0, at least one hardware network adapter with none active, and QEMU Guest Agent installed/running/automatic. It emits no computer name, serial number, user name, network address, credential, or token.
+
+`ReadyForProvisioning` can be `true` only for a passing live-Windows audit. The script also accepts `-ContractFixturePath` for deterministic repository tests, but fixture output is permanently labeled `ContractFixture`, sets `LiveEvidence` to `false`, and can never claim live readiness.
+
 ## Verified WinPE milestones
 
 On August 5, 2026, the source was built with the serviced Windows ADK and booted in a separate disposable Proxmox UEFI VM using Windows UEFI CA 2023 keys. Six exact artifacts preserve the evidence boundary between the original read-only export test, the external BitLocker recovery-key test, the clock-trust hardening, the confidential numerical recovery-password code-path test, the first clean post-fix build, and the current privacy-safe offline-inventory build:
