@@ -32,6 +32,25 @@ Official build-source references:
 - [Capture and apply a Windows image](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/capture-and-apply-windows-using-a-single-wim?view=windows-11)
 - [BCDBoot command-line options](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/bcdboot-command-line-options-techref-di?view=windows-11)
 
+### Bootstrap the offline VM management channel
+
+The clean VM must have a recoverable out-of-band management path before networked provisioning. Keep the attached VirtIO ISO mounted and audit its 64-bit QEMU Guest Agent installer without changing Windows:
+
+```powershell
+.\scripts\Install-TechnicianWorkspaceGuestAgent.ps1 -Mode Audit -AsJson
+```
+
+The audit searches only the operator-selected media root or attached CD-ROM volumes, requires exactly one `guest-agent\qemu-ga-x86_64.msi`, and verifies a `Valid` Windows Authenticode signature with the Red Hat signer subject. It does not download anything. After reviewing the audit, install from the exact mounted media:
+
+```powershell
+.\scripts\Install-TechnicianWorkspaceGuestAgent.ps1 `
+  -Mode Apply `
+  -MediaRoot E:\ `
+  -ConfirmationToken 'INSTALL QEMU GUEST AGENT'
+```
+
+Apply requires full Windows, elevation, the exact phrase, a fresh signature recheck, and PowerShell confirmation. It invokes `msiexec.exe` silently with restart disabled, keeps the private MSI log under `C:\CodexRescueBuild\GuestAgent`, and verifies that `QEMU-GA` is installed, running, and automatic. A fixture can test the evaluator contract but can never authorize installation. The source and tests are present; a live run remains pending Windows installation and Microsoft license acceptance.
+
 ### Audit the clean Windows provisioning baseline
 
 After Windows and the signed QEMU Guest Agent are installed—but before any networked tool installation—run the read-only prerequisite auditor from Windows PowerShell 5.1:
