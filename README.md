@@ -8,6 +8,30 @@ The verified Windows PE milestones are real VM evidence. They are not proof of p
 
 The full-Windows side now includes a read-only local diagnostic module, a native WPF dashboard, and an opt-in Microsoft Graph module for bounded Entra, Intune, Autopilot, direct-membership-count, and BitLocker escrow-availability checks. The Graph implementation and its safety contract are native-Windows VM verified with deterministic mock responses; a real tenant sign-in and tenant-side results are **not yet validated**.
 
+## Full-Windows workspace image build — current gate
+
+The clean image-build phase started on August 5, 2026. A new disposable Proxmox VM is intentionally separate from the existing VM-verified Windows diagnostic workspace so no account tokens, Store state, device identity, or earlier test history can be copied into a release candidate.
+
+| Build input or control | Verified state |
+| --- | --- |
+| Windows source | Official Windows 11 Enterprise 25H2 evaluation ISO; Microsoft documents this as a 90-day IT-professional test image, not a redistributable production license |
+| Source authenticity | `win11-enterprise-eval-25h2-en-us.iso`, 7,092,807,680 bytes, SHA-256 `A61ADEAB895EF5A4DB436E0A7011C92A2FF17BB0357F58B13BBC4062E535E7B9`; exact match to Microsoft's published hash PDF |
+| Clean lab VM | 4 vCPU, 12 GB fixed RAM, 128 GB blank virtual SSD, UEFI, Microsoft Windows UEFI CA 2023 keys, TPM 2.0, deletion protection |
+| Network boundary | Virtual network cable disconnected before first boot; no customer data or organizational credential is attached |
+| RAM decision | 12 GB fixed is the accepted build allocation for Windows 11, ADK servicing, PowerShell tooling, Codex, and the dashboard; the VM was placed on the host that retained about 17 GB available immediately before launch |
+| Current evidence | The official ISO booted and reached Microsoft's license screen; Windows is **not yet installed** because license acceptance is an operator-attended legal gate |
+| Release boundary | This is a clean VM image-build lab, not a portable Windows release, dual-boot USB, physical-boot result, or production license |
+
+Microsoft removed Windows To Go, so this project does not relabel the lab as a supported Windows To Go replacement. The experimental delivery path remains a generalized, independently boot-tested full-Windows image for external-media research, with physical hardware, licensing, Secure Boot, driver, update, activation, and Codex sign-in gates still open. See the [full-Windows workspace plan](docs/plans/2026-08-05-full-windows-codex-workspace.md) and [Microsoft's native-boot VHDX procedure](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/boot-to-vhd--native-boot--add-a-virtual-hard-disk-to-the-boot-menu?view=windows-11).
+
+Official build-source references:
+
+- [Windows 11 Enterprise Evaluation](https://www.microsoft.com/en-us/evalcenter/evaluate-windows-11-enterprise)
+- [Microsoft Windows 11 download hash PDF](https://aka.ms/Win11-Hash-PDF)
+- [Sysprep command-line options](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/sysprep-command-line-options?view=windows-11)
+- [Capture and apply a Windows image](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/capture-and-apply-windows-using-a-single-wim?view=windows-11)
+- [BCDBoot command-line options](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/bcdboot-command-line-options-techref-di?view=windows-11)
+
 ## Verified WinPE milestones
 
 On August 5, 2026, the source was built with the serviced Windows ADK and booted in a separate disposable Proxmox UEFI VM using Windows UEFI CA 2023 keys. Six exact artifacts preserve the evidence boundary between the original read-only export test, the external BitLocker recovery-key test, the clock-trust hardening, the confidential numerical recovery-password code-path test, the first clean post-fix build, and the current privacy-safe offline-inventory build:

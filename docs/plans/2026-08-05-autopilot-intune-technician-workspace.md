@@ -91,6 +91,12 @@ The workspace image must be validated independently from the existing build VM. 
 7. survives reboot and an update-servicing cycle;
 8. leaves the Proxmox guest agent and recovery access available.
 
+### Clean image-build lab status
+
+On August 5, 2026, the separate image-build lab was created and started with 4 vCPU, 12 GB fixed RAM, a new 128 GB virtual SSD, UEFI with Microsoft Windows UEFI CA 2023 keys, TPM 2.0, deletion protection, and its virtual network cable disconnected. The official Windows 11 Enterprise 25H2 evaluation ISO booted and reached Microsoft's license screen. Windows installation, Audit Mode, tool provisioning, generalization, capture, separate-VM boot, and external-media validation remain pending; none is implied by the VM's creation or ISO boot.
+
+The source ISO is 7,092,807,680 bytes with SHA-256 `A61ADEAB895EF5A4DB436E0A7011C92A2FF17BB0357F58B13BBC4062E535E7B9`, matching Microsoft's published [Windows 11 hash PDF](https://aka.ms/Win11-Hash-PDF). Microsoft describes the image as a 90-day [Enterprise evaluation](https://www.microsoft.com/en-us/evalcenter/evaluate-windows-11-enterprise), so production use remains an organization-licensing gate.
+
 ## Phase 3 — delegated Microsoft Graph visibility
 
 **Implementation status:** module contract and native Windows mock harness complete; live tenant authentication and tenant-side results pending.
@@ -168,6 +174,6 @@ Release evidence must include both VM boot paths, a disposable offline Windows t
 2. **Complete:** add the Figma technician dashboard design with explicit concept labeling.
 3. **Complete:** implement and VM-validate the WPF read-only dashboard against structured module objects.
 4. **Implementation complete; live acceptance pending:** delegated, process-scoped, read-only Graph authentication behind an explicit online-consent gate.
-5. Build and boot-test a separately maintained full-Windows workspace image before describing it as portable media.
+5. **In progress:** build and boot-test a separately maintained full-Windows workspace image before describing it as portable media. The clean VM and source-integrity gates pass; OS installation and every image/portable-media gate remain open.
 6. Integrate and boot-test the two-environment menu in a disposable UEFI VM.
 7. Perform the final physical USB workflow only on an explicitly selected blank device and disposable test PC.

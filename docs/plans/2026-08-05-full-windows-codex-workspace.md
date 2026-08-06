@@ -32,6 +32,47 @@ The full-Windows workspace was inspected on August 5, 2026 in the dedicated Prox
 
 The real screenshot in the README is cropped only to remove unrelated thread names and the signed-in account name. It shows the actual `CodexRescue` project and current desktop controls. Its visible `Full access` state belongs to the trusted disposable build VM and is not the approved physical-recovery default.
 
+## Clean workspace-image build lab
+
+The existing VM evidence above proves the diagnostic workspace and guarded Codex handoff. It is not the source for a portable image because it contains an established device identity, installed-app state, test history, and signed-in user state. A clean, disposable image-build VM was therefore created on August 5, 2026 with this bounded contract:
+
+| Property | Lab value |
+| --- | --- |
+| Role | Build and validate a clean full-Windows technician-workspace image; no customer data |
+| Compute | 4 vCPU, 12 GB fixed RAM, ballooning disabled |
+| Storage | New 128 GB virtual SSD; no recovery target or customer disk attached |
+| Firmware | OVMF UEFI, Microsoft Windows UEFI CA 2023 keys, TPM 2.0 |
+| Installation media | Windows 11 Enterprise 25H2 evaluation ISO plus the signed VirtIO driver/tools ISO |
+| Network | Hypervisor link down before first boot |
+| Persistence | Deletion protection enabled; automatic host boot remains disabled until Windows, guest-agent recovery, and offline-startup behavior pass |
+
+The selected host retained about 17 GB available before the 12 GB VM was started. The other Proxmox node retained only about 4.4 GB available and had exhausted swap, so no second Windows builder was started there. This is an observed lab-capacity decision, not a universal Windows requirement. The VM booted the official ISO and reached the Microsoft license screen. License acceptance and installation remain pending and are not reported as completed.
+
+### Source integrity
+
+The lab source is `win11-enterprise-eval-25h2-en-us.iso`, 7,092,807,680 bytes, SHA-256:
+
+```text
+A61ADEAB895EF5A4DB436E0A7011C92A2FF17BB0357F58B13BBC4062E535E7B9
+```
+
+That exact value matches the English (United States), x64 Windows 11 Enterprise Evaluation 25H2 entry in Microsoft's published [Windows 11 hash PDF](https://aka.ms/Win11-Hash-PDF). The [Evaluation Center](https://www.microsoft.com/en-us/evalcenter/evaluate-windows-11-enterprise) describes the image as a 90-day evaluation for IT professionals. A production build must use organization-approved Windows installation media and licensing.
+
+### Image-build acceptance contract
+
+1. Install the clean evaluation OS with the virtual network cable disconnected.
+2. Enter Windows Audit Mode without creating or embedding an operator password in source control.
+3. Install the signed QEMU Guest Agent and prove automatic start plus restart recovery before relying on out-of-band commands.
+4. Inventory the clean OS before adding tools; preserve the result as private lab evidence.
+5. Enable the network only for exact, logged vendor or package-repository installations, then return it offline.
+6. Install only approved technician tools and project source; never bake an organizational sign-in, Codex session, tenant token, BitLocker key, or customer evidence into the image.
+7. Run local tests, PowerShell parser checks, privacy scans, dashboard smoke tests, and an offline reboot test.
+8. Generalize with Sysprep from the supported interactive Audit Mode context, capture the image, and verify its hash.
+9. Boot the captured image in a separate disposable VM with a new virtual identity; do not count a reboot of the build VM as independent boot evidence.
+10. Exercise offline Windows detection, report/ZIP export, explicit networking, Codex sign-in, update servicing, and return-to-offline behavior before external-media research begins.
+
+Microsoft documents that Sysprep `/generalize` removes machine-specific information before an image is moved to another computer. The capture and portable-media experiments therefore follow the current [Sysprep](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/sysprep-command-line-options?view=windows-11), [capture/apply](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/capture-and-apply-windows-using-a-single-wim?view=windows-11), [native-boot VHDX](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/boot-to-vhd--native-boot--add-a-virtual-hard-disk-to-the-boot-menu?view=windows-11), and [BCDBoot](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/bcdboot-command-line-options-techref-di?view=windows-11) procedures. Passing those lab gates still does not make Windows To Go a supported product or prove a physical Codex Rescue USB.
+
 ## Guarded launcher
 
 `scripts/Open-CodexRecoveryWorkspace.ps1` performs a non-secret readiness audit and starts the supported Windows app only after the operator types:
