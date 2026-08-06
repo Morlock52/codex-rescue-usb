@@ -1,0 +1,51 @@
+name: Feature request
+description: Propose a bounded capability with evidence, approval, and rollback requirements.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Operator problem
+      description: Describe the recovery or support problem, not only a preferred implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Minimum evidence required
+      description: What facts must be observed before this capability may run?
+    validations:
+      required: true
+  - type: textarea
+    id: authorization
+    attributes:
+      label: Authorization and target gate
+      description: How should the operator identify the exact target and approve the action?
+    validations:
+      required: true
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback and verification
+      description: How is the change reversed, and what independent evidence proves the outcome?
+    validations:
+      required: true
+  - type: dropdown
+    id: acceptance
+    attributes:
+      label: Proposed first acceptance environment
+      options:
+        - Deterministic fixture
+        - Disposable disconnected VM
+        - Disposable physical hardware after VM acceptance
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Boundary confirmation
+      options:
+        - label: The proposal does not require posting recovery keys, credentials, customer evidence, or production identifiers.
+          required: true

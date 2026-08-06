@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Support and safe issue guidance
+    url: https://github.com/Morlock52/codex-rescue-usb/blob/main/SUPPORT.md
+    about: Read the support boundary and evidence-safe issue checklist first.
+  - name: Security policy
+    url: https://github.com/Morlock52/codex-rescue-usb/security/policy
+    about: Report vulnerabilities privately and never include recovery material.

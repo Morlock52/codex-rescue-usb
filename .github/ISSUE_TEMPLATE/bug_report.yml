@@ -1,0 +1,67 @@
+name: Bug report
+description: Report a reproducible Technical Preview defect without secrets or customer data.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include recovery keys, tokens, tenant identifiers, customer files, raw evidence, or security-vulnerability details. Use SECURITY.md for vulnerabilities.
+  - type: input
+    id: commit
+    attributes:
+      label: Repository commit
+      description: The full Git commit SHA used for the reproduction.
+    validations:
+      required: true
+  - type: dropdown
+    id: evidence_level
+    attributes:
+      label: Environment
+      description: Keep the evidence boundary precise.
+      options:
+        - Fixture console
+        - Source or automated test
+        - Disposable VM
+        - Disposable physical hardware
+        - Production system (sanitized description only)
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: OS, architecture, and relevant ADK or PowerShell version.
+      placeholder: Windows 11 x64, Windows PowerShell 5.1, ADK 10.1.x
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Use disposable data and exact non-secret commands.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include a sanitized error and exit code when available.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety confirmation
+      options:
+        - label: I removed recovery material, credentials, identifiers, customer files, and raw evidence.
+          required: true
+        - label: This report is not a security vulnerability.
+          required: true
