@@ -99,6 +99,8 @@ The source ISO is 7,092,807,680 bytes with SHA-256 `A61ADEAB895EF5A4DB436E0A7011
 
 `scripts/Test-TechnicianWorkspacePrerequisite.ps1` now implements the first image-build gate as a bounded, read-only eleven-check audit. It requires 12 GiB RAM, 64 GiB free system-drive space, UEFI, Secure Boot, TPM 2.0, offline hardware adapters, and a running automatic QEMU Guest Agent in addition to the Windows platform checks. Its deterministic fixture path never counts as live readiness. Native execution in the new Windows VM remains pending OS installation and guest-agent setup.
 
+`config/technician-workspace-tools.json` now records the initial provider and package allowlist, the August 5 version pins for Codex CLI and PowerShell Gallery modules, the resolve-and-record policy for exact WinGet package IDs, and the no-credential/no-cloud-write boundary. It does not prove any package is installed in the new VM.
+
 ## Phase 3 — delegated Microsoft Graph visibility
 
 **Implementation status:** module contract and native Windows mock harness complete; live tenant authentication and tenant-side results pending.

@@ -50,6 +50,20 @@ The auditor makes no network requests and changes nothing. Its eleven required c
 
 `ReadyForProvisioning` can be `true` only for a passing live-Windows audit. The script also accepts `-ContractFixturePath` for deterministic repository tests, but fixture output is permanently labeled `ContractFixture`, sets `LiveEvidence` to `false`, and can never claim live readiness.
 
+### Allowlisted technician toolchain
+
+[`config/technician-workspace-tools.json`](config/technician-workspace-tools.json) is the versioned input for the first provisioning pass. It is an allowlist, not evidence that the clean VM already contains these tools.
+
+| Provider | Initial allowlist | Version rule |
+| --- | --- | --- |
+| WinGet | PowerShell 7, Git, Node.js LTS, VS Code, Sysinternals Suite, 7-Zip, Notepad++ | Resolve from the exact package ID during the approved maintenance window and record the installed version and installer identity |
+| npm | `@openai/codex` | Pinned to `0.146.1` with its registry SHA-512 integrity value recorded in the manifest |
+| PowerShell Gallery | PowerShellGet, Microsoft.WinGet.Client, five bounded Microsoft Graph modules, WindowsAutoPilotIntune | Exact versions pinned; Graph modules are `2.39.0`, WindowsAutoPilotIntune is `5.7` |
+
+OpenAI's current [Codex CLI instructions](https://developers.openai.com/codex/cli/) support a Windows standalone installer and npm. This lab uses the documented npm path because Node.js is already part of the coding toolchain and the package version plus integrity can be pinned and reviewed. Codex authentication is deliberately absent from the generalized image: the manifest requires interactive sign-in only after an independently booted image, explicit networking, and operator review. No API key, ChatGPT session, tenant token, Graph token, or recovery key belongs in the image or repository.
+
+The manifest also keeps Graph cloud writes and BitLocker recovery-key retrieval disabled. Quick Assist, Company Portal, and licensed Remote Help remain post-image operator steps until their Store, licensing, tenant, and generalization behavior is validated. Disk-writing utilities are not part of the booted technician image; physical-media creation remains a separate writer-computer workflow.
+
 ## Verified WinPE milestones
 
 On August 5, 2026, the source was built with the serviced Windows ADK and booted in a separate disposable Proxmox UEFI VM using Windows UEFI CA 2023 keys. Six exact artifacts preserve the evidence boundary between the original read-only export test, the external BitLocker recovery-key test, the clock-trust hardening, the confidential numerical recovery-password code-path test, the first clean post-fix build, and the current privacy-safe offline-inventory build:

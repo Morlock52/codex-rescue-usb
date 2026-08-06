@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "asOfDate": "2026-08-05",
+  "purpose": "Allowlisted initial toolchain for the disposable Codex Rescue full-Windows image-build lab.",
+  "policy": {
+    "network": "offline-default-explicit-maintenance-window",
+    "installOnlyFromAllowlist": true,
+    "recordResolvedVersionsAndHashes": true,
+    "persistCredentialsInImage": false,
+    "allowCloudWriteActions": false,
+    "allowRecoveryKeyRetrieval": false,
+    "operatorReviewBeforeGeneralize": true
+  },
+  "wingetPackages": [
+    {
+      "name": "PowerShell 7",
+      "id": "Microsoft.PowerShell",
+      "required": true,
+      "scope": "machine",
+      "versionPolicy": "resolve-and-record"
+    },
+    {
+      "name": "Git",
+      "id": "Git.Git",
+      "required": true,
+      "scope": "machine",
+      "versionPolicy": "resolve-and-record"
+    },
+    {
+      "name": "Node.js LTS",
+      "id": "OpenJS.NodeJS.LTS",
+      "required": true,
+      "scope": "machine",
+      "versionPolicy": "resolve-and-record"
+    },
+    {
+      "name": "Visual Studio Code",
+      "id": "Microsoft.VisualStudioCode",
+      "required": false,
+      "scope": "machine",
+      "versionPolicy": "resolve-and-record"
+    },
+    {
+      "name": "Sysinternals Suite",
+      "id": "Microsoft.Sysinternals",
+      "required": true,
+      "scope": "machine",
+      "versionPolicy": "resolve-and-record"
+    },
+    {
+      "name": "7-Zip",
+      "id": "7zip.7zip",
+      "required": true,
+      "scope": "machine",
+      "versionPolicy": "resolve-and-record"
+    },
+    {
+      "name": "Notepad++",
+      "id": "Notepad++.Notepad++",
+      "required": false,
+      "scope": "machine",
+      "versionPolicy": "resolve-and-record"
+    }
+  ],
+  "codexCli": {
+    "name": "Codex CLI",
+    "provider": "npm",
+    "package": "@openai/codex",
+    "version": "0.146.1",
+    "integrity": "sha512-f51R56E/G15soLhf5l5pWUiM+mGHK0NdLozOtzjRoAa+bA20hgWrkyxE/fpwCnuGQM6XNdktHYtK9xQ7bPIbTA==",
+    "sha1": "016c49faa4bfa60801f3a5949ae42c4d4e095411",
+    "minimumNodeVersion": ">=16",
+    "authentication": "interactive-post-image-only",
+    "persistAuthenticationInImage": false,
+    "defaultPermissionProfile": "read-only"
+  },
+  "powerShellModules": [
+    {
+      "name": "PowerShellGet",
+      "version": "2.2.5",
+      "repository": "PSGallery",
+      "required": true
+    },
+    {
+      "name": "Microsoft.WinGet.Client",
+      "version": "1.29.280",
+      "repository": "PSGallery",
+      "required": true
+    },
+    {
+      "name": "Microsoft.Graph.Authentication",
+      "version": "2.39.0",
+      "repository": "PSGallery",
+      "required": true
+    },
+    {
+      "name": "Microsoft.Graph.DeviceManagement",
+      "version": "2.39.0",
+      "repository": "PSGallery",
+      "required": true
+    },
+    {
+      "name": "Microsoft.Graph.Identity.DirectoryManagement",
+      "version": "2.39.0",
+      "repository": "PSGallery",
+      "required": true
+    },
+    {
+      "name": "Microsoft.Graph.Groups",
+      "version": "2.39.0",
+      "repository": "PSGallery",
+      "required": true
+    },
+    {
+      "name": "Microsoft.Graph.Users",
+      "version": "2.39.0",
+      "repository": "PSGallery",
+      "required": true
+    },
+    {
+      "name": "WindowsAutoPilotIntune",
+      "version": "5.7",
+      "repository": "PSGallery",
+      "required": true
+    }
+  ],
+  "postImageOperatorSteps": [
+    "Sign in to Codex interactively only after independent image boot and explicit network approval.",
+    "Grant delegated Microsoft Graph scopes only in process scope and only after reviewing the exact requested permissions.",
+    "Install tenant-licensed Remote Help only after confirming organizational licensing and policy.",
+    "Keep Quick Assist and Company Portal installation or repair separate from the generalized base image until their Store and tenant behavior is validated."
+  ],
+  "sources": [
+    "https://developers.openai.com/codex/cli/",
+    "https://www.powershellgallery.com/",
+    "https://github.com/microsoft/winget-pkgs"
+  ]
+}
