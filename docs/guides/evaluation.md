@@ -113,7 +113,7 @@ python3 -m compileall -q src tests
 node --check web/assets/app.js
 ```
 
-The suite currently contains 121 tests. A passing suite establishes source-level contracts, not physical-media acceptance.
+The suite currently contains 125 tests. A passing suite establishes source-level contracts, not physical-media acceptance.
 
 ## Evaluation checklist
 
@@ -124,6 +124,6 @@ The suite currently contains 121 tests. A passing suite establishes source-level
 - [ ] Locked BitLocker accepts no secret input.
 - [ ] Failing-drive fixture blocks ordinary writes.
 - [ ] Audit record opens and contains linked event hashes.
-- [ ] All 121 tests pass in the evaluator’s checkout.
+- [ ] All 125 tests pass in the evaluator’s checkout.
 
 Next: read the [operator guide](operator-guide.md) before using the Windows diagnostic or WinPE stages.

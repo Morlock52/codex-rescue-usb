@@ -234,12 +234,36 @@ The module requests four delegated read-only scopes, allows five Microsoft Graph
 
 ## Physical-media handoff
 
-On the separate Windows computer intended to prepare a drive, connect only the intended blank USB and run:
+### Windows readiness GUI
+
+On a separate Windows computer intended to prepare a drive, connect only the intended blank USB and run:
 
 ```text
 scripts\Open-PhysicalUsbReadinessGui.cmd
 ```
 
 The GUI verifies the ISO hash and accepts exactly one online writable USB disk that Windows identifies as USB and not boot/system. It can save a no-write JSON plan after rechecking identity. It does **not** erase or write the device. The zero-device refusal path is VM-verified; the positive physical path remains open.
+
+### macOS readiness CLI
+
+On macOS, first run the audit without a plan path:
+
+```bash
+python3 scripts/physical_usb_readiness_macos.py \
+  --iso /path/to/Codex-Rescue-ISO-v0.1.0-alpha.13-67E79C37.iso
+```
+
+The tool requires the verified alpha.13 SHA-256 by default and exactly one external, physical, writable USB whole disk. It displays the device identifier, model, optional serial, byte size, USB protocol, ISO identity, and a confirmation token bound to the device identifier, exact size, and ISO hash prefix. Physically match those fields before proceeding.
+
+To save the no-write plan, rerun with a new JSON path on internal storage and the exact token printed by the first audit:
+
+```bash
+python3 scripts/physical_usb_readiness_macos.py \
+  --iso /path/to/Codex-Rescue-ISO-v0.1.0-alpha.13-67E79C37.iso \
+  --plan "$HOME/Documents/codex-rescue-physical-alpha.json" \
+  --confirmation-token 'PLAN disk7 64023257088 67E79C370218'
+```
+
+The token above is an example only. Use the live value printed for the attached disk. Immediately before saving, the tool re-hashes the ISO, rediscovers exactly one eligible USB, rechecks the token, and verifies that the plan destination is on internal non-target storage. It opens the JSON path exclusively and refuses overwrite. The only write is that JSON plan; the USB is untouched and no writer is launched.
 
 Writing a USB is destructive to the selected removable drive. Until the physical acceptance plan is complete, use this repository for lab evaluation only and keep the verified ISO in a separate disconnected test VM.

@@ -8,11 +8,11 @@ Fresh local verification on August 6, 2026:
 
 ```text
 python3 -W error::ResourceWarning -m unittest discover -s tests -v
-Ran 121 tests
+Ran 125 tests
 OK
 ```
 
-The suite covers fixture validation, safety contracts, approval binding, receipts, audit chaining, WinPE source and ISO-verifier behavior, evidence destination gates, BitLocker target/secret handling, full-Windows diagnostics, WPF schema enforcement, Graph scope/query/output restrictions, build-VM scripts, toolchain plans, and physical-readiness no-write behavior.
+The suite covers fixture validation, safety contracts, approval binding, receipts, audit chaining, WinPE source and ISO-verifier behavior, evidence destination gates, BitLocker target/secret handling, full-Windows diagnostics, WPF schema enforcement, Graph scope/query/output restrictions, build-VM scripts, toolchain plans, and Windows/macOS physical-readiness no-write behavior.
 
 Automated tests do not prove a physical USB or production recovery.
 
@@ -116,6 +116,8 @@ The installed Windows desktop app opened on the exact staged project. A separate
 ## Physical USB readiness evidence
 
 The GUI’s live **zero eligible USB disks** path ran in offline Windows VM 111 against the hash-matched alpha.13 ISO. It displayed the expected refusal and kept validation, physical-identity confirmation, and plan-save controls disabled.
+
+On August 6, 2026, the macOS readiness CLI’s live disk-discovery path ran on the project Mac with no external physical disk attached. `diskutil list -plist external physical` returned zero whole disks and the tool stopped with `found 0`. It did not require elevation, create a plan, touch a disk, or launch a writer. Four deterministic tests separately verify the positive exactly-one-disk contract, ISO mismatch and target-bound token behavior, internal-only no-overwrite plan storage, and the absence of disk mutation/writer commands. This is a second safe-refusal proof, not a positive physical-media result.
 
 This is safe-refusal evidence only. It does not establish:
 

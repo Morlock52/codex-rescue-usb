@@ -168,7 +168,14 @@ The installer has legal, offline, elevation, exact-confirmation, signed-package,
 
 ## Physical USB remains a release gate
 
-The readiness GUI can validate one selected USB identity and save a plan that explicitly records `WritePerformed: false`. The current repository does not contain an automatic raw writer.
+The Windows readiness GUI can validate one selected USB identity and save a plan that explicitly records `WritePerformed: false`. The macOS CLI provides the equivalent hash, exactly-one-external-USB, target-bound confirmation, internal-plan-destination, and no-overwrite gates:
+
+```bash
+python3 scripts/physical_usb_readiness_macos.py \
+  --iso /path/to/Codex-Rescue-ISO-v0.1.0-alpha.13-67E79C37.iso
+```
+
+Run the audit once to obtain the live token. Saving a plan requires `--plan` on internal storage and `--confirmation-token` with that exact value. Both readiness paths are deliberately non-destructive. The repository does not contain an automatic raw writer, and neither readiness path launches one.
 
 Before a physical release can be claimed, record all of the following for a dedicated, disposable device:
 

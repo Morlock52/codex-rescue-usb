@@ -1,7 +1,7 @@
 # Codex Rescue USB
 
 [![Lifecycle: Enterprise Technical Preview](https://img.shields.io/badge/lifecycle-enterprise%20technical%20preview-155EEF)](#current-verification-status)
-[![Tests: 121 passing](https://img.shields.io/badge/tests-121%20passing-16803C)](#verify-the-source)
+[![Tests: 125 passing](https://img.shields.io/badge/tests-125%20passing-16803C)](#verify-the-source)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-7C3AED)](LICENSE)
 [![Safety: read-only first](https://img.shields.io/badge/safety-read--only%20first-B54708)](#safety-and-trust-model)
 
@@ -33,7 +33,7 @@ The repository currently contains a VM-verified WinPE ISO implementation, native
 | Native Windows diagnostics and WPF dashboard | **Verified in Windows VM 111** | Read-only assessment; no repair engine |
 | Codex desktop project handoff | **GUI and project verified in Windows VM 111** | Voice control visible; spoken audio not verified |
 | Microsoft Graph module | **Native mock/runtime contract verified** | Real tenant consent and live results remain open |
-| Physical USB selection guard | **Zero-device refusal verified** | Positive write, boot, and real-PC recovery remain open |
+| Physical USB selection guard | **Windows VM and macOS zero-device refusal verified** | Positive write, boot, and real-PC recovery remain open |
 
 **Technical Preview means exactly that:** the project has strong VM and source evidence, but it is not yet a production-supported physical rescue drive. Do not use it as the sole recovery path for customer or irreplaceable data.
 
@@ -164,6 +164,17 @@ Microsoft’s current guidance changes over time. Recheck the official [ADK down
 
 Follow the complete [ISO build and VM validation guide](docs/guides/build-guide.md). Do not write physical media until the ISO’s verification JSON and a separate disconnected UEFI VM boot both pass.
 
+### Audit a future USB target from macOS without writing it
+
+The current Mac can perform the same no-write identity gate as the Windows readiness GUI. Connect only the intended blank USB and run:
+
+```bash
+python3 scripts/physical_usb_readiness_macos.py \
+  --iso /path/to/Codex-Rescue-ISO-v0.1.0-alpha.13-67E79C37.iso
+```
+
+The command requires the alpha.13 SHA-256 by default and exactly one external, physical, writable USB whole disk. It prints the ISO and disk identity plus a target-bound confirmation token. It does not unmount, erase, partition, format, or write the USB and does not launch a writer. An optional JSON readiness plan can be saved only to internal non-target storage after a second full revalidation and the exact displayed token. The positive USB path remains unverified until disposable hardware is attached.
+
 ## Safety and trust model
 
 The project treats technical capability and authorization as different things.
@@ -199,7 +210,7 @@ python3 -m compileall -q src tests
 node --check web/assets/app.js
 ```
 
-The current repository passes **121 tests**. Tests prove the checked-in safety contracts and local behavior; they do not substitute for physical USB, hardware, tenant, audio, or production-data acceptance tests.
+The current repository passes **125 tests**. Tests prove the checked-in safety contracts and local behavior; they do not substitute for physical USB, hardware, tenant, audio, or production-data acceptance tests.
 
 ## Support, contribution, and license
 
