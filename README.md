@@ -81,6 +81,14 @@ Apply is intentionally a separate, high-impact path. Run it only after the live 
 
 The Apply path requires elevation and PowerShell confirmation, uses exact WinGet IDs, installs exact PowerShell module versions, compares npm's current `dist.integrity` for the pinned Codex package to the checked-in SHA-512 value, and writes a new non-secret receipt instead of overwriting one. It does not sign in to Codex or Graph. After provisioning, the hypervisor link must return to disconnected and the installed versions, receipt, offline-startup policy, and cold reboot must be independently verified. The provisioner currently has parser and deterministic plan-contract evidence only; it has **not yet run in the clean Windows VM**.
 
+After the maintenance window is closed, the exact network adapter is offline again, and the offline-at-startup policy is installed, run the read-only post-install verifier:
+
+```powershell
+.\scripts\Test-TechnicianWorkspaceToolchain.ps1 -AsJson
+```
+
+The verifier performs ten required checks: full Windows, an offline hardware-network state, the startup policy, the staged project payload, all required WinGet packages, all exact PowerShell module versions, the pinned Codex CLI version, absence of persisted Codex/Graph authentication and sensitive API/client-secret environment variables, a matching integrity receipt, and receipt privacy. It returns `ReadyForGeneralization: true` only from a passing live Windows audit. Its fixture mode proves the evaluator contract but can never claim live readiness. This verifier is checked-in source evidence only until it runs successfully in the clean VM after provisioning.
+
 ## Verified WinPE milestones
 
 On August 5, 2026, the source was built with the serviced Windows ADK and booted in a separate disposable Proxmox UEFI VM using Windows UEFI CA 2023 keys. Six exact artifacts preserve the evidence boundary between the original read-only export test, the external BitLocker recovery-key test, the clock-trust hardening, the confidential numerical recovery-password code-path test, the first clean post-fix build, and the current privacy-safe offline-inventory build:
