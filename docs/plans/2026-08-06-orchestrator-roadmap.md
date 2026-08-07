@@ -1,10 +1,14 @@
 # Codex Rescue Orchestrator roadmap
 
-**Product:** Codex Rescue USB  
-**Application:** Codex Rescue Orchestrator  
-**Lifecycle:** Enterprise Technical Preview  
-**Research cutoff:** August 5, 2026  
-**Baseline:** `24e80fb` with 129 existing tests  
+**Product:** Codex Rescue USB
+
+**Application:** Codex Rescue Orchestrator
+
+**Lifecycle:** Enterprise Technical Preview
+
+**Research cutoff:** August 5, 2026
+
+**Baseline:** `24e80fb` with 129 existing tests
 **Rule:** an implemented source path is not accepted until its evidence gate passes.
 
 ## Product outcome
