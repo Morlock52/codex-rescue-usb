@@ -1,0 +1,4 @@
+# Preserve generated Windows receipts byte-for-byte so their recorded hashes
+# remain reproducible on every checkout.
+docs/evidence/2026-08-07-virtual-usb-write-plan.json -text -diff
+docs/evidence/2026-08-07-virtual-usb-write-receipt.json -text -diff
