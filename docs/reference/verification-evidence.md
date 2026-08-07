@@ -8,25 +8,25 @@ Fresh local verification on August 6, 2026:
 
 ```text
 python3 -W error::ResourceWarning -m unittest discover -s tests -v
-Ran 181 tests
+Ran 182 tests
 OK
 ```
 
 The original 129 tests remain. The added source contracts cover the .NET assemblies, wire contracts, WPF workflow, state machine, release verification, sealed checkpoints, telemetry policy, same-user named-pipe broker handoff, typed broker, signed asset catalog, sanitized support export, four-artifact media matrix, per-artifact hash/SBOM/provenance outputs, guarded USB writer, UEFI executor/rollback, `.bek` salvage, MSIX/release workflows, online/offline update boundaries, and Proxmox connector.
 
-Windows CI run [31140901483](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31140901483) for commit `0b5c3d6` then produced a clean Windows build with 0 warnings, 21/21 passing MSTests, a passing PSScriptAnalyzer gate, and a self-contained x64 artifact explicitly labeled unsigned developer output. Automated tests do not prove a signed package, installation, UI accessibility, VM execution, physical USB, or production recovery.
+Windows CI run [31142547832](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31142547832) for commit `a5a02c9` then produced a clean Windows build with 0 warnings, 21/21 passing MSTests, a passing PSScriptAnalyzer gate, and a self-contained x64 artifact explicitly labeled unsigned developer output. Automated tests do not prove a signed package, installation, UI accessibility, VM execution, physical USB, or production recovery.
 
 ## Orchestrator milestone evidence
 
 | Area | Strongest current evidence | Open gate |
 | --- | --- | --- |
 | Figma workflow | Seven checked-in design exports | Windows runtime/accessibility comparison |
-| .NET Orchestrator | 181 source/fixture tests, clean Windows build, and 21 MSTests | Runtime accessibility and integration matrix |
+| .NET Orchestrator | 182 source/fixture tests, clean Windows build, and 21 MSTests | Runtime accessibility and integration matrix |
 | Signed broker | Typed allowlist, fixed assets, Authenticode/hash source contracts | Azure-signed package tamper tests |
 | Updates | Detached signature, stable publisher, chain/hash/path verification source | Signed clean-VM update and N-1 rollback |
 | Four-ISO matrix | Exact x64 pair built and verified; Arm64 source profiles present | Arm64 build/emulation and hardware |
 | Proxmox connector | Pinning, bounds, unique-label/no-NIC/delete source contracts | Live endpoint receipt |
-| USB writer | Target/refusal/re-scan/readback source contracts | Positive virtual and physical write |
+| USB writer | Exact virtual target Plan/Apply, GPT/FAT32, 192-file readback, and separate no-NIC boot | Full refusal matrix and physical write/boot |
 | UEFI repair | Backup/Apply/Verify/Rollback source contracts | Damaged disposable VM boot and rollback |
 | `.bek` salvage | Distinct/blank/sized output and secret-control source contracts | Disposable encrypted virtual-disk run |
 
@@ -44,6 +44,23 @@ Commit `0b5c3d6d7830279abbdf0f3cadf0ec102b75a2b2` was cloned cleanly into Window
 The [machine-readable boot and cleanup receipt](../evidence/2026-08-07-x64-proxmox-boot.json) records PVE `9.2.4`, q35/OVMF, zero configured virtual NICs, exact ISO and screenshot hashes, and deletion of only the two source-labeled disposable VMs after re-identification. The 2023-CA and 2011-CA screenshots are retained as VM-runtime evidence.
 
 The current Proxmox pre-enrolled variable store reports `2023k` even for the compatibility-media test. The `x64-2011CA` result therefore proves that exact compatibility ISO booted under the current combined/default pre-enrolled set; it does **not** prove an old-only 2011-certificate firmware configuration. No physical USB, physical Secure Boot, repair, salvage, accessibility, or Arm64 claim follows from these VM boots.
+
+## Current virtual USB write and boot
+
+Commit `a5a02c98b5ddc8bbda8650428704ec85c2d4df5e` hardened the writer after a live disposable target exposed an unsafe assumption: a clear operation must be followed by an observed RAW state before initialization, and partition sizing must use Windows’ actual free extent. The regression contract, full 182-test suite, PSScriptAnalyzer, Windows 0-warning build, and 21 MSTests passed before the corrected script was applied.
+
+The final target-bound [plan](../evidence/2026-08-07-virtual-usb-write-plan.json) selected virtual USB serial `CRU-A5A02C9-02`, bus `USB`, 2,147,483,648-byte capacity, and fingerprint `BB8991D325B6B3D9C6330A33A71CAFF50215E3D84A4B9B225B367B50E3E99579`. The [ActionReceiptV1 write receipt](../evidence/2026-08-07-virtual-usb-write-receipt.json) has SHA-256 `BAE527A8299FB1E9CB042CF5ADE5A5EC961E8EF8954A4130FEE0F652D1736BCB` and records:
+
+- result `Succeeded` and normalized error `NONE`;
+- exact ISO SHA-256 `4FFAA638D3F046B132A42E4751317D3290D6167F40CCF0DE129043A4D808BFBA`;
+- GPT/FAT32 creation; and
+- 192 source-file readback hashes before receipt issuance.
+
+Independent post-action checks found a healthy FAT32 volume, `EFI\\BOOT\\BOOTX64.EFI`, 194 total target files including Windows-created metadata, and zero numerical-recovery-password, `.bek`, or key-package extension matches in the receipt. The 2 GiB raw backend SHA-256 is `9035B29DCAF3D2360AD8F2033FBE46B9DC0A4F7F9F116CBB9AD2EF77BD97C492`.
+
+A separate q35/OVMF VM with zero configured NICs selected that exact USB serial and reached the WinPE recovery prompt with the backend attached read-only. The VM was re-identified by name and unique tag before deletion. The [lab receipt](../evidence/2026-08-07-virtual-usb-lab.json) binds the write, readback, screenshots, boot, cleanup, and earlier failed attempts without converting them into success claims.
+
+This proves a positive **virtual USB** write/readback/boot path. It does not prove physical USB discovery, erase, write, removal, Secure Boot, or hardware boot.
 
 ## Exact WinPE milestones
 

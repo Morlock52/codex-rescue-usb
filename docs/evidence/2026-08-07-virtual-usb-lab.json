@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "Guarded virtual USB write, readback, and UEFI boot",
+  "observedAtUtc": "2026-08-07T03:07:05Z",
+  "writerSourceRevision": "a5a02c98b5ddc8bbda8650428704ec85c2d4df5e",
+  "isoSourceRevision": "0b5c3d6d7830279abbdf0f3cadf0ec102b75a2b2",
+  "iso": {
+    "artifactId": "x64-2023CA",
+    "sha256": "4FFAA638D3F046B132A42E4751317D3290D6167F40CCF0DE129043A4D808BFBA"
+  },
+  "target": {
+    "evidenceTier": "virtual USB emulation",
+    "windowsDiskNumberDuringWrite": 3,
+    "model": "CODEX RESCUE-USB",
+    "serial": "CRU-A5A02C9-02",
+    "busType": "USB",
+    "capacityBytes": 2147483648,
+    "targetFingerprint": "BB8991D325B6B3D9C6330A33A71CAFF50215E3D84A4B9B225B367B50E3E99579",
+    "backendFormat": "raw",
+    "backendVirtualBytes": 2147483648,
+    "backendAllocatedBytes": 562139136,
+    "backendSha256": "9035B29DCAF3D2360AD8F2033FBE46B9DC0A4F7F9F116CBB9AD2EF77BD97C492"
+  },
+  "plan": {
+    "path": "docs/evidence/2026-08-07-virtual-usb-write-plan.json",
+    "sha256": "25136EC504032DF169686CA8447513ECEF1FC4AA26D57FE973DFA18F9868ADA0"
+  },
+  "receipt": {
+    "path": "docs/evidence/2026-08-07-virtual-usb-write-receipt.json",
+    "sha256": "BAE527A8299FB1E9CB042CF5ADE5A5EC961E8EF8954A4130FEE0F652D1736BCB",
+    "result": "Succeeded",
+    "normalizedErrorCode": "NONE",
+    "completedAtUtc": "2026-08-07T03:02:01.4231098Z",
+    "readbackFileCount": 192
+  },
+  "independentChecks": {
+    "partitionStyle": "GPT",
+    "fileSystem": "FAT32",
+    "volumeHealth": "Healthy",
+    "efiBootX64Exists": true,
+    "targetFileCountIncludingWindowsMetadata": 194,
+    "numericalRecoveryPasswordShapeMatches": 0,
+    "bekExtensionMatches": 0,
+    "keyPackageExtensionMatches": 0,
+    "windowsUtcMatchedProxmoxWithinSeconds": 2
+  },
+  "bootTest": {
+    "hypervisor": "Proxmox VE 9.2.4",
+    "vmIdDuringTest": 108,
+    "vmLabel": "codex-rescue-virtual-usb-a5a02c9",
+    "firmware": "OVMF",
+    "machine": "pc-q35-11.0+pve1",
+    "configuredVirtualNics": 0,
+    "backendMode": "read-only",
+    "firmwareSelectionScreenshot": "docs/images/vm-runtime-virtual-usb-winpe-a5a02c9.png",
+    "firmwareSelectionScreenshotSha256": "D880D8279BC3AF9767DED7F86F0B50FA53715B0603E1B1DA5FEF415B91AB15A2",
+    "winPePromptScreenshot": "docs/images/vm-runtime-virtual-usb-winpe-a5a02c9-late.png",
+    "winPePromptScreenshotSha256": "A77A307981B87D10666202872C3700536FCEC50378AF55AE26E2062F53E361FB",
+    "result": "Firmware selected the exact virtual USB serial and WinPE reached its recovery prompt"
+  },
+  "cleanup": {
+    "vmReidentifiedByStoppedStateNameAndTag": true,
+    "disposableVmDeleted": true,
+    "virtualUsbDetachedFromBuildVm": true,
+    "buildVm111RunningAndGuestAgentResponsive": true,
+    "rawBackendRetainedOnProxmoxAsEvidence": true
+  },
+  "labNotes": [
+    "The first removable-media emulation stayed initialized after Clear-Disk and produced no success receipt; the writer now refuses a non-RAW post-clear state and uses the actual free extent.",
+    "An invalid manual hot-plug order stopped VM 111 through a QEMU assertion; the VM was restarted and its three persistent disks, build drive, and repository revision were independently rechecked before testing resumed.",
+    "An earlier successful receipt inherited an incorrect guest clock and is not used as final evidence; the final receipt was generated only after Windows UTC matched the Proxmox host."
+  ],
+  "evidenceBoundary": {
+    "proves": [
+      "The guarded writer planned against one exact virtual USB identity",
+      "The final Apply created GPT/FAT32 media and read back all 192 ISO source files",
+      "A separate no-NIC OVMF VM selected the exact USB serial and reached the WinPE recovery prompt",
+      "The final receipt and screenshots are bound by recorded SHA-256 values"
+    ],
+    "doesNotProve": [
+      "Physical USB discovery, writing, removal, or boot",
+      "Physical Secure Boot or firmware compatibility",
+      "UEFI repair or rollback",
+      "BitLocker salvage",
+      "WPF accessibility or Figma/runtime fidelity",
+      "Arm64 build, emulation, or hardware"
+    ]
+  },
+  "containsRecoveryMaterial": false
+}

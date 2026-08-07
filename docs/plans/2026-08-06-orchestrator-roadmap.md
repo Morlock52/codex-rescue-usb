@@ -82,8 +82,8 @@ Codex runs in maintained full Windows. WinPE remains a narrow offline recovery s
 ### Current evidence
 
 - Source and tests are checked in.
-- 181 cross-platform source/fixture contracts pass locally.
-- Windows CI run 31140901483 for commit `0b5c3d6` built with 0 warnings, passed 21/21 MSTests and PSScriptAnalyzer, and published an explicitly unsigned x64 developer artifact.
+- 182 cross-platform source/fixture contracts pass locally.
+- Windows CI run 31142547832 for commit `a5a02c9` built with 0 warnings, passed 21/21 MSTests and PSScriptAnalyzer, and published an explicitly unsigned x64 developer artifact.
 
 ### Open exit gates
 
@@ -158,12 +158,14 @@ Codex runs in maintained full Windows. WinPE remains a narrow offline recovery s
 ### Current evidence
 
 - Plan/Apply source and source contracts are checked in.
+- A target-bound 2 GiB virtual USB write created GPT/FAT32 media from the exact `x64-2023CA` ISO and recorded 192 successful source-file readbacks.
+- A separate no-NIC OVMF VM selected the exact virtual USB serial and reached the WinPE recovery prompt with the backend attached read-only.
+- The writer now stops unless `Clear-Disk` is followed by an observed RAW state and uses the actual free extent for partition sizing.
 
 ### Open exit gates
 
 - Zero, one, and multiple virtual/removable target tests.
 - Offline, read-only, fixed, boot/system, page-file, ambiguous, and changed-identity refusal tests.
-- Positive disposable virtual USB write and full readback.
 - Physical disposable USB write, 2023-CA and 2011-CA representative boot, evidence export, and receipt.
 
 ## Phase 6 — UEFI repair and rollback

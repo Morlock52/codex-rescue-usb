@@ -1,0 +1,789 @@
+﻿{
+    "SchemaVersion":  1,
+    "ContractType":  "ActionReceiptV1",
+    "ActionType":  "WriteUsb",
+    "Result":  "Succeeded",
+    "NormalizedErrorCode":  "NONE",
+    "TargetFingerprint":  "BB8991D325B6B3D9C6330A33A71CAFF50215E3D84A4B9B225B367B50E3E99579",
+    "IsoSha256":  "4FFAA638D3F046B132A42E4751317D3290D6167F40CCF0DE129043A4D808BFBA",
+    "ArtifactId":  "x64-2023CA",
+    "ChangesMade":  [
+                        "Cleared selected USB disk",
+                        "Created GPT/FAT32 media",
+                        "Copied verified ISO payload"
+                    ],
+    "ReadbackFileCount":  192,
+    "Readback":  [
+                     {
+                         "RelativePath":  "bootmgr",
+                         "Sha256":  "D5855B74F40D1C4CE212549A868BF3939BA4B7206CB8CB7FC17A9A0F03E8F0DB"
+                     },
+                     {
+                         "RelativePath":  "bootmgr.efi",
+                         "Sha256":  "CD32CB8FA8879CF42B1757D719D5185119623158D51BA43F11F759B15D447E37"
+                     },
+                     {
+                         "RelativePath":  "Boot\\BCD",
+                         "Sha256":  "21BF8054ADFE0614BABA6F21A4BAD0B7BFE71DBE9169D2422DE42A79258BEBA0"
+                     },
+                     {
+                         "RelativePath":  "Boot\\BCDTemplate",
+                         "Sha256":  "9C4A48A2EF33C4BBBC706FDF21F9F0388DCB8A7CAA72F7493CA23B8EF31812CF"
+                     },
+                     {
+                         "RelativePath":  "Boot\\boot.sdi",
+                         "Sha256":  "CD2C00CE027687CE4A8BDC967F26A8AB82F651C9BECD703658BA282EC49702BD"
+                     },
+                     {
+                         "RelativePath":  "Boot\\bootfix.bin",
+                         "Sha256":  "A7A0EDAF85F70E833FAC02D0A416AE56AE2A3593E787F39C25DBB12830CA737C"
+                     },
+                     {
+                         "RelativePath":  "Boot\\memtest.exe",
+                         "Sha256":  "C529E1936235ADDDC6B405F810B43746633809510B7BEB81D1866CC370AADB58"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\chs_boot.ttf",
+                         "Sha256":  "B6A35D4CFF1402E7670AAB3F83988AAA3E6F3E217B904A3CCA4DBB635E334C6F"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\cht_boot.ttf",
+                         "Sha256":  "840BBDF16C5C86DC5095C297544F8578D6EDD0D9DC074FCAC7A6424C4851784E"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\jpn_boot.ttf",
+                         "Sha256":  "2C7F215C86B22960FAC0F68A151915B29C8BA7D2ADA1BF7BB7C5189D3DEF326A"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\kor_boot.ttf",
+                         "Sha256":  "F8634537C8EED997FC960629E4167C54FD5142120AACAA3FC8EF67954E7EF111"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\malgun_boot.ttf",
+                         "Sha256":  "4D134EB2821A5A883B15D13621E71761136157C9EB42BD6D7193C331801AE44D"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\malgunn_boot.ttf",
+                         "Sha256":  "E36ABF903A039ED2EA1B41F42F3933CD883648E0E1D5FFE08EFEA146E017FAC3"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\meiryo_boot.ttf",
+                         "Sha256":  "81BDF1E00FCB4C6FF3B1174B408B50EFBA0CE5A8BCE5A5334D464DF3E9ED236A"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\meiryon_boot.ttf",
+                         "Sha256":  "6B051B1996F07E89467D75BF572CAF0C5D095BE2DB1DE217A055F7DA09B84963"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\msjh_boot.ttf",
+                         "Sha256":  "D8E80968B437F8D461F5183F76D3DDF581B5359F1C1B3533FAD23B96AC4DA251"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\msjhn_boot.ttf",
+                         "Sha256":  "84509D6F78723B417AA5E70D7926D6EA4FCD1EE181126BC7A27E66E71DB71B08"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\msyh_boot.ttf",
+                         "Sha256":  "9D328D1AED4D96DE2200EFEDBF50E0D9B3D8BD348D7956CBDE5B4D0244932166"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\msyhn_boot.ttf",
+                         "Sha256":  "DF24C9D56722971B54CAE109156BC452494957580635CE3526DF9102B4812CD0"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\segmono_boot.ttf",
+                         "Sha256":  "95B20329516A58E5394891A2BBF5F0D70BAC963859F88B717B56DFEB0BC07DD0"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\segoe_slboot.ttf",
+                         "Sha256":  "173F64EDCEA09C7722F517D0851B238ADE4E3F64C63FEE60698782B3C96649D4"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\segoen_slboot.ttf",
+                         "Sha256":  "66E459B1404AA7A3E197DD7472E8D0A3FB2A7AFA8F53F827A32DDCF18B4A7E8E"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Fonts\\wgl4_boot.ttf",
+                         "Sha256":  "76CDEDEA7FCC658F7E47FD535884052F379082D0C424946AFFE599B47C0BBAD2"
+                     },
+                     {
+                         "RelativePath":  "Boot\\Resources\\bootres.dll",
+                         "Sha256":  "A49C8290CB9A4DECFD5D13FCA483DBA40130814C46BDE911E3606DECECB58081"
+                     },
+                     {
+                         "RelativePath":  "Boot\\bg-bg\\bootmgr.exe.mui",
+                         "Sha256":  "F925BE205D3876B2C1FB1C6EA479AA5AE2CA0024C1CEC9FECE658362EC29C355"
+                     },
+                     {
+                         "RelativePath":  "Boot\\cs-cz\\bootmgr.exe.mui",
+                         "Sha256":  "D4324EE3B8CA68F6BAD9BF5D903E02392AB80A9237757D3406E23F0E1846136D"
+                     },
+                     {
+                         "RelativePath":  "Boot\\cs-cz\\memtest.exe.mui",
+                         "Sha256":  "E70B5A9DD66E047E946B5094BB24223225905843BC4D4210229D7AC9686D0945"
+                     },
+                     {
+                         "RelativePath":  "Boot\\da-dk\\bootmgr.exe.mui",
+                         "Sha256":  "335DBDA6ECE78BFA21669AA509EEF35BA6A047EDC0E7D54A7CA895EFB3147873"
+                     },
+                     {
+                         "RelativePath":  "Boot\\da-dk\\memtest.exe.mui",
+                         "Sha256":  "A35888D8D891C3FD0112B547F9D0E448E24B3C4365DB63A5C0E7AEEA5EF367AD"
+                     },
+                     {
+                         "RelativePath":  "Boot\\de-de\\bootmgr.exe.mui",
+                         "Sha256":  "0440DDA039E33A435D7980E1ADE16AA9702CFFC64BB10EB0527D195DDC474B32"
+                     },
+                     {
+                         "RelativePath":  "Boot\\de-de\\memtest.exe.mui",
+                         "Sha256":  "583CB15F951474C61B0BEECAD59BF76893FE3EE3AF5A688D6F6108CE811D59DE"
+                     },
+                     {
+                         "RelativePath":  "Boot\\el-gr\\bootmgr.exe.mui",
+                         "Sha256":  "30AD1A6488616199BEC459802BF1D374F851B957B99407A8665928D56D603A25"
+                     },
+                     {
+                         "RelativePath":  "Boot\\el-gr\\memtest.exe.mui",
+                         "Sha256":  "C32E28BB1EEB81802ACC41305B70D62AF6BBE63C754B5177938024501B91984C"
+                     },
+                     {
+                         "RelativePath":  "Boot\\en-gb\\bootmgr.exe.mui",
+                         "Sha256":  "C76B7F59A0919215C37C1B5DF51D0D0F51E45ADB3E9F2E41C591AE763179F6D4"
+                     },
+                     {
+                         "RelativePath":  "Boot\\en-us\\bootmgr.exe.mui",
+                         "Sha256":  "CC1B693D6D7421560F75ABBAB32D9BC7DED33021835EB8C3E1F7DE410E930256"
+                     },
+                     {
+                         "RelativePath":  "Boot\\en-us\\memtest.exe.mui",
+                         "Sha256":  "3D489E1B05C15ACC4A5AB20F10FA3AD389BAAE19D20E3C59A03BB1983D6F9192"
+                     },
+                     {
+                         "RelativePath":  "Boot\\es-es\\bootmgr.exe.mui",
+                         "Sha256":  "4233BC9C24053B37C05B72427F645994C2578164E189BE29E5570DAF882D6B27"
+                     },
+                     {
+                         "RelativePath":  "Boot\\es-es\\memtest.exe.mui",
+                         "Sha256":  "318620D940B3A85B0BD437DD939299804899335A27616290FF7D3F920835D703"
+                     },
+                     {
+                         "RelativePath":  "Boot\\es-mx\\bootmgr.exe.mui",
+                         "Sha256":  "D99EDD9612F3161994D4DBB372B11F60A67A1A2A1CF92150EB86CB2449B7EE7D"
+                     },
+                     {
+                         "RelativePath":  "Boot\\et-ee\\bootmgr.exe.mui",
+                         "Sha256":  "36959C9C7745A2BB311D62039AF5F1769E8A0276C8DD0E8872720CC573FF41A6"
+                     },
+                     {
+                         "RelativePath":  "Boot\\fi-fi\\bootmgr.exe.mui",
+                         "Sha256":  "CE0D41605ACF128C7FCF43CC0F3D737940EA1EC34E8E9BBC6138F6D1CB2B8AC1"
+                     },
+                     {
+                         "RelativePath":  "Boot\\fi-fi\\memtest.exe.mui",
+                         "Sha256":  "49113C838AA53B9E0D693480D3FDD4A9DE46E7C59AEB9B5CB2211D6A03DF7F31"
+                     },
+                     {
+                         "RelativePath":  "Boot\\fr-ca\\bootmgr.exe.mui",
+                         "Sha256":  "38EFC6A3AFBFB563B6F12D3E194AB07BB8E0B6C45FFBFAF82FD9DE6E0797CC3B"
+                     },
+                     {
+                         "RelativePath":  "Boot\\fr-fr\\bootmgr.exe.mui",
+                         "Sha256":  "2BAEBD69F36278F67C5F149D25E56490D468F5B0C5BF9CB977B50B955B4DFECA"
+                     },
+                     {
+                         "RelativePath":  "Boot\\fr-fr\\memtest.exe.mui",
+                         "Sha256":  "47919C38837E1F9DD926D298326928BE7AEFBCA108C5D9BA8D2920EB4C406236"
+                     },
+                     {
+                         "RelativePath":  "Boot\\hr-hr\\bootmgr.exe.mui",
+                         "Sha256":  "6BCD006A5230661D532DCE66E20B86C56251B0FF3AF7C87ACF27DB868720353B"
+                     },
+                     {
+                         "RelativePath":  "Boot\\hu-hu\\bootmgr.exe.mui",
+                         "Sha256":  "DFE656CFD0678AB677DBEAF5051F71A1241C0238D9E684D4F1339F26E315F9B7"
+                     },
+                     {
+                         "RelativePath":  "Boot\\hu-hu\\memtest.exe.mui",
+                         "Sha256":  "7406B997CB7C891658D53B65DD76D38D75AD03A890221051D9B97456441EC723"
+                     },
+                     {
+                         "RelativePath":  "Boot\\it-it\\bootmgr.exe.mui",
+                         "Sha256":  "690FF80FBC0157C01AFF3B36F12E7E469D750CDED6F5822E2CA6DF3803FC909D"
+                     },
+                     {
+                         "RelativePath":  "Boot\\it-it\\memtest.exe.mui",
+                         "Sha256":  "89F77FE26F62E19E044EF3774FE4CA263A8B6B90665E353722416A0D3D933179"
+                     },
+                     {
+                         "RelativePath":  "Boot\\ja-jp\\bootmgr.exe.mui",
+                         "Sha256":  "8DE05E403B6CA2E8CF00D04A51A7F67ACB70EF40AB256F587A111015CBFC288B"
+                     },
+                     {
+                         "RelativePath":  "Boot\\ja-jp\\memtest.exe.mui",
+                         "Sha256":  "5FDB5B99B54E014DC6F49DFB49AC87F177039AA7B9F17FAE297C807949ED3DC9"
+                     },
+                     {
+                         "RelativePath":  "Boot\\ko-kr\\bootmgr.exe.mui",
+                         "Sha256":  "5068F7A9560646783A295FB0F49F5B561D38A3142F58F321FE486CEDB3C523A8"
+                     },
+                     {
+                         "RelativePath":  "Boot\\ko-kr\\memtest.exe.mui",
+                         "Sha256":  "D6BA2E8D5129AA55F408E4EFA46DF687ADB50E89DA1B48BD9667F967A2FC7E59"
+                     },
+                     {
+                         "RelativePath":  "Boot\\lt-lt\\bootmgr.exe.mui",
+                         "Sha256":  "27E928C7B368519A8A4FF9AF8D77146AA285329FBD7384F05D7F4FE602CBEB25"
+                     },
+                     {
+                         "RelativePath":  "Boot\\lv-lv\\bootmgr.exe.mui",
+                         "Sha256":  "00174B39ACBFFF447DBAC61E05FEBAA3CDB3E98EAA3DD3C8120B624F1280198E"
+                     },
+                     {
+                         "RelativePath":  "Boot\\nb-no\\bootmgr.exe.mui",
+                         "Sha256":  "600B145A9CBACC71D0FAE4B8116D947BBD07D9F3F7E04711FF9D0C50077539AC"
+                     },
+                     {
+                         "RelativePath":  "Boot\\nb-no\\memtest.exe.mui",
+                         "Sha256":  "6608E103AFE6A99E53BB5909DBDE4E540936B2E26188B78DCC47346C7F645F4D"
+                     },
+                     {
+                         "RelativePath":  "Boot\\nl-nl\\bootmgr.exe.mui",
+                         "Sha256":  "77F340D5F655ED057CB63E19E4B207B58F69060CDC36CE9EB3D6F02ED29AAA7C"
+                     },
+                     {
+                         "RelativePath":  "Boot\\nl-nl\\memtest.exe.mui",
+                         "Sha256":  "C08C4166A683EA7B722C3B640A184F798717A8496F8752086054BA7DA8AF868C"
+                     },
+                     {
+                         "RelativePath":  "Boot\\pl-pl\\bootmgr.exe.mui",
+                         "Sha256":  "1D2CA74A34FBB8387896BBC2CC87F57EDC01C0203CAAC25533A6E7AF7BCE4C70"
+                     },
+                     {
+                         "RelativePath":  "Boot\\pl-pl\\memtest.exe.mui",
+                         "Sha256":  "7ACA4D32C9226D0A175AED22A2A1F7D5F3ACE60DCF4A18449703B4A8B5ADB025"
+                     },
+                     {
+                         "RelativePath":  "Boot\\pt-br\\bootmgr.exe.mui",
+                         "Sha256":  "A779A3B2BD6896F5E6A37CC8E9AEF5324B9CE9A7B2B4E4785C32F01DD87C16C3"
+                     },
+                     {
+                         "RelativePath":  "Boot\\pt-br\\memtest.exe.mui",
+                         "Sha256":  "2AB10786BFBA1B3E572191EDC3A2CA0E541401F46AF71AB39E4A0372B1EA4D30"
+                     },
+                     {
+                         "RelativePath":  "Boot\\pt-pt\\bootmgr.exe.mui",
+                         "Sha256":  "9512987C02FE5B78324A376D6323193D78E66ABF4CD8E84BB2800335751C26B1"
+                     },
+                     {
+                         "RelativePath":  "Boot\\pt-pt\\memtest.exe.mui",
+                         "Sha256":  "6F8C6B5BDBA4422DAAA14D3267F4076909C745C177A61EE0D153540A29AC70F7"
+                     },
+                     {
+                         "RelativePath":  "Boot\\ro-ro\\bootmgr.exe.mui",
+                         "Sha256":  "379BCE4D110FA8EF5D47FFF9F1205DBA01D3363C3D61FFF3F12F92732B80C96B"
+                     },
+                     {
+                         "RelativePath":  "Boot\\ru-ru\\bootmgr.exe.mui",
+                         "Sha256":  "032A288BAD2BC7943D82D6888EAE916D001B78F5EDB27B78F44DDFD167D0926E"
+                     },
+                     {
+                         "RelativePath":  "Boot\\ru-ru\\memtest.exe.mui",
+                         "Sha256":  "0D21686C17243DD6D05CB9EF0C93A4A5E8A62023E218B039E26B917CF649BB4B"
+                     },
+                     {
+                         "RelativePath":  "Boot\\sk-sk\\bootmgr.exe.mui",
+                         "Sha256":  "280D00E582C6B0C8D7B7C12A0EFB0B433421DC375EB6E5FEECB9E857E13FF95C"
+                     },
+                     {
+                         "RelativePath":  "Boot\\sl-si\\bootmgr.exe.mui",
+                         "Sha256":  "D9CE065B9A5CFFDF8BC9EE3EDC9780CC21DCEA99BCE60FCC1C46D0A278E52C28"
+                     },
+                     {
+                         "RelativePath":  "Boot\\sr-latn-rs\\bootmgr.exe.mui",
+                         "Sha256":  "B275C684216D8E34CFD846028CE0F9C3CA32A2C1FD821B302D56F90972649970"
+                     },
+                     {
+                         "RelativePath":  "Boot\\sv-se\\bootmgr.exe.mui",
+                         "Sha256":  "1F5C573B6CA073207D80509C8B0BC139AE540B640CFADEA857F62BB203F6BA88"
+                     },
+                     {
+                         "RelativePath":  "Boot\\sv-se\\memtest.exe.mui",
+                         "Sha256":  "E5BB553F61C64E6920ACC6ADEEDE7877FC1B1352043EDF7ED0BE63E57883D61B"
+                     },
+                     {
+                         "RelativePath":  "Boot\\tr-tr\\bootmgr.exe.mui",
+                         "Sha256":  "1B38C3FF3BE85E55A533096D55329D856D5192461780181C78FFD043F088591D"
+                     },
+                     {
+                         "RelativePath":  "Boot\\tr-tr\\memtest.exe.mui",
+                         "Sha256":  "7D3AD54477FEE61404634976B915AA20A4029D96C45948EC4338C434E0B99646"
+                     },
+                     {
+                         "RelativePath":  "Boot\\uk-ua\\bootmgr.exe.mui",
+                         "Sha256":  "7C5CAF73CC2B701C434A037528EC5D02F5DB142CE6D5D81E8E1E7B64A39079C3"
+                     },
+                     {
+                         "RelativePath":  "Boot\\zh-cn\\bootmgr.exe.mui",
+                         "Sha256":  "86C3EB530F6062A0C6D70CCAE637FFB92411E81632D23EE4A3A369D1A7EBCCAA"
+                     },
+                     {
+                         "RelativePath":  "Boot\\zh-cn\\memtest.exe.mui",
+                         "Sha256":  "E654310FD529FED2EF192D9BFD8931F2FB75B61F0123484F0EA190C3F126A2DB"
+                     },
+                     {
+                         "RelativePath":  "Boot\\zh-tw\\bootmgr.exe.mui",
+                         "Sha256":  "EF0F157D8C3E77E302CA05A2084955B91B1387641CC1291D144046A337AB8A44"
+                     },
+                     {
+                         "RelativePath":  "Boot\\zh-tw\\memtest.exe.mui",
+                         "Sha256":  "87AAD163B0FD10A18E41A6E8FF5C9511670204CBD20AA59D9BD0584EA89DAC48"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\bootx64.efi",
+                         "Sha256":  "832F68EF8935A232E4F152F49A1310687B45C7903701819AD4A9776EA6443BB2"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\bg-bg\\bootx64.efi.mui",
+                         "Sha256":  "FF9F367B3ACB31CADED90A03F1698A62E3773367DC5ABDA4C5074B56B6B88DEB"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\cs-cz\\bootx64.efi.mui",
+                         "Sha256":  "53F13FE717FA7B2FDBD020FD9782DB6EB9B47F899D92E70FD1DDF50D6DE52D1A"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\da-dk\\bootx64.efi.mui",
+                         "Sha256":  "0DF541D70BF0CACFEEDC695F07EE8560134BB884F6A8927CFACEB4C6A83F9BB9"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\de-de\\bootx64.efi.mui",
+                         "Sha256":  "09F6FEB3ACB2CDFF4A4441BFA5EBD49CD4E8AF3B9B290112490C8EE64F2E6DAE"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\el-gr\\bootx64.efi.mui",
+                         "Sha256":  "AC34414672CF9144347F500971C4CEEA94D49246E119661A318DDEAAB41286AF"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\en-gb\\bootx64.efi.mui",
+                         "Sha256":  "196445D6303AFEAC1908B834615F79635F58E26C468B1D8424B84DA1838F3A62"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\en-us\\bootx64.efi.mui",
+                         "Sha256":  "1E20D717071A8A70EC25C22DBBACBE965D6DF371EECA58EFE388FBE3A7420317"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\es-es\\bootx64.efi.mui",
+                         "Sha256":  "1942645E0596C50D1829EA3A2F6B0B098C281711229ADDFD0DB0781543F41090"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\es-mx\\bootx64.efi.mui",
+                         "Sha256":  "7B523BE77FF1F3B6DFCC6C4307BE3E51BAE8699BE22767069A155DFA51857A58"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\et-ee\\bootx64.efi.mui",
+                         "Sha256":  "4A9B54E006AF7D16D7455499B3F2E72CA8EE6D12A8AC9824C12B12C8DEA0F2E9"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\fi-fi\\bootx64.efi.mui",
+                         "Sha256":  "EC57FD90B88C43F716105A97B6CEF1027AC8B7ACDCA58720347132F0F2507F16"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\fr-ca\\bootx64.efi.mui",
+                         "Sha256":  "F5DADB0A80E44570E8FB11866DBD5882315C5CC40DFF74202573EB72368DFE7E"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\fr-fr\\bootx64.efi.mui",
+                         "Sha256":  "67ADD61DA44A4EB044A15D0FC2127CEA6A25F309EBBCEFB9272460FD69AB9685"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\hr-hr\\bootx64.efi.mui",
+                         "Sha256":  "EC0FD15F6DF04C153D3EAAEE0D8567F3B3C487F44EB2A6E735FFD9AC6552D373"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\hu-hu\\bootx64.efi.mui",
+                         "Sha256":  "CFCE8B63BE0B063F9B87F0D4F7D995DE64F9C77F0A77D079E4D950A68DACBD5A"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\it-it\\bootx64.efi.mui",
+                         "Sha256":  "4132EF0837C3A168C7937473D87E72E427146482BE1F80DF35100A4F99592307"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\ja-jp\\bootx64.efi.mui",
+                         "Sha256":  "518354E3F9C873EA84E2ED3DDD262EF5F118AC066808D03EA81B47BEB96E4510"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\ko-kr\\bootx64.efi.mui",
+                         "Sha256":  "E74918B9F41D643F2CC8A976534AAECFA063A7CB98CF327FED3280E1533E82CA"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\lt-lt\\bootx64.efi.mui",
+                         "Sha256":  "33D64426785EF1DA81D642DC2CAC8EDA8F2E7D00302077CDED4AD62D0EC2CFFD"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\lv-lv\\bootx64.efi.mui",
+                         "Sha256":  "FDB7683A040DBD04FF1A4E73BB2784E4D970CEBABD8EF046959D5A09E5799971"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\nb-no\\bootx64.efi.mui",
+                         "Sha256":  "798F25AE45F6811D7602A951811D7759C01023B5889165819CA351BEF2E2F1FC"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\nl-nl\\bootx64.efi.mui",
+                         "Sha256":  "10558036E5EBF136E80FEC52141974582A53DC85DB82D6607C26EEA891965B74"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\pl-pl\\bootx64.efi.mui",
+                         "Sha256":  "DA477033E367BF461BED4A71AE5D66386461ABFF327081FA7DE1AD28DBFF4229"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\pt-br\\bootx64.efi.mui",
+                         "Sha256":  "B995800365928F4050732246765C3332D3313EDCF7FB7C2A63B6EB3F5A8C2EE8"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\pt-pt\\bootx64.efi.mui",
+                         "Sha256":  "00BE976A26EB4A3A656F3DBF46309914AC7D903DC43C3DF68B7784D3DCF7338E"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\ro-ro\\bootx64.efi.mui",
+                         "Sha256":  "5EBD45593D5466D7ABA0B6DCC6B3F3981AF017CAD801B745D5D37A95069164BC"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\ru-ru\\bootx64.efi.mui",
+                         "Sha256":  "9672D7A64A74FC4805E885653FF49A1F5F36FB172F979EABD7F5DF52C6B51EB6"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\sk-sk\\bootx64.efi.mui",
+                         "Sha256":  "9940F87FDDAE386A8F420A08238184CB055A98B54A965D8C9073B2EFCDE658E5"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\sl-si\\bootx64.efi.mui",
+                         "Sha256":  "659CA4477DC9A28E4E535C83C74FA9479C7B7EE5343A510932A933A229119A89"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\sr-latn-rs\\bootx64.efi.mui",
+                         "Sha256":  "0754FAC30D4C780C9028FA04709F7FD5DDEFDE1A0A998271BEF81973A945BCA9"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\sv-se\\bootx64.efi.mui",
+                         "Sha256":  "DAF0DC4BDFE5850C27D46AB265E00271F49E2323A64E9CA045EBC02562B32BB0"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\tr-tr\\bootx64.efi.mui",
+                         "Sha256":  "6899DE75B9C078101E3D0F1A9503187EED1938B0E06CC00541518815965C6192"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\uk-ua\\bootx64.efi.mui",
+                         "Sha256":  "66C8150A106FBCB9C97FDEB85BF7348DB06DF6896949D0779A4DA74169F56FAD"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\zh-cn\\bootx64.efi.mui",
+                         "Sha256":  "EE214FD79A1EE1A140D717EBA30C1D8D066F6A9A49DEA3E31D4EEDD5AC8483E0"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Boot\\zh-tw\\bootx64.efi.mui",
+                         "Sha256":  "0964F1E8B812CDBA3F4BE84432907A20BBF039E73E5A2FA5735C3276E4A0B277"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\BCD",
+                         "Sha256":  "F198AD15597940DB4FB3A660B5A26828834176BA70222C83249A9D77E24ECC7E"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\BCDTemplate",
+                         "Sha256":  "9C4A48A2EF33C4BBBC706FDF21F9F0388DCB8A7CAA72F7493CA23B8EF31812CF"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\boot.stl",
+                         "Sha256":  "C35DEC015BAE2369D278435F0BA3BD61445A9571B02136B390447128054C0448"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\bootmgfw.efi",
+                         "Sha256":  "832F68EF8935A232E4F152F49A1310687B45C7903701819AD4A9776EA6443BB2"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\memtest.efi",
+                         "Sha256":  "68DE03F01439665146C79C20CC796C4FE0E51DE45F7AB7679D2A12A3FE743F66"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\Fonts\\chs_boot.ttf",
+                         "Sha256":  "88EFF6500C9F054EF7C8F8FC39E0A04E8541F72A5F3458341C632526130F8B1D"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\Fonts\\cht_boot.ttf",
+                         "Sha256":  "25608BA503DAD3389034ED50441DFD022DCF7DF706434D5B7371196D2C70AB4C"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\Fonts\\jpn_boot.ttf",
+                         "Sha256":  "A3AC1DD89E10263C8528F2957B12D5FA25B4E3FEB01335505762C9D31566A721"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\Fonts\\kor_boot.ttf",
+                         "Sha256":  "D9A601F6FD56B27898618EA90081B494E7A77E474FCE6FF0A97067443274FC09"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\Fonts\\malgun_boot.ttf",
+                         "Sha256":  "F1DD600E1FF3B9BAD9C8825C1B08A098BE8954022554640A552D767CB7BF5B6A"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\Fonts\\meiryo_boot.ttf",
+                         "Sha256":  "920FE2F787C9E1D177A27DC26A1C8230FD243FE81836A7F17694943C2C6767EC"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\Fonts\\msjh_boot.ttf",
+                         "Sha256":  "129EF16F9B1021BAE55ED8E83B91222E5BE0BDCA57A42223469BDF9DEDDAAD7D"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\Fonts\\msyh_boot.ttf",
+                         "Sha256":  "27E1E4D17852F071B5DC8941BEC94D716F91021894EE2FB4264B2190AE22170B"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\Fonts\\segmono_boot.ttf",
+                         "Sha256":  "159B61E32AB35C97F063755B2B4F3261A55F079CEDA78182B8CB268E4EA24DD6"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\Fonts\\segoe_slboot.ttf",
+                         "Sha256":  "310391F2A784F0FDEFE0AF9F2F13B39BBFCD2D63FAABAD29C5329A900A5FC08E"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\Fonts\\wgl4_boot.ttf",
+                         "Sha256":  "469E3983E1794A8ACCD7E5504DBC06074F44FA65286B25E98C1FBB38F1DE9BB2"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\Resources\\bootres.dll",
+                         "Sha256":  "811BE4A8B70E11427706B161E139E7E72B46F335DC9ABC80E3DD5D479CFAD410"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\cs-cz\\memtest.efi.mui",
+                         "Sha256":  "9E6D53472D02DFB9422FFFF4429A4960732D8AD002B1502EE9ED32D3F00A25BC"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\da-dk\\memtest.efi.mui",
+                         "Sha256":  "5FD3AD75138D0428BC325407AB1BA9FAFA34BEE1A87230E51F33A21F18899C64"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\de-de\\memtest.efi.mui",
+                         "Sha256":  "3B31C5B10D4130CBB0A7FBDAC2AB28661A0A8A1740B3E679D11AFBC9FCF654F2"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\el-gr\\memtest.efi.mui",
+                         "Sha256":  "6E67086230E6E8D4AEC66FCC48FEE62CF657B1B88C149CDA47BE2775BDBF41F1"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\en-us\\memtest.efi.mui",
+                         "Sha256":  "E20E542442540BA20007EDF28C3569071F3C9CC2A5F9C750641E6AEFD902E441"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\es-es\\memtest.efi.mui",
+                         "Sha256":  "4747F4FB3C2331CBA4CEB5E132AF7B9395EC6F56F5C890A019D6B6FCC638F296"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\fi-fi\\memtest.efi.mui",
+                         "Sha256":  "80D59A39E6E11DFFD996A2970B4CD7CFD7C8809E772E9051D02E7C25DA5AE98B"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\fr-fr\\memtest.efi.mui",
+                         "Sha256":  "189EC6A693C06803250ADFC399A8ED607913FC311714CC9D044866BF59A0C416"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\hu-hu\\memtest.efi.mui",
+                         "Sha256":  "BB9E2FA34A6A38294758147A5AACDF1DB20990F3467E32D059563BE29D2E8BC6"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\it-it\\memtest.efi.mui",
+                         "Sha256":  "CFFAE707688169C9C7BDE8E4A00DAE69F14965F2EE0BB54CA4C11AD70BACF2E4"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\ja-jp\\memtest.efi.mui",
+                         "Sha256":  "6868432333F016B30F0EF68EA36E469DEAA944C572F9BD3E8BF9F0098C62937D"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\ko-kr\\memtest.efi.mui",
+                         "Sha256":  "A24B6DC5ED8E1A7912FFA4D6A1F0C8BA1268E6338AB79F4D4359529C20CE1C0C"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\nb-no\\memtest.efi.mui",
+                         "Sha256":  "4C4649725192FAD0662A2904646D12B62016ECB25360D87BC49ED706FF8360DF"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\nl-nl\\memtest.efi.mui",
+                         "Sha256":  "E045BBFE2FE39B5C93A391F5203D54B0999EAEAA7AA267C5F86F112DF1DDCF87"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\pl-pl\\memtest.efi.mui",
+                         "Sha256":  "E80630407D6B6B695BE137FA11329F90C630954B4138EBC8DEFDF2498179C1DA"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\pt-br\\memtest.efi.mui",
+                         "Sha256":  "C7CBF8C4C639A08F318679D4090D6C4AA03088A9E811733D17CC3BAD2B05FB5E"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\pt-pt\\memtest.efi.mui",
+                         "Sha256":  "1A171EF251F867AA855AE5D7B7E8AD0CDE3BB072F825D82AFBB41A9B8B9B924C"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\ru-ru\\memtest.efi.mui",
+                         "Sha256":  "0AC0B5E043DE39D76A8EF1048A76123EC674E745CBC547E040531DDADD6BA64C"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\sv-se\\memtest.efi.mui",
+                         "Sha256":  "8C895858F5D87D093BB3C39F857D7419F38B75F93AFB79F1D51E87D20FE46ECE"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\tr-tr\\memtest.efi.mui",
+                         "Sha256":  "C449D3E68FB32B886AC670B3DB63C8C8DD5F67D2104211D955834CB5520906CD"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\zh-cn\\memtest.efi.mui",
+                         "Sha256":  "063FD68EDE4EB68668AE6E3D15A0AB2FE4640553FDAA7DF1A729A120652BB52A"
+                     },
+                     {
+                         "RelativePath":  "EFI\\Microsoft\\Boot\\zh-tw\\memtest.efi.mui",
+                         "Sha256":  "13BAC20C5CBAA1DA6992CB238058BF8B1560B0BA3BF64562AB32F512D29BB252"
+                     },
+                     {
+                         "RelativePath":  "bg-bg\\bootmgr.efi.mui",
+                         "Sha256":  "97582C7F0F037FD39C34C9D9B8596A23722732BC6E4E3C92251ECB4A79A25620"
+                     },
+                     {
+                         "RelativePath":  "cs-cz\\bootmgr.efi.mui",
+                         "Sha256":  "86CDD7F5337F187421075BF64D203EFDC7B550E1D9B16924BD562F50CFEBB15F"
+                     },
+                     {
+                         "RelativePath":  "da-dk\\bootmgr.efi.mui",
+                         "Sha256":  "022D5AC0EF1D2BB3D9FB467302AF53AA1A2769BFFB8470E15D7DBFE8BBC39BEE"
+                     },
+                     {
+                         "RelativePath":  "de-de\\bootmgr.efi.mui",
+                         "Sha256":  "02A96CA066C4E6D3B02E48FF1C86CAB4E7850EE84D2335AC15F878DC647B9D7E"
+                     },
+                     {
+                         "RelativePath":  "el-gr\\bootmgr.efi.mui",
+                         "Sha256":  "67F6C2466713A9B44CB2767EFAE8702721AB52748F8D6121D9C4725DE60B8FDB"
+                     },
+                     {
+                         "RelativePath":  "en-gb\\bootmgr.efi.mui",
+                         "Sha256":  "BE4DDE263F669CC09F9D247C5FAC63D1C432016C953D51C760B104CDCEF60CEE"
+                     },
+                     {
+                         "RelativePath":  "en-us\\bootmgr.efi.mui",
+                         "Sha256":  "D7B2177035B5425D8C359DC3B2F1F0F45A6FBD1FA60E921DDEAE9DD303002572"
+                     },
+                     {
+                         "RelativePath":  "es-es\\bootmgr.efi.mui",
+                         "Sha256":  "B6093F5C18C79ECDFE0E08225B7CF786782CDDDC6169ED967A13FB153F320B8F"
+                     },
+                     {
+                         "RelativePath":  "es-mx\\bootmgr.efi.mui",
+                         "Sha256":  "5D559C8CBB0136D1A77C9396AC9D777B0235CE7368634102E000088E56F15E80"
+                     },
+                     {
+                         "RelativePath":  "et-ee\\bootmgr.efi.mui",
+                         "Sha256":  "C9BDC4C41AB2E03E8FB442B1639452DC658D5B5371E308AD0E173B698C500FB6"
+                     },
+                     {
+                         "RelativePath":  "fi-fi\\bootmgr.efi.mui",
+                         "Sha256":  "4D8B9117754653F87FF7B78A96CDAFCAA6E4900FFA91F216951CDAD3164A9C12"
+                     },
+                     {
+                         "RelativePath":  "fr-ca\\bootmgr.efi.mui",
+                         "Sha256":  "772418F3DCC2430C591BBE261621B46A610CC94C5953805311E05EF3C07E697E"
+                     },
+                     {
+                         "RelativePath":  "fr-fr\\bootmgr.efi.mui",
+                         "Sha256":  "56CE0E6C9E21B38FA976BEAE123B7CC82808BC4755E19CBCCFBFF9DE2BF858FC"
+                     },
+                     {
+                         "RelativePath":  "hr-hr\\bootmgr.efi.mui",
+                         "Sha256":  "5B469757ECCE3209FBF031BF39A7297B2D746B29CF2D6C352CE551B759A181EC"
+                     },
+                     {
+                         "RelativePath":  "hu-hu\\bootmgr.efi.mui",
+                         "Sha256":  "C9DB23E34472F200D3831CC13C0B080AE51672E5FBE187B0A64E4783B106F5BA"
+                     },
+                     {
+                         "RelativePath":  "it-it\\bootmgr.efi.mui",
+                         "Sha256":  "7185BB2D212572A1E04EAEAA28C4971D5B9BA8ADA432F4565C733FABE914AB13"
+                     },
+                     {
+                         "RelativePath":  "ja-jp\\bootmgr.efi.mui",
+                         "Sha256":  "A95BB2F954D67B05F8A9891E46C5661C5B2295196E46D1DAC3A56E32CC92EE4A"
+                     },
+                     {
+                         "RelativePath":  "ko-kr\\bootmgr.efi.mui",
+                         "Sha256":  "C99E59F81E1EC9DB980936FA2F491F55E4C5B10399A1499257919510F9D89BFE"
+                     },
+                     {
+                         "RelativePath":  "lt-lt\\bootmgr.efi.mui",
+                         "Sha256":  "DBF303C5A49175676F46C3B1F9B9095902093E1F68BE15C5C37D61D8F30BAB45"
+                     },
+                     {
+                         "RelativePath":  "lv-lv\\bootmgr.efi.mui",
+                         "Sha256":  "31E22D265C0F19D613651D41D73034B519D679EDB1FDD32D2A1504CC5CA4930C"
+                     },
+                     {
+                         "RelativePath":  "nb-no\\bootmgr.efi.mui",
+                         "Sha256":  "DF80DAC89D4BAC736CAFFFEE5DEA301D6DDE7EFD8A9A1B8D8817CACAE8D2D761"
+                     },
+                     {
+                         "RelativePath":  "nl-nl\\bootmgr.efi.mui",
+                         "Sha256":  "16DDDFDAEF346E0C2C6707C58186BEED75A1998F2C9C8F3D99EE603F51B6B234"
+                     },
+                     {
+                         "RelativePath":  "pl-pl\\bootmgr.efi.mui",
+                         "Sha256":  "E0B5AE43E9058B06B8C38302E82A3493FA80DB279E020FAFA80933450908AF71"
+                     },
+                     {
+                         "RelativePath":  "pt-br\\bootmgr.efi.mui",
+                         "Sha256":  "CD27387AC7851516711EF8F4970A107CE1B1AE573846CFC318241C2D9D1566CB"
+                     },
+                     {
+                         "RelativePath":  "pt-pt\\bootmgr.efi.mui",
+                         "Sha256":  "FA1FD2F20AA4135FFE869DAA8764387A27E12455FD8A564782CCC96D5787D1B8"
+                     },
+                     {
+                         "RelativePath":  "ro-ro\\bootmgr.efi.mui",
+                         "Sha256":  "AF69BFD517171B131885DCA9C1A9D7A7175AAC1DC018DF721CDB49E33F53E084"
+                     },
+                     {
+                         "RelativePath":  "ru-ru\\bootmgr.efi.mui",
+                         "Sha256":  "3379BC99B5F8D089C817512EE48852E644238593ECF3AE99E5E0E8EB6E33F4A4"
+                     },
+                     {
+                         "RelativePath":  "sk-sk\\bootmgr.efi.mui",
+                         "Sha256":  "9310A150D6DBB70207A46DDA062D4101D813D6566675158ABADE39811F5A0D19"
+                     },
+                     {
+                         "RelativePath":  "sl-si\\bootmgr.efi.mui",
+                         "Sha256":  "28BBDFC2B5B645BDB2CB6028807C9FA824F770CA650901515B770497D7E4DAFB"
+                     },
+                     {
+                         "RelativePath":  "sources\\boot.wim",
+                         "Sha256":  "176AA6C7523834E7F6D6EAC5786DF5FB412E1250197C45FB8B72F492A3DCC603"
+                     },
+                     {
+                         "RelativePath":  "sr-latn-rs\\bootmgr.efi.mui",
+                         "Sha256":  "CA0C981014B755BB59D765BD0F02F74A45EA482FBF4EFB6B745A59E66F5107BC"
+                     },
+                     {
+                         "RelativePath":  "sv-se\\bootmgr.efi.mui",
+                         "Sha256":  "229556DE9FEE060D0499124659F2A1F0B489A47C1871C1567BAA2A733EF2DCE5"
+                     },
+                     {
+                         "RelativePath":  "tr-tr\\bootmgr.efi.mui",
+                         "Sha256":  "027AA77BC7CFE6CF5BDD969A86DED4CB81569D72B5E042087F41D5F83A5DF117"
+                     },
+                     {
+                         "RelativePath":  "uk-ua\\bootmgr.efi.mui",
+                         "Sha256":  "104DD11E9411121D5BF59E743BC160BF8A9255FC25B82805AA8E1428F2D0A2A9"
+                     },
+                     {
+                         "RelativePath":  "zh-cn\\bootmgr.efi.mui",
+                         "Sha256":  "933D83A82C6EFED5C61FCEE82AE4E6C3F905302E05584131B83CC0095F5B2680"
+                     },
+                     {
+                         "RelativePath":  "zh-tw\\bootmgr.efi.mui",
+                         "Sha256":  "9DF504727E4D2B35B5D0525B4FFD18CE5010C2224FAAC663385AE7DF20140E59"
+                     }
+                 ],
+    "RestartState":  "NotRequired",
+    "PrivacyDeclaration":  "No credentials, recovery material, command output, or file contents are included.",
+    "CompletedAtUtc":  "2026-08-07T03:02:01.4231098Z"
+}

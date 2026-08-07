@@ -327,7 +327,8 @@ Use Clear Queue before handing the build VM to another customer context. Disabli
 - [ ] Package signatures, timestamp, publisher, manifest, hashes, SBOM, and provenance verified
 - [x] x64 2023-CA and 2011-CA exact ISOs boot in disconnected disposable VMs; current 2011 result is not old-only certificate-firmware proof
 - [ ] Arm64 evidence is labeled Experimental unless real hardware passed
-- [ ] USB writer passes refusal, changed-identity, positive virtual, and physical tests
+- [x] USB writer passes a target-bound positive virtual write, full readback, and separate no-NIC boot
+- [ ] USB writer passes the complete refusal/changed-identity matrix and physical write/boot
 - [ ] UEFI repair and rollback both boot the disposable VM
 - [ ] `.bek` salvage recovers the marker and wrong key refuses without secret leakage
 - [ ] Default network and telemetry are zero
