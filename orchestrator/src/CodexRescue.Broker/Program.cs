@@ -43,6 +43,7 @@ internal static class Program
                 packageVersion,
                 catalog.Digest,
                 DateTimeOffset.UtcNow);
+            new BrokerRequestValidator().Validate(request, operation);
             var runner = new SignedPowerShellRunner(catalog);
 
             var handlers = new Dictionary<BrokerOperation, IBrokerAction>

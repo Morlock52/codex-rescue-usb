@@ -77,6 +77,8 @@ class DotNetOrchestratorSourceTests(unittest.TestCase):
         self.assertIn("enum BrokerOperation", source)
         self.assertIn("IReadOnlyDictionary<BrokerOperation", source)
         self.assertIn("ValidateForExecution", source)
+        self.assertIn("Exactly one typed broker input", source)
+        self.assertIn("does not match the signed action plan", source)
         self.assertIn("ManifestDigest", source)
         self.assertIn("ExpiresAtUtc", source)
 

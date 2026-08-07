@@ -30,6 +30,38 @@ public sealed class PlanValidatorTests
             DateTimeOffset.UtcNow));
     }
 
+    [TestMethod]
+    public void BrokerRequestWithMultipleTypedInputsIsRejected()
+    {
+        var request = new BrokerRequestV1(
+            1,
+            CreatePlan(),
+            null,
+            new MediaBuildInputV1(@"C:\receipt.json", @"C:\output", ["x64-2023CA"], false),
+            new UsbWriteInputV1(@"C:\rescue.iso", @"C:\verify.json", 7, @"C:\usb-receipt.json"),
+            null,
+            null);
+
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            new BrokerRequestValidator().Validate(request, BrokerOperation.BuildMedia));
+    }
+
+    [TestMethod]
+    public void BrokerRequestInputMustMatchPlanOperation()
+    {
+        var request = new BrokerRequestV1(
+            1,
+            CreatePlan(),
+            null,
+            null,
+            new UsbWriteInputV1(@"C:\rescue.iso", @"C:\verify.json", 7, @"C:\usb-receipt.json"),
+            null,
+            null);
+
+        Assert.ThrowsExactly<InvalidDataException>(() =>
+            new BrokerRequestValidator().Validate(request, BrokerOperation.BuildMedia));
+    }
+
     private static ActionPlanV1 CreatePlan() => new(
         1,
         Guid.NewGuid(),

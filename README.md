@@ -26,8 +26,8 @@ The repository now contains the source implementation for:
 - a certificate-pinned, session-scoped Proxmox test connector;
 - guarded USB, UEFI backup/repair/rollback, and `.bek` salvage scripts;
 - opt-in, allowlisted telemetry policy with zero transmission by default;
-- signed MSIX/App Installer packaging and Azure Artifact Signing release workflows; and
-- a complete Figma workflow system translated into shared WPF resources.
+- signed MSIX/App Installer packaging and Azure Artifact Signing release workflows;
+- a complete Figma workflow system translated into shared WPF resources; and
 - guided WPF Plan/Apply controls for toolchain, media, Proxmox, USB, UEFI, and salvage workflows.
 
 This milestone does **not** yet include a publicly signed MSIX release, live Proxmox connector receipt, new four-ISO build receipt, positive virtual USB write, disposable-VM UEFI repair/rollback receipt, `.bek` salvage receipt, Arm64 hardware result, or physical USB result. Those evidence gates are deliberately kept open below.
