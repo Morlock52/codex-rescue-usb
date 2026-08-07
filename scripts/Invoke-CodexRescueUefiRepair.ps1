@@ -163,9 +163,37 @@ if ($Mode -ceq 'Prepare') {
         param($efiRoot)
         $efiTree = Join-Path $payload 'EfiTree'
         New-Item -ItemType Directory -Path $efiTree | Out-Null
-        Copy-Item -Path (Join-Path $efiRoot '*') -Destination $efiTree -Recurse -Force
         $bcdPath = Join-Path $efiRoot 'EFI\Microsoft\Boot\BCD'
         if (!(Test-Path -LiteralPath $bcdPath -PathType Leaf)) { throw 'EFI BCD store was not found.' }
+
+        $lockedBcdFiles = @(
+            'EFI\Microsoft\Boot\BCD',
+            'EFI\Microsoft\Boot\BCD.LOG',
+            'EFI\Microsoft\Boot\BCD.LOG1',
+            'EFI\Microsoft\Boot\BCD.LOG2'
+        )
+        foreach ($directory in @(Get-ChildItem -LiteralPath $efiRoot -Directory -Recurse -Force)) {
+            $relativePath = $directory.FullName.Substring($efiRoot.Length).TrimStart('\')
+            New-Item -ItemType Directory -Path (Join-Path $efiTree $relativePath) -Force | Out-Null
+        }
+        foreach ($file in @(Get-ChildItem -LiteralPath $efiRoot -File -Recurse -Force)) {
+            $relativePath = $file.FullName.Substring($efiRoot.Length).TrimStart('\')
+            if ($relativePath -notin $lockedBcdFiles) {
+                Copy-Item -LiteralPath $file.FullName -Destination (Join-Path $efiTree $relativePath) -Force
+            }
+        }
+
+        $backupBcdPath = Join-Path $efiTree 'EFI\Microsoft\Boot\BCD'
+        if (!(Test-Path -LiteralPath 'Registry::HKEY_LOCAL_MACHINE\BCD00000000')) {
+            throw 'The live BCD registry hive is not loaded; a consistent BCD backup cannot be created.'
+        }
+        & reg.exe 'save' 'HKLM\BCD00000000' $backupBcdPath '/y' | Out-Null
+        if ($LASTEXITCODE -ne 0 -or !(Test-Path -LiteralPath $backupBcdPath -PathType Leaf)) {
+            throw 'Saving the live BCD registry hive failed.'
+        }
+        & bcdedit.exe '/store' $backupBcdPath '/enum' '{bootmgr}' | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw 'Saved BCD validation failed.' }
+
         & bcdedit.exe '/store' $bcdPath '/enum' 'all' | Set-Content -LiteralPath (Join-Path $payload 'bcd-evidence.txt') -Encoding UTF8
         if ($LASTEXITCODE -ne 0) { throw 'BCD evidence enumeration failed.' }
     }

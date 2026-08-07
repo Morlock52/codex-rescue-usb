@@ -92,6 +92,18 @@ class GuardedActionTests(unittest.TestCase):
         for forbidden in ("bootrec", "sfc.exe", "dism.exe", "/import"):
             self.assertNotIn(forbidden, source.lower())
 
+    def test_uefi_prepare_saves_and_validates_a_locked_live_bcd_store(self) -> None:
+        source = UEFI.read_text(encoding="utf-8")
+        for operation in (
+            "Registry::HKEY_LOCAL_MACHINE\\BCD00000000",
+            "reg.exe",
+            "'save'",
+            "Saved BCD validation failed",
+        ):
+            self.assertIn(operation, source)
+        self.assertIn("bcdedit.exe '/store' $backupBcdPath '/enum' '{bootmgr}'", source)
+        self.assertLess(source.index("reg.exe"), source.index("Saved BCD validation failed"))
+
     def test_bitlocker_salvage_uses_only_bek_material_and_fixed_staging_names(self) -> None:
         source = SALVAGE.read_text(encoding="utf-8")
         self.assertIn("*.bek", source)
