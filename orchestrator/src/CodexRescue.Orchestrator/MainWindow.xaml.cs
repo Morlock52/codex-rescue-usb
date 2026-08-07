@@ -17,11 +17,16 @@ public partial class MainWindow : Window
     private readonly TelemetryQueueService telemetry = new();
     private readonly MaintenanceWindowService maintenance = new();
     private readonly HttpClient updateClient = new();
+    private readonly CheckpointStore checkpointStore = new(Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "CodexRescue"));
+    private CheckpointV1? pendingCheckpoint;
 
     public MainWindow()
     {
         InitializeComponent();
         DataContext = viewModel;
+        LoadCheckpoint();
     }
 
     private async void RunAudit_Click(object sender, RoutedEventArgs e)
@@ -407,7 +412,10 @@ public partial class MainWindow : Window
             }
             else
             {
-                UefiStatus.Text = ReceiptSummary(receipt);
+                var checkpointResult = receipt.RestartState == "RequiredForBootTest"
+                    ? SaveRestartCheckpoint(receipt)
+                    : string.Empty;
+                UefiStatus.Text = $"{ReceiptSummary(receipt)} {checkpointResult}".Trim();
             }
         }
         catch (Exception exception)
@@ -585,6 +593,76 @@ public partial class MainWindow : Window
         int.TryParse(dialog.GetValue(key), NumberStyles.None, CultureInfo.InvariantCulture, out var value)
             ? value
             : throw new InvalidDataException($"{key} must be a whole number.");
+
+    private void LoadCheckpoint()
+    {
+        try
+        {
+            pendingCheckpoint = checkpointStore.Load();
+            if (pendingCheckpoint is null)
+            {
+                return;
+            }
+            CheckpointBadge.Text = pendingCheckpoint.StateName.ToUpperInvariant();
+            CheckpointStatus.Text = $"Verified machine checkpoint for workflow {pendingCheckpoint.WorkflowId}. Independent post-reboot verification is still required.";
+            ResumeCheckpointButton.IsEnabled = true;
+            ClearCheckpointButton.IsEnabled = true;
+        }
+        catch (InvalidDataException)
+        {
+            CheckpointBadge.Text = "INVALID CHECKPOINT";
+            CheckpointStatus.Text = "Saved state failed HMAC or schema verification. It cannot be resumed.";
+            ResumeCheckpointButton.IsEnabled = false;
+            ClearCheckpointButton.IsEnabled = true;
+        }
+    }
+
+    private string SaveRestartCheckpoint(ActionReceiptV1 receipt)
+    {
+        try
+        {
+            var checkpoint = new CheckpointV1(
+                CheckpointV1.SupportedSchemaVersion,
+                receipt.ActionId,
+                "RestartRequired",
+                DateTimeOffset.UtcNow,
+                new Dictionary<string, string> { ["ActionType"] = "RepairUefi" },
+                string.Empty);
+            checkpointStore.Save(checkpoint);
+            pendingCheckpoint = checkpoint;
+            CheckpointBadge.Text = "RESTART REQUIRED";
+            CheckpointStatus.Text = "Machine-verified checkpoint saved. Reopen the app after reboot to continue independent verification.";
+            ResumeCheckpointButton.IsEnabled = true;
+            ClearCheckpointButton.IsEnabled = true;
+            return "Restart checkpoint saved.";
+        }
+        catch (Exception exception) when (exception is IOException or CryptographicException or InvalidDataException)
+        {
+            return "Warning: action succeeded, but a restart checkpoint could not be saved.";
+        }
+    }
+
+    private void ResumeCheckpoint_Click(object sender, RoutedEventArgs e)
+    {
+        if (pendingCheckpoint is null)
+        {
+            CheckpointStatus.Text = "No verified checkpoint is available.";
+            return;
+        }
+        WorkflowTabs.SelectedIndex = 4;
+        UefiStatus.Text = $"Resumed workflow {pendingCheckpoint.WorkflowId}. Verify the disposable target boots and test rollback before clearing the checkpoint.";
+        CheckpointStatus.Text = "Resume opened the verification stage; it did not claim the repair or reboot passed.";
+    }
+
+    private void ClearCheckpoint_Click(object sender, RoutedEventArgs e)
+    {
+        checkpointStore.Clear();
+        pendingCheckpoint = null;
+        CheckpointBadge.Text = "NO CHECKPOINT";
+        CheckpointStatus.Text = "No resumable workflow is stored on this machine.";
+        ResumeCheckpointButton.IsEnabled = false;
+        ClearCheckpointButton.IsEnabled = false;
+    }
 
     private string? SelectFolder(string title)
     {

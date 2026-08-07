@@ -40,6 +40,45 @@ public sealed class CheckpointAndTelemetryTests
     }
 
     [TestMethod]
+    public void CheckpointStorePersistsAndVerifiesResumableState()
+    {
+        using var directory = new TemporaryDirectory();
+        var store = new CheckpointStore(directory.Path);
+        var checkpoint = new CheckpointV1(
+            1,
+            Guid.NewGuid(),
+            "RestartRequired",
+            DateTimeOffset.UtcNow,
+            new Dictionary<string, string> { ["ActionType"] = "RepairUefi" },
+            string.Empty);
+
+        store.Save(checkpoint);
+        var loaded = store.Load();
+
+        Assert.IsNotNull(loaded);
+        Assert.AreEqual(checkpoint.WorkflowId, loaded.WorkflowId);
+        Assert.AreEqual("RestartRequired", loaded.StateName);
+    }
+
+    [TestMethod]
+    public void CheckpointStoreRejectsTamperedSavedState()
+    {
+        using var directory = new TemporaryDirectory();
+        var store = new CheckpointStore(directory.Path);
+        store.Save(new CheckpointV1(
+            1,
+            Guid.NewGuid(),
+            "RestartRequired",
+            DateTimeOffset.UtcNow,
+            new Dictionary<string, string> { ["ActionType"] = "RepairUefi" },
+            string.Empty));
+        var path = System.IO.Path.Combine(directory.Path, "checkpoint.v1.json");
+        File.WriteAllText(path, File.ReadAllText(path).Replace("RestartRequired", "Completed", StringComparison.Ordinal));
+
+        Assert.ThrowsExactly<InvalidDataException>(() => store.Load());
+    }
+
+    [TestMethod]
     public void TelemetryRequiresPolicyAndConsent()
     {
         var envelope = new TelemetryEnvelopeV1(

@@ -47,6 +47,17 @@ class OrchestratorActionUiSourceTests(unittest.TestCase):
         self.assertIn("TimeSpan.FromMinutes(10)", source)
         self.assertIn("ActionPlanV1", source)
 
+    def test_reboot_resume_ui_uses_machine_verified_checkpoint_store(self) -> None:
+        xaml = (APP / "MainWindow.xaml").read_text(encoding="utf-8")
+        code = (APP / "MainWindow.xaml.cs").read_text(encoding="utf-8")
+        store = (APP / "Services" / "CheckpointStore.cs").read_text(encoding="utf-8")
+        self.assertIn('Content="Resume verification"', xaml)
+        self.assertIn('Click="ResumeCheckpoint_Click"', xaml)
+        self.assertIn("CheckpointStore", code)
+        self.assertIn("checkpointStore.Save", code)
+        self.assertIn("protector.Verify", store)
+        self.assertIn("flushToDisk: true", store)
+
 
 if __name__ == "__main__":
     unittest.main()

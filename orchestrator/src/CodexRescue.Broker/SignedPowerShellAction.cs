@@ -41,7 +41,9 @@ public sealed class SignedPowerShellAction : IBrokerAction
                 ["PackagedActionVerified"] = succeeded.ToString(),
             },
             succeeded ? [operation.ToString()] : Array.Empty<string>(),
-            operation == BrokerOperation.RepairUefi ? "RequiredForBootTest" : "NotRequired",
+            operation == BrokerOperation.RepairUefi && request.RepairUefi?.Mode is "Apply" or "Rollback"
+                ? "RequiredForBootTest"
+                : "NotRequired",
             PrivacyDeclaration,
             DateTimeOffset.UtcNow);
     }
