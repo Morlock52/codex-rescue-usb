@@ -2,6 +2,8 @@
 
 Codex Rescue USB uses two operating environments because offline recovery and an AI-assisted desktop have different compatibility, network, and trust requirements.
 
+The new Codex Rescue Orchestrator is the standard-user control plane for both environments. It does not move Codex into WinPE and does not turn the Git checkout into privileged runtime code.
+
 ## System context
 
 ```text
@@ -33,6 +35,32 @@ Reviewed recommendation or proposed action
   v
 Operator approval remains separate from execution
 ```
+
+## Orchestrator process boundary
+
+```text
+Standard-user WPF application
+  |-- local read-only audit (zero network by default)
+  |-- versioned plan and workflow state
+  |-- signed online/offline release verification
+  |-- Figma-derived Guided and Expert interface
+  |
+  | one typed, unexpired, target-bound plan + UAC
+  v
+Per-action elevated Broker
+  |-- derives package version and asset-catalog digest itself
+  |-- validates packaged path, hash, Authenticode signer, and schema
+  |-- maps operation to one fixed signed asset
+  |-- provides typed arguments; no shell or arbitrary executable
+  v
+Built-in Windows tooling or fixed signed PowerShell asset
+  |
+  | normalized result and bounded before/after evidence
+  v
+ActionReceiptV1 + independent verification
+```
+
+There is no permanent privileged service. Release checks and the Proxmox connector run in the standard-user process during an explicit maintenance/session window. Credentials are not part of `ProxmoxProfileV1`; a token is session-only by default.
 
 ## Why WinPE is not the Codex desktop environment
 
@@ -82,16 +110,26 @@ The Graph module is a separate optional component. It uses delegated interactive
 | Graph module | `PowerShell/Modules/CodexRescue.Graph` | Optional authorized read-only cloud visibility |
 | Codex handoff | `scripts/New-CodexEvidenceSummary.ps1`, workspace/network scripts | Validate evidence, create bounded summary, launch offline-first workspace |
 | Physical readiness | `scripts/Open-PhysicalUsbReadinessGui.ps1` | Verify ISO/USB identity and save a no-write plan |
+| Versioned contracts | `orchestrator/src/CodexRescue.Contracts` | Plans, receipts, checkpoints, releases, Proxmox profiles, telemetry |
+| Orchestrator UI | `orchestrator/src/CodexRescue.Orchestrator` | Standard-user WPF state machine, audit, updates, connector, receipts |
+| Elevated broker | `orchestrator/src/CodexRescue.Broker` | Typed allowlist and packaged signed-asset enforcement |
+| Media matrix | `config/media-build-matrix.json`, `scripts/Build-CodexRescueMediaMatrix.ps1` | Four architecture/trust-path builds with servicing receipts |
+| Guarded USB writer | `scripts/Write-CodexRescueUsb.ps1` | Target-bound GPT/FAT32 write and complete readback |
+| UEFI repair | `scripts/Invoke-CodexRescueUefiRepair.ps1` | Backup, minimal BCDBoot, verify, and rollback |
+| BitLocker salvage | `scripts/Invoke-CodexRescueBitLockerSalvage.ps1` | Owner-supplied `.bek` salvage to a separate disposable output |
+| Signed packaging | `orchestrator/packaging`, `.github/workflows/orchestrator-release.yml` | MSIX/App Installer, Azure signing, SBOM, manifest, provenance |
 
 ## Evidence states
 
-The project uses five non-interchangeable evidence labels:
+The project uses seven non-interchangeable evidence labels:
 
-1. **Fixture verified** — deterministic simulated data and no host effects.
-2. **Source/test verified** — static contracts and automated tests pass.
-3. **VM runtime verified** — exact source or artifact ran in a named disposable VM.
-4. **Physical hardware verified** — exact artifact ran on recorded disposable hardware.
-5. **Production accepted** — documented support, operational, security, and owner acceptance criteria pass.
+1. **Figma design** — intended state and visual behavior; no runtime claim.
+2. **Fixture verified** — deterministic simulated data and no host effects.
+3. **Source/test verified** — static contracts and automated tests pass.
+4. **Package verified** — exact signed installer and update path pass on a clean Windows VM.
+5. **VM runtime verified** — exact source or artifact ran in a named disposable VM.
+6. **Physical hardware verified** — exact artifact ran on recorded disposable hardware.
+7. **Production accepted** — documented support, operational, security, and owner acceptance criteria pass.
 
 Moving to a later label requires new evidence. A successful test cannot promote itself across these boundaries.
 

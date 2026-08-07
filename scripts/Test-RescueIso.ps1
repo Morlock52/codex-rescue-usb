@@ -28,7 +28,20 @@ param(
 
     [string]$SourceDirectory,
 
-    [string]$OutputPath
+    [string]$OutputPath,
+
+    [ValidatePattern('^(x64|arm64)-(2023CA|2011CA)$')]
+    [string]$ArtifactId = 'x64-2023CA',
+
+    [ValidateSet('amd64', 'arm64')]
+    [string]$Architecture = 'amd64',
+
+    [ValidateSet('2023CA', '2011CA')]
+    [string]$TrustPath = '2023CA',
+
+    [string]$AdkVersion = 'UnverifiedDeveloperBuild',
+
+    [string]$ServicingUpdate = 'UnverifiedDeveloperBuild'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -81,11 +94,17 @@ function Invoke-DismCommand {
     }
 }
 
+$architectureBootFile = if ($Architecture -ceq 'arm64') {
+    'efi\boot\bootaa64.efi'
+}
+else {
+    'efi\boot\bootx64.efi'
+}
 $requiredBootFiles = @(
     'bootmgr',
     'boot\bcd',
     'boot\boot.sdi',
-    'efi\boot\bootx64.efi',
+    $architectureBootFile,
     'efi\microsoft\boot\bcd',
     'sources\boot.wim'
 )
@@ -208,6 +227,12 @@ try {
         IsoSize = $isoFile.Length
         IsoSha256 = (Get-FileHash -LiteralPath $IsoPath -Algorithm SHA256).Hash
         RequiredBootFiles = $requiredBootFiles
+        ArtifactId = $ArtifactId
+        Architecture = $Architecture
+        TrustPath = $TrustPath
+        AdkVersion = $AdkVersion
+        ServicingUpdate = $ServicingUpdate
+        InjectedSourceInventory = $embeddedFiles
         EmbeddedFiles = $embeddedFiles
         RequiredPackages = $requiredPackages
         ContainsRecoveryMaterial = $false

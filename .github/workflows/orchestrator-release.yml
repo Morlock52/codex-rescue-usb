@@ -1,0 +1,157 @@
+name: Signed Orchestrator Release
+
+on:
+  push:
+    tags:
+      - orchestrator-v*
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  build-test-sign-release:
+    runs-on: windows-2025
+    environment: production-signing
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+      - name: Derive protected-tag version
+        id: version
+        shell: pwsh
+        run: |
+          $version = '${{ github.ref_name }}'.Replace('orchestrator-v', '')
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Release tag must be orchestrator-vMAJOR.MINOR.PATCH.' }
+          "semver=$version" >> $env:GITHUB_OUTPUT
+          "quad=$version.0" >> $env:GITHUB_OUTPUT
+      - name: Verify all source tests before signing
+        shell: pwsh
+        run: |
+          python -m unittest discover -s tests -v
+          dotnet restore orchestrator/CodexRescue.Orchestrator.sln
+          dotnet test orchestrator/CodexRescue.Orchestrator.sln -c Release --no-restore
+      - name: Publish self-contained x64 and Arm64 assemblies
+        shell: pwsh
+        run: |
+          foreach ($rid in 'win-x64','win-arm64') {
+            dotnet publish orchestrator/src/CodexRescue.Orchestrator -c Release -r $rid --self-contained true -p:Version=${{ steps.version.outputs.semver }} -o ".release/$rid/app"
+            dotnet publish orchestrator/src/CodexRescue.Broker -c Release -r $rid --self-contained true -p:Version=${{ steps.version.outputs.semver }} -o ".release/$rid/broker"
+          }
+      - name: Stage exact privileged assets
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force .release/Assets/scripts,.release/Assets/winpe,.release/Assets/config | Out-Null
+          $scripts = 'Install-TechnicianWorkspaceToolchain.ps1','Build-CodexRescueMediaMatrix.ps1','Write-CodexRescueUsb.ps1','Invoke-CodexRescueUefiRepair.ps1','Invoke-CodexRescueBitLockerSalvage.ps1','Test-TechnicianWorkspacePrerequisite.ps1','Build-RescueIso.ps1','Test-RescueIso.ps1'
+          Copy-Item ($scripts | ForEach-Object { "scripts/$_" }) .release/Assets/scripts
+          Copy-Item winpe/Unlock-BitLockerWithRecoveryPassword.ps1,winpe/New-EvidenceManifest.ps1,winpe/Collect-OfflineWindowsInventory.ps1,winpe/Collect-RescueEvidence.cmd,winpe/Unlock-BitLockerWithRecoveryKey.cmd,winpe/diskpart-list.txt,winpe/startnet.cmd .release/Assets/winpe
+          Copy-Item config/technician-workspace-tools.json,config/media-build-matrix.json .release/Assets/config
+      - name: Azure OIDC login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Sign privileged scripts first
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ vars.ARTIFACT_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.ARTIFACT_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.ARTIFACT_SIGNING_PROFILE }}
+          files-folder: ${{ github.workspace }}\.release\Assets
+          files-folder-filter: ps1
+          files-folder-recurse: true
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+      - name: Generate post-signature asset catalog
+        shell: pwsh
+        run: orchestrator/packaging/New-SignedAssetCatalog.ps1 -AssetsDirectory .release/Assets -PackageVersion '${{ steps.version.outputs.semver }}'
+      - name: Sign executables and libraries
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ vars.ARTIFACT_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.ARTIFACT_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.ARTIFACT_SIGNING_PROFILE }}
+          files-folder: ${{ github.workspace }}\.release
+          files-folder-filter: exe,dll
+          files-folder-recurse: true
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+      - name: Build architecture packages
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force .release/packages | Out-Null
+          foreach ($arch in 'x64','arm64') {
+            $rid = "win-$arch"
+            orchestrator/packaging/Build-MsixPackage.ps1 -AppPublishDirectory ".release/$rid/app" -BrokerPublishDirectory ".release/$rid/broker" -SignedAssetsDirectory .release/Assets -OutputDirectory .release/packages -Architecture $arch -Version '${{ steps.version.outputs.quad }}' -Publisher '${{ vars.ARTIFACT_SIGNING_PUBLISHER }}'
+          }
+      - name: Sign MSIX packages
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ vars.ARTIFACT_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.ARTIFACT_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.ARTIFACT_SIGNING_PROFILE }}
+          files-folder: ${{ github.workspace }}\.release\packages
+          files-folder-filter: msix
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+      - name: Bundle and generate direct App Installer file
+        shell: pwsh
+        run: |
+          $makeappx = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\makeappx.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          & $makeappx.FullName bundle /d .release/packages /p .release/CodexRescue.Orchestrator_${{ steps.version.outputs.quad }}.msixbundle /o
+          if ($LASTEXITCODE -ne 0) { throw "makeappx bundle failed with exit code $LASTEXITCODE." }
+          $template = Get-Content orchestrator/packaging/CodexRescue.appinstaller.template.xml -Raw
+          $base = 'https://github.com/Morlock52/codex-rescue-usb/releases/download/${{ github.ref_name }}'
+          $publisher = [Security.SecurityElement]::Escape('${{ vars.ARTIFACT_SIGNING_PUBLISHER }}')
+          $template.Replace('$VERSION$','${{ steps.version.outputs.quad }}').Replace('$IDENTITY_NAME$','CodexRescue.Orchestrator').Replace('$PUBLISHER$',$publisher).Replace('$APPINSTALLER_URI$',"$base/CodexRescue.appinstaller").Replace('$BUNDLE_URI$',"$base/CodexRescue.Orchestrator_${{ steps.version.outputs.quad }}.msixbundle") | Set-Content .release/CodexRescue.appinstaller -Encoding UTF8
+      - name: Sign MSIX bundle
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ vars.ARTIFACT_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.ARTIFACT_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.ARTIFACT_SIGNING_PROFILE }}
+          files: ${{ github.workspace }}\.release\CodexRescue.Orchestrator_${{ steps.version.outputs.quad }}.msixbundle
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+      - name: Generate SBOM, hashes, provenance inputs, and rollback metadata
+        shell: pwsh
+        run: |
+          $rollback = '${{ vars.N_MINUS_ONE_PACKAGE }}'
+          if ([string]::IsNullOrWhiteSpace($rollback)) { $rollback = 'not-available-first-release' }
+          orchestrator/packaging/New-SpdxSbom.ps1 -ArtifactDirectory .release -PackageVersion '${{ steps.version.outputs.semver }}' -OutputPath .release/CodexRescue.spdx.json
+          @{ SchemaVersion=1; Current='${{ steps.version.outputs.semver }}'; Retain='N-1'; Package=$rollback; DowngradeAutomatic=$false } | ConvertTo-Json | Set-Content .release/rollback.json
+          orchestrator/packaging/New-ReleaseManifest.ps1 -ArtifactDirectory .release -Version '${{ steps.version.outputs.semver }}' -PublisherIdentity '${{ vars.ARTIFACT_SIGNING_PUBLISHER }}' -RollbackPackage $rollback -OutputPath .release/release-manifest.json
+      - name: Sign release manifest as detached PKCS7
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ vars.ARTIFACT_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.ARTIFACT_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.ARTIFACT_SIGNING_PROFILE }}
+          files: ${{ github.workspace }}\.release\release-manifest.json
+          generate-pkcs7: true
+          pkcs7-options: DetachedSignedData
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: .release/CodexRescue.Orchestrator_${{ steps.version.outputs.quad }}.msixbundle
+      - name: Generate final release hashes
+        shell: pwsh
+        run: |
+          Get-ChildItem .release -File | Where-Object Name -ne 'SHA256SUMS.txt' | Get-FileHash -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $([IO.Path]::GetFileName($_.Path))" } | Set-Content .release/SHA256SUMS.txt
+      - name: Publish signed release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $files = @(Get-ChildItem .release -File | ForEach-Object FullName)
+          gh release create '${{ github.ref_name }}' $files --title 'Codex Rescue Orchestrator ${{ steps.version.outputs.semver }}' --notes 'Enterprise Technical Preview signed release. Evidence remains tiered; see verification ledger.'

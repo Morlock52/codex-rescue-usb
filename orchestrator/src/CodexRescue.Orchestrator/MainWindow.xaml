@@ -1,0 +1,224 @@
+<Window x:Class="CodexRescue.Orchestrator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Codex Rescue Orchestrator"
+        Width="1440" Height="900" MinWidth="1080" MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        AutomationProperties.Name="Codex Rescue Orchestrator">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="72" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0" Background="{StaticResource ActionPrimaryBrush}" Padding="28,14">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <Border Width="40" Height="40" CornerRadius="8" Background="#FFFFFFFF" Margin="0,0,14,0">
+            <TextBlock Text="CR" FontFamily="{StaticResource MonoFont}" FontWeight="Bold"
+                       Foreground="{StaticResource ActionPrimaryBrush}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <StackPanel>
+            <TextBlock Text="Codex Rescue Orchestrator" Foreground="White" FontSize="20" FontWeight="Bold" />
+            <TextBlock Text="ENTERPRISE TECHNICAL PREVIEW" Foreground="#FFC8DED5"
+                       FontFamily="{StaticResource MonoFont}" FontSize="11" />
+          </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+          <Border Background="#FF2A4B40" CornerRadius="14" Padding="12,5" Margin="0,0,8,0">
+            <TextBlock Text="STANDARD USER" Foreground="White" FontFamily="{StaticResource MonoFont}" FontSize="11" />
+          </Border>
+          <Border Background="#FF2A4B40" CornerRadius="14" Padding="12,5">
+            <TextBlock Text="OFFLINE BY DEFAULT" Foreground="White" FontFamily="{StaticResource MonoFont}" FontSize="11" />
+          </Border>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="270" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+
+      <Border Grid.Column="0" Background="{StaticResource SurfaceBrush}" BorderBrush="#FFD5D8D2" BorderThickness="0,0,1,0">
+        <DockPanel Margin="16,20">
+          <StackPanel DockPanel.Dock="Bottom" Margin="4,16,4,0">
+            <TextBlock Text="Experience" Foreground="{StaticResource TextSecondaryBrush}" Margin="8,0,0,8" />
+            <UniformGrid Columns="2">
+              <RadioButton Content="Guided" GroupName="Mode" IsChecked="True" Padding="8" />
+              <RadioButton Content="Expert" GroupName="Mode" Padding="8" />
+            </UniformGrid>
+          </StackPanel>
+          <StackPanel>
+            <TextBlock Text="WORKFLOW" FontFamily="{StaticResource MonoFont}" FontSize="11"
+                       Foreground="{StaticResource TextSecondaryBrush}" Margin="12,0,0,12" />
+            <Button Content="Setup &amp; Updates" Tag="0" Click="Navigate_Click" HorizontalContentAlignment="Left" Margin="0,0,0,6" />
+            <Button Content="Build Matrix" Tag="1" Click="Navigate_Click" HorizontalContentAlignment="Left" Margin="0,0,0,6" />
+            <Button Content="Proxmox Test Lab" Tag="2" Click="Navigate_Click" HorizontalContentAlignment="Left" Margin="0,0,0,6" />
+            <Button Content="USB Target Confirmation" Tag="3" Click="Navigate_Click" HorizontalContentAlignment="Left" Margin="0,0,0,6" />
+            <Button Content="UEFI Backup &amp; Repair" Tag="4" Click="Navigate_Click" HorizontalContentAlignment="Left" Margin="0,0,0,6" />
+            <Button Content="BitLocker Salvage" Tag="5" Click="Navigate_Click" HorizontalContentAlignment="Left" Margin="0,0,0,6" />
+            <Button Content="Verification &amp; Receipts" Tag="6" Click="Navigate_Click" HorizontalContentAlignment="Left" Margin="0,0,0,6" />
+          </StackPanel>
+        </DockPanel>
+      </Border>
+
+      <TabControl x:Name="WorkflowTabs" Grid.Column="1" Background="Transparent" BorderThickness="0">
+        <TabItem Header="Setup and Updates">
+      <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="42,34" MaxWidth="1080" HorizontalAlignment="Left">
+          <TextBlock Text="Setup &amp; Updates" FontSize="34" FontWeight="Bold" />
+          <TextBlock Text="Audit this workstation before changing it. Elevation begins only after you review and apply a signed plan."
+                     FontSize="17" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,0,26"
+                     TextWrapping="Wrap" MaxWidth="800" />
+
+          <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" BorderBrush="#FFD5D8D2" BorderThickness="1" Padding="24">
+            <StackPanel>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="Read-only host audit" FontSize="22" FontWeight="Bold" />
+                  <TextBlock Text="No network requests · No elevation · No configuration changes"
+                             FontFamily="{StaticResource MonoFont}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,5,0,0" />
+                </StackPanel>
+                <Button x:Name="RunAuditButton" Grid.Column="1" Content="Run audit"
+                        Click="RunAudit_Click"
+                        Background="{StaticResource ActionPrimaryBrush}" Foreground="White"
+                        AutomationProperties.HelpText="Runs a local read-only audit with no network requests." />
+              </Grid>
+
+              <ItemsControl ItemsSource="{Binding AuditCards}" Margin="0,24,0,0">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><UniformGrid Columns="3" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Background="{StaticResource CanvasBrush}" CornerRadius="9" Padding="16" Margin="0,0,10,10">
+                      <StackPanel>
+                        <TextBlock Text="{Binding Component}" FontWeight="Bold" />
+                        <TextBlock Text="{Binding Status}" FontFamily="{StaticResource MonoFont}" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,0,0" />
+                        <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,6,0,0" />
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="{Binding AuditSummary}" TextWrapping="Wrap" Margin="0,12,0,0"
+                         AutomationProperties.LiveSetting="Polite" />
+            </StackPanel>
+          </Border>
+
+          <Border Background="#FFFFF4E4" BorderBrush="#FFE1B871" BorderThickness="1" CornerRadius="12" Padding="22" Margin="0,18,0,0">
+            <StackPanel>
+              <TextBlock Text="Signed maintenance and updates" FontSize="18" FontWeight="Bold" />
+              <TextBlock Text="Online checks need an explicit 30-minute network window. Offline import never needs network access. Both paths verify the signed publisher, detached manifest, size, path, and SHA-256 before opening Windows App Installer."
+                         TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,0" />
+              <WrapPanel Margin="0,16,0,0">
+                <Button Content="Open 30-minute window" Click="OpenMaintenance_Click" Margin="0,0,8,8" />
+                <Button x:Name="CheckReleaseButton" Content="Check signed release" Click="CheckRelease_Click" Margin="0,0,8,8" />
+                <Button x:Name="ImportOfflineButton" Content="Import offline bundle" Click="ImportOfflineBundle_Click" Margin="0,0,8,8" />
+                <Button Content="Close window" Click="CloseMaintenance_Click" Margin="0,0,8,8" />
+              </WrapPanel>
+              <TextBlock x:Name="MaintenanceStatus" Text="Closed; network release checks are disabled."
+                         TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+            </StackPanel>
+          </Border>
+
+          <Border Background="{StaticResource SurfaceBrush}" CornerRadius="12" BorderBrush="#FFD5D8D2" BorderThickness="1" Padding="22" Margin="0,18,0,0">
+            <Grid>
+              <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+              <StackPanel>
+                <TextBlock Text="Resume after reboot" FontSize="18" FontWeight="Bold" />
+                <TextBlock Text="Non-secret workflow checkpoints are sealed with a machine-scoped HMAC. Credentials and recovery material are never stored."
+                           TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,24,0" />
+              </StackPanel>
+              <Border Grid.Column="1" Background="#FFE7F3ED" CornerRadius="14" Padding="12,5" VerticalAlignment="Center">
+                <TextBlock Text="NO CHECKPOINT" FontFamily="{StaticResource MonoFont}" FontSize="11" Foreground="{StaticResource PositiveBrush}" />
+              </Border>
+            </Grid>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="Build Matrix">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="42,34" MaxWidth="1080" HorizontalAlignment="Left">
+              <TextBlock Text="Build Matrix" FontSize="34" FontWeight="Bold" />
+              <TextBlock Text="Four independently identified artifacts. Build only the profile matching the verified ADK servicing receipt."
+                         FontSize="17" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,8,0,26" />
+              <UniformGrid Columns="2">
+                <Border Style="{StaticResource WorkflowCardStyle}"><StackPanel><TextBlock Text="x64-2023CA" Style="{StaticResource CardTitleStyle}" /><TextBlock Text="ADK 10.1.26100.2454 · KB5101684 · /bootex" Style="{StaticResource CardBodyStyle}" /><TextBlock Text="SOURCE READY · VM EVIDENCE REQUIRED" Style="{StaticResource MonoStatusStyle}" /></StackPanel></Border>
+                <Border Style="{StaticResource WorkflowCardStyle}"><StackPanel><TextBlock Text="x64-2011CA" Style="{StaticResource CardTitleStyle}" /><TextBlock Text="ADK 10.1.26100.2454 · KB5101684 · compatibility" Style="{StaticResource CardBodyStyle}" /><TextBlock Text="SOURCE READY · VM EVIDENCE REQUIRED" Style="{StaticResource MonoStatusStyle}" /></StackPanel></Border>
+                <Border Style="{StaticResource WorkflowCardStyle}"><StackPanel><TextBlock Text="arm64-2023CA" Style="{StaticResource CardTitleStyle}" /><TextBlock Text="ADK 10.1.28000.1 · KB5101681 · /bootex" Style="{StaticResource CardBodyStyle}" /><TextBlock Text="EXPERIMENTAL · HARDWARE GATE OPEN" Style="{StaticResource MonoStatusStyle}" /></StackPanel></Border>
+                <Border Style="{StaticResource WorkflowCardStyle}"><StackPanel><TextBlock Text="arm64-2011CA" Style="{StaticResource CardTitleStyle}" /><TextBlock Text="ADK 10.1.28000.1 · KB5101681 · compatibility" Style="{StaticResource CardBodyStyle}" /><TextBlock Text="EXPERIMENTAL · HARDWARE GATE OPEN" Style="{StaticResource MonoStatusStyle}" /></StackPanel></Border>
+              </UniformGrid>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="Proxmox Test Lab">
+          <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="42,34" MaxWidth="900" HorizontalAlignment="Left"><TextBlock Text="Proxmox Test Lab" FontSize="34" FontWeight="Bold" /><TextBlock Text="Session-only connector for labeled, disposable, disconnected x64 UEFI test VMs." Style="{StaticResource PageIntroStyle}" /><Border Style="{StaticResource WorkflowCardStyle}"><StackPanel><TextBlock Text="Connector gate" Style="{StaticResource CardTitleStyle}" /><TextBlock Text="Endpoint, pinned certificate fingerprint, resource limits, and an operator-supplied session credential are required. The connector may manage only resources carrying its unique label." Style="{StaticResource CardBodyStyle}" /><Button Content="Configure session" IsEnabled="False" ToolTip="Enabled after a signed broker package passes verification." HorizontalAlignment="Left" Margin="0,16,0,0" /></StackPanel></Border></StackPanel></ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="USB Target Confirmation">
+          <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="42,34" MaxWidth="900" HorizontalAlignment="Left"><TextBlock Text="USB Target Confirmation" FontSize="34" FontWeight="Bold" /><TextBlock Text="Destructive media creation requires one verified ISO, one removable disk, a fresh identity scan, and a target-bound phrase." Style="{StaticResource PageIntroStyle}" /><Border Background="#FFFFEAE7" BorderBrush="{StaticResource DangerBrush}" BorderThickness="1" CornerRadius="12" Padding="22"><StackPanel><TextBlock Text="ERASE GATE CLOSED" Foreground="{StaticResource DangerBrush}" FontFamily="{StaticResource MonoFont}" FontWeight="Bold" /><TextBlock Text="No removable target has been selected and the signed USB writer has not been verified." Style="{StaticResource CardBodyStyle}" /></StackPanel></Border></StackPanel></ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="UEFI Backup and Repair">
+          <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="42,34" MaxWidth="900" HorizontalAlignment="Left"><TextBlock Text="UEFI Backup &amp; Repair" FontSize="34" FontWeight="Bold" /><TextBlock Text="Discover first, prove the non-target EFI backup is readable, approve one Windows/EFI pair, then run only BCDBoot." Style="{StaticResource PageIntroStyle}" /><Border Style="{StaticResource WorkflowCardStyle}"><StackPanel><TextBlock Text="Rollback before repair" Style="{StaticResource CardTitleStyle}" /><TextBlock Text="The workflow refuses ambiguous partitions, unhealthy storage, missing backup evidence, changed target fingerprints, or an untested rollback package." Style="{StaticResource CardBodyStyle}" /><TextBlock Text="PROPOSAL ONLY" Style="{StaticResource MonoStatusStyle}" /></StackPanel></Border></StackPanel></ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="BitLocker Salvage">
+          <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="42,34" MaxWidth="900" HorizontalAlignment="Left"><TextBlock Text="BitLocker Salvage" FontSize="34" FontWeight="Bold" /><TextBlock Text="Advanced operator workflow for an owner-supplied .bek and an optional matching key package." Style="{StaticResource PageIntroStyle}" /><Border Background="#FFFFEAE7" BorderBrush="{StaticResource DangerBrush}" BorderThickness="1" CornerRadius="12" Padding="22"><StackPanel><TextBlock Text="OUTPUT IS COMPLETELY OVERWRITTEN" Foreground="{StaticResource DangerBrush}" FontFamily="{StaticResource MonoFont}" FontWeight="Bold" /><TextBlock Text="Source and output must be distinct. Output must be blank, disposable, and at least as large as the source. Numerical recovery passwords are not supported." Style="{StaticResource CardBodyStyle}" /><TextBlock Text="ADVANCED OPERATOR · GATE CLOSED" Style="{StaticResource MonoStatusStyle}" /></StackPanel></Border></StackPanel></ScrollViewer>
+        </TabItem>
+
+        <TabItem Header="Verification and Receipts">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="42,34" MaxWidth="900" HorizontalAlignment="Left">
+              <TextBlock Text="Verification &amp; Receipts" FontSize="34" FontWeight="Bold" />
+              <TextBlock Text="Source tests, package signatures, VM boots, virtual targets, emulation, and physical hardware are separate evidence tiers." Style="{StaticResource PageIntroStyle}" />
+              <Border Style="{StaticResource WorkflowCardStyle}">
+                <StackPanel>
+                  <TextBlock Text="No completed runtime receipts" Style="{StaticResource CardTitleStyle}" />
+                  <TextBlock Text="The current source milestone has test evidence only. A receipt appears here after a signed action and its post-action verification both finish." Style="{StaticResource CardBodyStyle}" />
+                  <Button Content="Export support bundle" Click="ExportSupportBundle_Click" HorizontalAlignment="Left" Margin="0,16,0,0" />
+                  <TextBlock x:Name="ReceiptStatus" Text="Select only receipts and ISO verification reports you have reviewed."
+                             TextWrapping="Wrap" Margin="0,12,0,0" AutomationProperties.LiveSetting="Polite" />
+                </StackPanel>
+              </Border>
+              <Border Style="{StaticResource WorkflowCardStyle}" Margin="0,18,0,0">
+                <StackPanel>
+                  <TextBlock Text="Optional OpenTelemetry" Style="{StaticResource CardTitleStyle}" />
+                  <TextBlock Text="Disabled by default. Administrator policy and operator consent are both required. The endpoint is never embedded." Style="{StaticResource CardBodyStyle}" />
+                  <CheckBox x:Name="TelemetryConsent" Content="I consent to this bounded telemetry session" Margin="0,14,0,0" />
+                  <TextBlock Text="HTTPS OTLP endpoint" FontWeight="Bold" Margin="0,14,0,5" />
+                  <TextBox x:Name="TelemetryEndpoint" AutomationProperties.Name="HTTPS OTLP endpoint" />
+                  <TextBlock Text="Exact outgoing fields" FontWeight="Bold" Margin="0,16,0,5" />
+                  <TextBlock FontFamily="{StaticResource MonoFont}" FontSize="11" TextWrapping="Wrap"
+                             Text="schemaVersion · eventName · appVersion · actionStage · resultCategory · architecture · durationBucket · recordedAtUtc" />
+                  <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                    <Button Content="Disable" Click="DisableTelemetry_Click" Margin="0,0,8,0" />
+                    <Button Content="Clear queue" Click="ClearTelemetry_Click" Margin="0,0,8,0" />
+                    <Button Content="Test endpoint" Click="TestTelemetry_Click" />
+                  </StackPanel>
+                  <TextBlock x:Name="TelemetryStatus" Text="Disabled; queue empty." Margin="0,12,0,0"
+                             AutomationProperties.LiveSetting="Polite" />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+      </TabControl>
+    </Grid>
+  </Grid>
+</Window>

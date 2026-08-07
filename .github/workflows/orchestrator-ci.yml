@@ -1,0 +1,45 @@
+name: Orchestrator CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  windows-source:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 8.0.x
+      - name: Python safety contracts
+        run: python -m unittest discover -s tests -v
+      - name: Restore
+        run: dotnet restore orchestrator/CodexRescue.Orchestrator.sln
+      - name: Build
+        run: dotnet build orchestrator/CodexRescue.Orchestrator.sln --configuration Release --no-restore
+      - name: Test
+        run: dotnet test orchestrator/CodexRescue.Orchestrator.sln --configuration Release --no-build
+      - name: PowerShell analysis
+        shell: pwsh
+        run: |
+          Install-Module PSScriptAnalyzer -RequiredVersion 1.24.0 -Scope CurrentUser -Force
+          $results = @(
+            Invoke-ScriptAnalyzer -Path scripts -Recurse -Severity Error
+            Invoke-ScriptAnalyzer -Path orchestrator/packaging -Recurse -Severity Error
+          )
+          if ($results) { $results | Format-Table -AutoSize; exit 1 }
+      - name: Publish unsigned developer binaries
+        shell: pwsh
+        run: |
+          dotnet publish orchestrator/src/CodexRescue.Orchestrator -c Release -r win-x64 --self-contained true -o .artifacts/app
+          dotnet publish orchestrator/src/CodexRescue.Broker -c Release -r win-x64 --self-contained true -o .artifacts/broker
+          Compress-Archive .artifacts/* .artifacts/CodexRescue-UNSIGNED-DEVELOPER.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CodexRescue-UNSIGNED-DEVELOPER
+          path: .artifacts/CodexRescue-UNSIGNED-DEVELOPER.zip

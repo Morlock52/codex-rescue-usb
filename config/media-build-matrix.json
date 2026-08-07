@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "researchCutoff": "2026-08-05",
+  "artifacts": [
+    {
+      "artifactId": "x64-2023CA",
+      "architecture": "amd64",
+      "trustPath": "2023CA",
+      "adkVersion": "10.1.26100.2454",
+      "servicingUpdate": "KB5101684",
+      "evidenceTier": "TechnicalPreview"
+    },
+    {
+      "artifactId": "x64-2011CA",
+      "architecture": "amd64",
+      "trustPath": "2011CA",
+      "adkVersion": "10.1.26100.2454",
+      "servicingUpdate": "KB5101684",
+      "evidenceTier": "Compatibility"
+    },
+    {
+      "artifactId": "arm64-2023CA",
+      "architecture": "arm64",
+      "trustPath": "2023CA",
+      "adkVersion": "10.1.28000.1",
+      "servicingUpdate": "KB5101681",
+      "evidenceTier": "Experimental"
+    },
+    {
+      "artifactId": "arm64-2011CA",
+      "architecture": "arm64",
+      "trustPath": "2011CA",
+      "adkVersion": "10.1.28000.1",
+      "servicingUpdate": "KB5101681",
+      "evidenceTier": "Experimental"
+    }
+  ]
+}

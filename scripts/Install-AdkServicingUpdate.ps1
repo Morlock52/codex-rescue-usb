@@ -22,10 +22,28 @@ param(
     [ValidatePattern('^https://(aka\.ms|download\.microsoft\.com)/')]
     [uri]$DownloadUri = 'https://aka.ms/Windows_ADK_10.1.26100.2454_Update_KB5101684.zip',
 
+    [ValidateSet('10.1.26100.2454', '10.1.28000.1')]
+    [string]$AdkVersion = '10.1.26100.2454',
+
+    [ValidateSet('KB5101684', 'KB5101681')]
+    [string]$KnowledgeBase = 'KB5101684',
+
     [string]$OutputDirectory = 'C:\CodexRescueVmAudit\ADK-Servicing'
 )
 
 $ErrorActionPreference = 'Stop'
+
+$expectedPair = @{
+    '10.1.26100.2454' = 'KB5101684'
+    '10.1.28000.1' = 'KB5101681'
+}
+if ($expectedPair[$AdkVersion] -cne $KnowledgeBase) {
+    throw "ADK $AdkVersion must use servicing update $($expectedPair[$AdkVersion])."
+}
+if ($DownloadUri.AbsoluteUri -notmatch [regex]::Escape($AdkVersion) -or
+    $DownloadUri.AbsoluteUri -notmatch [regex]::Escape($KnowledgeBase)) {
+    throw 'DownloadUri does not match the declared ADK version and servicing update.'
+}
 
 function Test-Administrator {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -95,6 +113,8 @@ if (@($results | Where-Object Status -Like 'Applied*').Count -eq 0) {
 $manifest = [ordered]@{
     SchemaVersion = 1
     CompletedAt = (Get-Date).ToUniversalTime().ToString('o')
+    AdkVersion = $AdkVersion
+    KnowledgeBase = $KnowledgeBase
     DownloadUri = $DownloadUri.AbsoluteUri
     PackageSha256 = $packageHash
     RestartRequired = [bool]($results.Status -contains 'AppliedRebootRequired')

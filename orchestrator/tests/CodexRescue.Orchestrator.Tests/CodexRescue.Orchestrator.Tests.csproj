@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.8.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="4.3.3" />
+    <PackageReference Include="MSTest.TestFramework" Version="4.3.3" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.10" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\CodexRescue.Broker\CodexRescue.Broker.csproj" />
+    <ProjectReference Include="..\..\src\CodexRescue.Contracts\CodexRescue.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\CodexRescue.Orchestrator\CodexRescue.Orchestrator.csproj" />
+  </ItemGroup>
+</Project>

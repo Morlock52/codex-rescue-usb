@@ -3,9 +3,9 @@
 Builds the Codex Rescue Windows PE ISO.
 
 .DESCRIPTION
-Stages an amd64 Windows PE working directory, injects the checked-in read-only
-rescue launcher and evidence scripts into boot.wim, and creates an ISO using
-Microsoft's current Windows UEFI CA 2023-signed boot files.
+Stages an x64 or Arm64 Windows PE working directory, injects the checked-in
+read-only rescue launcher and evidence scripts into boot.wim, and creates an
+independently identified 2023-CA or 2011-CA ISO.
 
 .PARAMETER OutputDirectory
 Directory that receives the temporary work tree and completed ISO. Defaults to
@@ -24,6 +24,20 @@ Recreates an existing work tree and permits replacement of an existing ISO.
 param(
     [string]$OutputDirectory,
     [string]$Name = 'Codex-Rescue-ISO',
+
+    [ValidateSet('amd64', 'arm64')]
+    [string]$Architecture = 'amd64',
+
+    [ValidateSet('2023CA', '2011CA')]
+    [string]$TrustPath = '2023CA',
+
+    [ValidatePattern('^(x64|arm64)-(2023CA|2011CA)$')]
+    [string]$ArtifactId = 'x64-2023CA',
+
+    [string]$AdkVersion = 'UnverifiedDeveloperBuild',
+
+    [string]$ServicingUpdate = 'UnverifiedDeveloperBuild',
+
     [switch]$Force
 )
 
@@ -41,7 +55,7 @@ $adkRoot = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\Assessment and De
 $deploymentTools = Join-Path $adkRoot 'Deployment Tools'
 $setAdkEnvironment = Join-Path $deploymentTools 'DandISetEnv.bat'
 $winPeTools = Join-Path $adkRoot 'Windows Preinstallation Environment'
-$winPeOptionalComponents = Join-Path $winPeTools 'amd64\WinPE_OCs'
+$winPeOptionalComponents = Join-Path $winPeTools "$Architecture\WinPE_OCs"
 $copype = Join-Path $winPeTools 'copype.cmd'
 $makeMedia = Join-Path $winPeTools 'MakeWinPEMedia.cmd'
 if (!(Test-Path $setAdkEnvironment) -or !(Test-Path $copype) -or !(Test-Path $makeMedia) -or !(Test-Path $winPeOptionalComponents)) {
@@ -112,11 +126,21 @@ function Copy-BatchFile {
         Set-Content -LiteralPath $Destination -Encoding ASCII
 }
 
-$work = Join-Path $OutputDirectory 'work'
+$expectedArtifactId = if ($Architecture -ceq 'amd64') {
+    "x64-$TrustPath"
+}
+else {
+    "arm64-$TrustPath"
+}
+if ($ArtifactId -cne $expectedArtifactId) {
+    throw "ArtifactId '$ArtifactId' does not match architecture and trust path '$expectedArtifactId'."
+}
+
+$work = Join-Path $OutputDirectory "work-$ArtifactId"
 $iso = Join-Path $OutputDirectory "$Name.iso"
 if (Test-Path $work) { if (!$Force) { throw "Build workspace exists: $work. Re-run with -Force." }; Remove-Item -Recurse -Force $work }
 New-Item -ItemType Directory -Force $OutputDirectory | Out-Null
-Invoke-AdkCommand -Command $copype -Arguments @('amd64', $work)
+Invoke-AdkCommand -Command $copype -Arguments @($Architecture, $work)
 
 $media = Join-Path $work 'media'
 $bootWim = Join-Path $media 'sources\boot.wim'
@@ -170,8 +194,18 @@ $mediaArguments = @('/ISO')
 if ($Force) {
     $mediaArguments += '/F'
 }
-$mediaArguments += @($work, $iso, '/BOOTEX')
+$mediaArguments += @($work, $iso)
+if ($TrustPath -ceq '2023CA') {
+    $mediaArguments += '/BOOTEX'
+}
 Invoke-AdkCommand -Command $makeMedia -Arguments $mediaArguments
 $verifier = Join-Path $PSScriptRoot 'Test-RescueIso.ps1'
-& $verifier -IsoPath $iso -OutputPath "$iso.verification.json" | Out-Host
+& $verifier `
+    -IsoPath $iso `
+    -OutputPath "$iso.verification.json" `
+    -ArtifactId $ArtifactId `
+    -Architecture $Architecture `
+    -TrustPath $TrustPath `
+    -AdkVersion $AdkVersion `
+    -ServicingUpdate $ServicingUpdate | Out-Host
 Write-Output "Created and verified $iso"
