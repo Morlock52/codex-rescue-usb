@@ -8,20 +8,20 @@ Fresh local verification on August 6, 2026:
 
 ```text
 python3 -W error::ResourceWarning -m unittest discover -s tests -v
-Ran 173 tests
+Ran 176 tests
 OK
 ```
 
 The original 129 tests remain. The added source contracts cover the .NET assemblies, wire contracts, WPF workflow, state machine, release verification, sealed checkpoints, telemetry policy, same-user named-pipe broker handoff, typed broker, signed asset catalog, sanitized support export, four-artifact media matrix, guarded USB writer, UEFI executor/rollback, `.bek` salvage, MSIX/release workflows, online/offline update boundaries, and Proxmox connector.
 
-The new .NET source has not yet been compiled on this Mac because the Windows .NET/WPF toolchain is unavailable here. Windows GitHub Actions build and MSTest results therefore remain open. Automated tests do not prove a signed package, VM execution, physical USB, or production recovery.
+Windows CI run [31137098700](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31137098700) then produced a clean Windows build with 0 warnings, 15/15 passing MSTests, a passing PSScriptAnalyzer gate, and a self-contained x64 artifact explicitly labeled unsigned developer output. Automated tests do not prove a signed package, installation, UI accessibility, VM execution, physical USB, or production recovery.
 
 ## Orchestrator milestone evidence
 
 | Area | Strongest current evidence | Open gate |
 | --- | --- | --- |
 | Figma workflow | Seven checked-in design exports | Windows runtime/accessibility comparison |
-| .NET Orchestrator | Source and cross-platform structural contracts | Windows build and MSTest |
+| .NET Orchestrator | 176 source/fixture tests; preceding source passed a clean Windows build and 15 MSTests | Fresh guided-action build, runtime accessibility, and integration matrix |
 | Signed broker | Typed allowlist, fixed assets, Authenticode/hash source contracts | Azure-signed package tamper tests |
 | Updates | Detached signature, stable publisher, chain/hash/path verification source | Signed clean-VM update and N-1 rollback |
 | Four-ISO matrix | Exact current ADK/KB profiles and receipt-gated builder source | New x64 builds/boots and Arm64 build/emulation |

@@ -1,7 +1,8 @@
 # Codex Rescue Orchestrator
 
 [![Lifecycle: Enterprise Technical Preview](https://img.shields.io/badge/lifecycle-enterprise%20technical%20preview-155EEF)](#evidence-ledger)
-[![Source contracts: 173 passing](https://img.shields.io/badge/source%20contracts-173%20passing-16803C)](#verify-the-source)
+[![Source contracts: 176 passing](https://img.shields.io/badge/source%20contracts-176%20passing-16803C)](#verify-the-source)
+[![Windows CI](https://github.com/Morlock52/codex-rescue-usb/actions/workflows/orchestrator-ci.yml/badge.svg)](https://github.com/Morlock52/codex-rescue-usb/actions/workflows/orchestrator-ci.yml)
 [![Installer: signing gate open](https://img.shields.io/badge/signed%20installer-gate%20open-B54708)](#install-the-orchestrator)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-7C3AED)](LICENSE)
 
@@ -27,8 +28,9 @@ The repository now contains the source implementation for:
 - opt-in, allowlisted telemetry policy with zero transmission by default;
 - signed MSIX/App Installer packaging and Azure Artifact Signing release workflows; and
 - a complete Figma workflow system translated into shared WPF resources.
+- guided WPF Plan/Apply controls for toolchain, media, Proxmox, USB, UEFI, and salvage workflows.
 
-This milestone does **not** yet include a publicly signed MSIX release, successful Windows CI result for the new .NET source, live Proxmox connector receipt, new four-ISO build receipt, positive virtual USB write, disposable-VM UEFI repair/rollback receipt, `.bek` salvage receipt, Arm64 hardware result, or physical USB result. Those evidence gates are deliberately kept open below.
+This milestone does **not** yet include a publicly signed MSIX release, live Proxmox connector receipt, new four-ISO build receipt, positive virtual USB write, disposable-VM UEFI repair/rollback receipt, `.bek` salvage receipt, Arm64 hardware result, or physical USB result. Those evidence gates are deliberately kept open below.
 
 ## Why technical teams evaluate it
 
@@ -395,7 +397,7 @@ Read [SECURITY.md](SECURITY.md) and the detailed [security model](docs/reference
 | --- | --- | --- | --- |
 | Earlier fixture and WinPE baseline | 129-test baseline, exact alpha.13 VM evidence already in repo | Verified within its documented scope | Preserve while extending |
 | New Figma workflow | Seven exported source designs and shared visual language | Design complete | Windows runtime screenshot comparison and accessibility review |
-| New Orchestrator source | Contracts, WPF shell, state machine, broker, update, telemetry, and connector source | 173 Python/source contracts pass locally | Clean Windows .NET build and unit tests |
+| New Orchestrator source | Contracts, guided action UI, state machine, broker, update, telemetry, and connector source | 176 Python contracts; prior Windows build and 15 MSTests pass | Fresh Windows CI, runtime accessibility, and integration matrix |
 | Privileged asset boundary | Fixed catalog, individual script signing requirement, WinVerifyTrust, fixed runner | Source verified | Azure-signed package runtime and tamper tests |
 | Signed installation/update | MSIX/App Installer and protected-tag OIDC workflow | Pipeline source complete | Azure identity, protected environment, signed install, N-1 update |
 | x64 four-path media work | Matrix and receipt-gated builders | Source verified | Build both x64 trust paths and boot in disconnected disposable VMs |
@@ -414,7 +416,7 @@ Source tests are not runtime proof. VM proof is not physical proof. Emulation is
 | Phase | Outcome | Current state | Exit gate |
 | --- | --- | --- | --- |
 | 1. Design and contracts | Complete guided/Expert UX and versioned wire contracts | Complete at source/design level | Figma/WPF mapping and source tests |
-| 2. Standard-user Orchestrator | Audit, state machine, sealed resume, updates, privacy | Source implemented | Windows build, unit, accessibility, offline/default-network tests |
+| 2. Standard-user Orchestrator | Audit, state machine, sealed resume, updates, privacy | Windows source build and unit tests pass | Accessibility and offline/default-network integration tests |
 | 3. Signed broker and packaging | Allowlisted elevation and signed MSIX/App Installer | Source implemented | Azure-signed clean-VM install and N-1 update |
 | 4. Media matrix and lab | Four ISOs, per-artifact provenance, isolated Proxmox x64 tests | Source implemented | Both x64 boots; Arm64 build/emulation kept Experimental |
 | 5. Guarded repairs | USB, UEFI repair/rollback, `.bek` salvage | Source implemented | Disposable virtual-disk and VM acceptance suite |
@@ -432,7 +434,7 @@ python3 -m compileall -q src tests
 node --check web/assets/app.js
 ```
 
-Current local result: **173 tests passed**. The Mac host does not have the Windows .NET/WPF toolchain, so the new .NET build and MSTest suite must pass the repository’s `windows-2025` GitHub Actions job before this milestone can be called Windows-build verified.
+Current evidence: **176 local source/fixture tests passed**. The preceding source milestone also had a clean `windows-2025` build with **0 warnings**, **15/15 MSTests**, PSScriptAnalyzer, self-contained x64 publish, and an explicitly unsigned developer artifact in [CI run 31137098700](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31137098700). A fresh Windows run is required for the guided-action changes. These checks do not prove signing, installation, UI accessibility, VM boot, or hardware recovery.
 
 Windows source verification:
 

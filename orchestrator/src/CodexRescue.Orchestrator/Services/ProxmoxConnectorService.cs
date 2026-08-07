@@ -26,6 +26,7 @@ public sealed class ProxmoxConnectorService
     private readonly HttpClient _httpClient;
     private readonly ProxmoxProfileV1 _profile;
     private readonly HashSet<int> _trackedVmIds = [];
+    private readonly HashSet<string> _trackedIsoVolumes = new(StringComparer.Ordinal);
     private readonly string _resourceLabel = $"codex-rescue-{Guid.NewGuid():N}";
 
     internal ProxmoxConnectorService(HttpClient httpClient, ProxmoxProfileV1 profile)
@@ -65,7 +66,9 @@ public sealed class ProxmoxConnectorService
             form,
             cancellationToken);
         response.EnsureSuccessStatusCode();
-        return $"{storage}:iso/{uploadName}";
+        var volume = $"{storage}:iso/{uploadName}";
+        _trackedIsoVolumes.Add(volume);
+        return volume;
     }
 
     public async Task<ProxmoxTestVm> CreateDisconnectedX64UefiVmAsync(
@@ -137,7 +140,7 @@ public sealed class ProxmoxConnectorService
             _resourceLabel,
             envelope.Data.Status,
             DateTimeOffset.UtcNow,
-            "Proxmox x64 VM runtime; not physical hardware proof");
+            "Proxmox hypervisor power-state observation; not guest boot or physical hardware proof");
     }
 
     public async Task DeleteTrackedVmAsync(
@@ -165,11 +168,53 @@ public sealed class ProxmoxConnectorService
             throw new InvalidOperationException("The VM is not tracked by this connector session.");
         }
 
+        using var stopTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        stopTimeout.CancelAfter(TimeSpan.FromMinutes(2));
+        var status = await GetVmStatusAsync(vm.Node, vm.VmId, stopTimeout.Token);
+        if (!string.Equals(status, "stopped", StringComparison.Ordinal))
+        {
+            using var stop = await _httpClient.PostAsync(
+                $"nodes/{vm.Node}/qemu/{vm.VmId}/status/stop",
+                content: null,
+                stopTimeout.Token);
+            stop.EnsureSuccessStatusCode();
+            do
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2), stopTimeout.Token);
+                status = await GetVmStatusAsync(vm.Node, vm.VmId, stopTimeout.Token);
+            }
+            while (!string.Equals(status, "stopped", StringComparison.Ordinal));
+        }
+
         using var response = await _httpClient.DeleteAsync(
             $"nodes/{vm.Node}/qemu/{vm.VmId}?purge=1&destroy-unreferenced-disks=1",
             cancellationToken);
         response.EnsureSuccessStatusCode();
         _trackedVmIds.Remove(vm.VmId);
+    }
+
+    public async Task DeleteTrackedIsoAsync(
+        string node,
+        string storage,
+        string isoVolume,
+        string confirmationPhrase,
+        CancellationToken cancellationToken)
+    {
+        ValidateIdentifier(node, nameof(node));
+        ValidateIdentifier(storage, nameof(storage));
+        var expectedPhrase = $"DELETE ISO {_resourceLabel}";
+        if (!FixedPhraseEquals(confirmationPhrase, expectedPhrase) ||
+            !_trackedIsoVolumes.Contains(isoVolume) ||
+            !isoVolume.StartsWith($"{storage}:iso/{_resourceLabel}-", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("Only this session's labeled ISO may be deleted after target-bound confirmation.");
+        }
+
+        using var response = await _httpClient.DeleteAsync(
+            $"nodes/{node}/storage/{storage}/content/{Uri.EscapeDataString(isoVolume)}",
+            cancellationToken);
+        response.EnsureSuccessStatusCode();
+        _trackedIsoVolumes.Remove(isoVolume);
     }
 
     private async Task<int> GetNextVmIdAsync(CancellationToken cancellationToken)
@@ -194,7 +239,18 @@ public sealed class ProxmoxConnectorService
             .ToDictionary(
                 property => property.Name,
                 property => property.Value.ToString(),
-                StringComparer.Ordinal);
+            StringComparer.Ordinal);
+    }
+
+    private async Task<string> GetVmStatusAsync(string node, int vmId, CancellationToken cancellationToken)
+    {
+        using var response = await _httpClient.GetAsync(
+            $"nodes/{node}/qemu/{vmId}/status/current",
+            cancellationToken);
+        response.EnsureSuccessStatusCode();
+        var envelope = await response.Content.ReadFromJsonAsync<ApiEnvelope<VmStatus>>(cancellationToken)
+            ?? throw new InvalidDataException("Proxmox returned no VM status.");
+        return envelope.Data.Status;
     }
 
     private void RequireTracked(ProxmoxTestVm vm)

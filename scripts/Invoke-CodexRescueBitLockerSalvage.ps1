@@ -23,7 +23,9 @@ param(
     [Parameter(Mandatory)][string]$KnownMarkerRelativePath,
     [Parameter(Mandatory)][ValidatePattern('^[A-Fa-f0-9]{64}$')][string]$KnownMarkerSha256,
     [string]$ConfirmationPhrase,
-    [string]$OutputReceiptPath
+    [string]$OutputReceiptPath,
+
+    [switch]$AsJson
 )
 
 Set-StrictMode -Version Latest
@@ -109,7 +111,10 @@ $plan = [ordered]@{
     RequiredConfirmationPhrase = $expectedPhrase
     WritePerformed = $false
 }
-if ($Mode -ceq 'Plan') { return [pscustomobject]$plan }
+if ($Mode -ceq 'Plan') {
+    if ($AsJson) { return ($plan | ConvertTo-Json -Depth 8 -Compress) }
+    return [pscustomobject]$plan
+}
 
 if (!(Test-Administrator)) { throw 'Apply requires an elevated Windows PowerShell session.' }
 if ($ConfirmationPhrase -cne $expectedPhrase) { throw 'The target-bound confirmation phrase does not match.' }

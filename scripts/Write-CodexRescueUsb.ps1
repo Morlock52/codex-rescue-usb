@@ -26,7 +26,9 @@ param(
 
     [string]$ConfirmationPhrase,
 
-    [string]$OutputReceiptPath
+    [string]$OutputReceiptPath,
+
+    [switch]$AsJson
 )
 
 Set-StrictMode -Version Latest
@@ -138,6 +140,7 @@ $plan = [ordered]@{
     WritePerformed = $false
 }
 if ($Mode -ceq 'Plan') {
+    if ($AsJson) { return ($plan | ConvertTo-Json -Depth 8 -Compress) }
     return [pscustomobject]$plan
 }
 

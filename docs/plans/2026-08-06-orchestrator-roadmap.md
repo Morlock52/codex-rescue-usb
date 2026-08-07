@@ -82,11 +82,11 @@ Codex runs in maintained full Windows. WinPE remains a narrow offline recovery s
 ### Current evidence
 
 - Source and tests are checked in.
-- 173 cross-platform source/fixture contracts pass locally.
+- 176 cross-platform source/fixture contracts pass locally.
+- Windows CI run 31137098700 built with 0 warnings, passed 15/15 MSTests and PSScriptAnalyzer, and published an explicitly unsigned x64 developer artifact.
 
 ### Open exit gates
 
-- .NET restore/build/MSTest on `windows-2025`.
 - Fresh install, current update, duplicate refusal, downgrade refusal, N-1 rollback, offline import, changed signature/hash, no network, partial install, UAC cancel, reboot, and resume integration tests.
 - Confirm zero network requests with maintenance and telemetry disabled.
 
