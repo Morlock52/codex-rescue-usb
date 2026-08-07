@@ -1,7 +1,7 @@
 # Codex Rescue Orchestrator
 
 [![Lifecycle: Enterprise Technical Preview](https://img.shields.io/badge/lifecycle-enterprise%20technical%20preview-155EEF)](#evidence-ledger)
-[![Source contracts: 176 passing](https://img.shields.io/badge/source%20contracts-176%20passing-16803C)](#verify-the-source)
+[![Source contracts: 180 passing](https://img.shields.io/badge/source%20contracts-180%20passing-16803C)](#verify-the-source)
 [![Windows CI](https://github.com/Morlock52/codex-rescue-usb/actions/workflows/orchestrator-ci.yml/badge.svg)](https://github.com/Morlock52/codex-rescue-usb/actions/workflows/orchestrator-ci.yml)
 [![Installer: signing gate open](https://img.shields.io/badge/signed%20installer-gate%20open-B54708)](#install-the-orchestrator)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-7C3AED)](LICENSE)
@@ -400,7 +400,7 @@ Read [SECURITY.md](SECURITY.md) and the detailed [security model](docs/reference
 | --- | --- | --- | --- |
 | Earlier fixture and WinPE baseline | 129-test baseline, exact alpha.13 VM evidence already in repo | Verified within its documented scope | Preserve while extending |
 | New Figma workflow | Seven exported source designs and shared visual language | Design complete | Windows runtime screenshot comparison and accessibility review |
-| New Orchestrator source | Contracts, guided action UI, state machine, broker, update, telemetry, and connector source | 176 Python contracts, 0-warning Windows build, and 17 MSTests pass | Runtime accessibility and integration matrix |
+| New Orchestrator source | Contracts, guided action UI, state machine, broker, update, telemetry, and connector source | 180 Python contracts, 0-warning Windows build, and 21 MSTests pass | Runtime accessibility and integration matrix |
 | Privileged asset boundary | Fixed catalog, individual script signing requirement, WinVerifyTrust, fixed runner | Source verified | Azure-signed package runtime and tamper tests |
 | Signed installation/update | MSIX/App Installer and protected-tag OIDC workflow | Pipeline source complete | Azure identity, protected environment, signed install, N-1 update |
 | x64 four-path media work | Matrix and receipt-gated builders | Source verified | Build both x64 trust paths and boot in disconnected disposable VMs |
@@ -437,7 +437,7 @@ python3 -m compileall -q src tests
 node --check web/assets/app.js
 ```
 
-Current evidence: **176 local source/fixture tests passed**, followed by a clean `windows-2025` build with **0 warnings**, **17/17 MSTests**, PSScriptAnalyzer, self-contained x64 publish, and an explicitly unsigned developer artifact in [CI run 31137807793](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31137807793). These checks prove source compilation and automated contracts; they do not prove signing, installation, UI accessibility, VM boot, or hardware recovery.
+Current evidence for commit `d24e492`: **180 local source/fixture tests passed**, followed by a clean `windows-2025` build with **0 warnings**, **21/21 MSTests**, PSScriptAnalyzer, self-contained x64 publish, and an explicitly unsigned developer artifact in [CI run 31138904863](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31138904863). These checks prove source compilation and automated contracts; they do not prove signing, installation, UI accessibility, VM boot, or hardware recovery.
 
 Windows source verification:
 
