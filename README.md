@@ -397,7 +397,7 @@ Read [SECURITY.md](SECURITY.md) and the detailed [security model](docs/reference
 | --- | --- | --- | --- |
 | Earlier fixture and WinPE baseline | 129-test baseline, exact alpha.13 VM evidence already in repo | Verified within its documented scope | Preserve while extending |
 | New Figma workflow | Seven exported source designs and shared visual language | Design complete | Windows runtime screenshot comparison and accessibility review |
-| New Orchestrator source | Contracts, guided action UI, state machine, broker, update, telemetry, and connector source | 176 Python contracts; prior Windows build and 15 MSTests pass | Fresh Windows CI, runtime accessibility, and integration matrix |
+| New Orchestrator source | Contracts, guided action UI, state machine, broker, update, telemetry, and connector source | 176 Python contracts, 0-warning Windows build, and 17 MSTests pass | Runtime accessibility and integration matrix |
 | Privileged asset boundary | Fixed catalog, individual script signing requirement, WinVerifyTrust, fixed runner | Source verified | Azure-signed package runtime and tamper tests |
 | Signed installation/update | MSIX/App Installer and protected-tag OIDC workflow | Pipeline source complete | Azure identity, protected environment, signed install, N-1 update |
 | x64 four-path media work | Matrix and receipt-gated builders | Source verified | Build both x64 trust paths and boot in disconnected disposable VMs |
@@ -434,7 +434,7 @@ python3 -m compileall -q src tests
 node --check web/assets/app.js
 ```
 
-Current evidence: **176 local source/fixture tests passed**. The preceding source milestone also had a clean `windows-2025` build with **0 warnings**, **15/15 MSTests**, PSScriptAnalyzer, self-contained x64 publish, and an explicitly unsigned developer artifact in [CI run 31137098700](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31137098700). A fresh Windows run is required for the guided-action changes. These checks do not prove signing, installation, UI accessibility, VM boot, or hardware recovery.
+Current evidence: **176 local source/fixture tests passed**, followed by a clean `windows-2025` build with **0 warnings**, **17/17 MSTests**, PSScriptAnalyzer, self-contained x64 publish, and an explicitly unsigned developer artifact in [CI run 31137807793](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31137807793). These checks prove source compilation and automated contracts; they do not prove signing, installation, UI accessibility, VM boot, or hardware recovery.
 
 Windows source verification:
 

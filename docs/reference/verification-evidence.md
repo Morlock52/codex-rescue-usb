@@ -14,14 +14,14 @@ OK
 
 The original 129 tests remain. The added source contracts cover the .NET assemblies, wire contracts, WPF workflow, state machine, release verification, sealed checkpoints, telemetry policy, same-user named-pipe broker handoff, typed broker, signed asset catalog, sanitized support export, four-artifact media matrix, guarded USB writer, UEFI executor/rollback, `.bek` salvage, MSIX/release workflows, online/offline update boundaries, and Proxmox connector.
 
-Windows CI run [31137098700](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31137098700) then produced a clean Windows build with 0 warnings, 15/15 passing MSTests, a passing PSScriptAnalyzer gate, and a self-contained x64 artifact explicitly labeled unsigned developer output. Automated tests do not prove a signed package, installation, UI accessibility, VM execution, physical USB, or production recovery.
+Windows CI run [31137807793](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31137807793) then produced a clean Windows build with 0 warnings, 17/17 passing MSTests, a passing PSScriptAnalyzer gate, and a self-contained x64 artifact explicitly labeled unsigned developer output. Automated tests do not prove a signed package, installation, UI accessibility, VM execution, physical USB, or production recovery.
 
 ## Orchestrator milestone evidence
 
 | Area | Strongest current evidence | Open gate |
 | --- | --- | --- |
 | Figma workflow | Seven checked-in design exports | Windows runtime/accessibility comparison |
-| .NET Orchestrator | 176 source/fixture tests; preceding source passed a clean Windows build and 15 MSTests | Fresh guided-action build, runtime accessibility, and integration matrix |
+| .NET Orchestrator | 176 source/fixture tests, clean Windows build, and 17 MSTests | Runtime accessibility and integration matrix |
 | Signed broker | Typed allowlist, fixed assets, Authenticode/hash source contracts | Azure-signed package tamper tests |
 | Updates | Detached signature, stable publisher, chain/hash/path verification source | Signed clean-VM update and N-1 rollback |
 | Four-ISO matrix | Exact current ADK/KB profiles and receipt-gated builder source | New x64 builds/boots and Arm64 build/emulation |
