@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "Proxmox x64 UEFI WinPE boot",
+  "observedAtUtc": "2026-08-07T02:38:48Z",
+  "sourceRevision": "0b5c3d6d7830279abbdf0f3cadf0ec102b75a2b2",
+  "matrixReceiptSha256": "88E65E46016A802C57B95FC2AF0A4ABE350F3329AA4419B6F996CF5056D82CFE",
+  "hypervisor": {
+    "node": "proxmox02",
+    "version": "pve-manager/9.2.4/5e5ae681198514d4",
+    "machine": "pc-q35-11.0+pve1",
+    "firmware": "OVMF",
+    "configuredVirtualNicsPerVm": 0
+  },
+  "artifacts": [
+    {
+      "artifactId": "x64-2023CA",
+      "isoFile": "Codex-Rescue-x64-2023CA-0b5c3d6.iso",
+      "isoBytes": 558465024,
+      "isoSha256": "4FFAA638D3F046B132A42E4751317D3290D6167F40CCF0DE129043A4D808BFBA",
+      "vmId": 108,
+      "vmLabel": "codex-rescue-0b5c3d6-2023ca",
+      "memoryMiB": 2048,
+      "vCpu": 2,
+      "screenshot": "docs/images/vm-runtime-x64-2023ca-winpe-0b5c3d6.png",
+      "screenshotSha256": "5F7DC97EB4099E378D995CD5983F5B7A0AA899D65462757A86DD76648AE7BEF6",
+      "result": "WinPE recovery prompt visibly reached"
+    },
+    {
+      "artifactId": "x64-2011CA",
+      "isoFile": "Codex-Rescue-x64-2011CA-0b5c3d6.iso",
+      "isoBytes": 558282752,
+      "isoSha256": "A4F6F7AA5620A72627ECEDE5F33E2EE35209BA28A7D8CC5E5CA5DFAEE52CF2A3",
+      "vmId": 109,
+      "vmLabel": "codex-rescue-0b5c3d6-2011ca",
+      "memoryMiB": 2048,
+      "vCpu": 2,
+      "screenshot": "docs/images/vm-runtime-x64-2011ca-winpe-0b5c3d6.png",
+      "screenshotSha256": "5F7DC97EB4099E378D995CD5983F5B7A0AA899D65462757A86DD76648AE7BEF6",
+      "result": "WinPE recovery prompt visibly reached"
+    }
+  ],
+  "evidenceBoundary": {
+    "proves": [
+      "Both exact x64 ISO hashes reached the WinPE recovery prompt in separate no-NIC UEFI VMs",
+      "Each disposable VM carried a source-bound Codex Rescue label",
+      "The screenshots are tied to the recorded ISO hashes and VM configurations"
+    ],
+    "doesNotProve": [
+      "Physical USB creation or boot",
+      "Physical Secure Boot compatibility",
+      "Old-only 2011 certificate firmware behavior because the current Proxmox pre-enrolled variable store reports 2023k",
+      "Arm64 build, emulation, or hardware",
+      "USB writing, UEFI repair, BitLocker salvage, or full-Windows accessibility"
+    ]
+  },
+  "cleanup": {
+    "observedAtUtc": "2026-08-07T02:42:07Z",
+    "deletedVmIds": [108, 109],
+    "preDeleteChecks": [
+      "Each VM was stopped",
+      "Each VM name matched its source-bound label",
+      "Each VM tag matched its source-bound label"
+    ],
+    "postDeleteChecks": [
+      "VM 108 was absent",
+      "VM 109 was absent",
+      "Both ISO files remained present",
+      "The evidence bundle remained present"
+    ]
+  },
+  "containsRecoveryMaterial": false
+}

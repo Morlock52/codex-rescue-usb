@@ -325,7 +325,7 @@ Use Clear Queue before handing the build VM to another customer context. Disabli
 - [ ] Exact source commit recorded
 - [ ] All source, .NET, PowerShell, UI, and integration tests pass
 - [ ] Package signatures, timestamp, publisher, manifest, hashes, SBOM, and provenance verified
-- [ ] x64 2023-CA and 2011-CA exact ISOs boot in disconnected disposable VMs
+- [x] x64 2023-CA and 2011-CA exact ISOs boot in disconnected disposable VMs; current 2011 result is not old-only certificate-firmware proof
 - [ ] Arm64 evidence is labeled Experimental unless real hardware passed
 - [ ] USB writer passes refusal, changed-identity, positive virtual, and physical tests
 - [ ] UEFI repair and rollback both boot the disposable VM

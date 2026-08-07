@@ -8,29 +8,42 @@ Fresh local verification on August 6, 2026:
 
 ```text
 python3 -W error::ResourceWarning -m unittest discover -s tests -v
-Ran 180 tests
+Ran 181 tests
 OK
 ```
 
 The original 129 tests remain. The added source contracts cover the .NET assemblies, wire contracts, WPF workflow, state machine, release verification, sealed checkpoints, telemetry policy, same-user named-pipe broker handoff, typed broker, signed asset catalog, sanitized support export, four-artifact media matrix, per-artifact hash/SBOM/provenance outputs, guarded USB writer, UEFI executor/rollback, `.bek` salvage, MSIX/release workflows, online/offline update boundaries, and Proxmox connector.
 
-Windows CI run [31138904863](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31138904863) for commit `d24e492` then produced a clean Windows build with 0 warnings, 21/21 passing MSTests, a passing PSScriptAnalyzer gate, and a self-contained x64 artifact explicitly labeled unsigned developer output. Automated tests do not prove a signed package, installation, UI accessibility, VM execution, physical USB, or production recovery.
+Windows CI run [31140901483](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31140901483) for commit `0b5c3d6` then produced a clean Windows build with 0 warnings, 21/21 passing MSTests, a passing PSScriptAnalyzer gate, and a self-contained x64 artifact explicitly labeled unsigned developer output. Automated tests do not prove a signed package, installation, UI accessibility, VM execution, physical USB, or production recovery.
 
 ## Orchestrator milestone evidence
 
 | Area | Strongest current evidence | Open gate |
 | --- | --- | --- |
 | Figma workflow | Seven checked-in design exports | Windows runtime/accessibility comparison |
-| .NET Orchestrator | 180 source/fixture tests, clean Windows build, and 21 MSTests | Runtime accessibility and integration matrix |
+| .NET Orchestrator | 181 source/fixture tests, clean Windows build, and 21 MSTests | Runtime accessibility and integration matrix |
 | Signed broker | Typed allowlist, fixed assets, Authenticode/hash source contracts | Azure-signed package tamper tests |
 | Updates | Detached signature, stable publisher, chain/hash/path verification source | Signed clean-VM update and N-1 rollback |
-| Four-ISO matrix | Exact current ADK/KB profiles and receipt-gated builder source | New x64 builds/boots and Arm64 build/emulation |
+| Four-ISO matrix | Exact x64 pair built and verified; Arm64 source profiles present | Arm64 build/emulation and hardware |
 | Proxmox connector | Pinning, bounds, unique-label/no-NIC/delete source contracts | Live endpoint receipt |
 | USB writer | Target/refusal/re-scan/readback source contracts | Positive virtual and physical write |
 | UEFI repair | Backup/Apply/Verify/Rollback source contracts | Damaged disposable VM boot and rollback |
 | `.bek` salvage | Distinct/blank/sized output and secret-control source contracts | Disposable encrypted virtual-disk run |
 
 See the [Orchestrator roadmap](../plans/2026-08-06-orchestrator-roadmap.md) for the complete exit criteria.
+
+## Current x64 media build and Proxmox boot
+
+Commit `0b5c3d6d7830279abbdf0f3cadf0ec102b75a2b2` was cloned cleanly into Windows VM 111 and built using the serviced x64 ADK/WinPE toolchain. The typed matrix receipt SHA-256 is `88E65E46016A802C57B95FC2AF0A4ABE350F3329AA4419B6F996CF5056D82CFE`.
+
+| Profile | ISO size | ISO SHA-256 | Strongest current evidence |
+| --- | ---: | --- | --- |
+| `x64-2023CA` | 558,465,024 bytes | `4FFAA638D3F046B132A42E4751317D3290D6167F40CCF0DE129043A4D808BFBA` | Verification JSON passed; SBOM/provenance bound the source revision; exact ISO reached WinPE in a separate no-NIC OVMF VM |
+| `x64-2011CA` | 558,282,752 bytes | `A4F6F7AA5620A72627ECEDE5F33E2EE35209BA28A7D8CC5E5CA5DFAEE52CF2A3` | Verification JSON passed; SBOM/provenance bound the source revision; exact ISO reached WinPE in a separate no-NIC OVMF VM |
+
+The [machine-readable boot and cleanup receipt](../evidence/2026-08-07-x64-proxmox-boot.json) records PVE `9.2.4`, q35/OVMF, zero configured virtual NICs, exact ISO and screenshot hashes, and deletion of only the two source-labeled disposable VMs after re-identification. The 2023-CA and 2011-CA screenshots are retained as VM-runtime evidence.
+
+The current Proxmox pre-enrolled variable store reports `2023k` even for the compatibility-media test. The `x64-2011CA` result therefore proves that exact compatibility ISO booted under the current combined/default pre-enrolled set; it does **not** prove an old-only 2011-certificate firmware configuration. No physical USB, physical Secure Boot, repair, salvage, accessibility, or Arm64 claim follows from these VM boots.
 
 ## Exact WinPE milestones
 

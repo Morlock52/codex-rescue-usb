@@ -82,8 +82,8 @@ Codex runs in maintained full Windows. WinPE remains a narrow offline recovery s
 ### Current evidence
 
 - Source and tests are checked in.
-- 180 cross-platform source/fixture contracts pass locally.
-- Windows CI run 31138904863 for commit `d24e492` built with 0 warnings, passed 21/21 MSTests and PSScriptAnalyzer, and published an explicitly unsigned x64 developer artifact.
+- 181 cross-platform source/fixture contracts pass locally.
+- Windows CI run 31140901483 for commit `0b5c3d6` built with 0 warnings, passed 21/21 MSTests and PSScriptAnalyzer, and published an explicitly unsigned x64 developer artifact.
 
 ### Open exit gates
 
@@ -132,12 +132,13 @@ Codex runs in maintained full Windows. WinPE remains a narrow offline recovery s
 
 - Four-entry matrix, servicing receipt gates, parameterized builders, ISO verifier, and connector source are checked in.
 - Existing alpha.13 x64 VM evidence is preserved but does not validate the new four-artifact output.
+- Both source-bound x64 profiles built successfully with the serviced x64 toolchain. Their verification JSON, hashes, SBOM, and provenance passed independent checks.
+- Both exact x64 ISOs reached the WinPE prompt in separate no-NIC q35/OVMF VMs, and only the two source-labeled disposable VMs were deleted after evidence capture.
+- The 2011-CA result is not old-only 2011-certificate firmware proof because the current Proxmox pre-enrolled variable store reports `2023k`.
 
 ### Open exit gates
 
-- Build both x64 artifacts with current serviced ADK.
-- Boot both x64 trust paths in separate disconnected disposable VMs.
-- Record exact ISO hashes, VM configuration, prompt evidence, and cleanup receipts.
+- Repeat the 2011-CA compatibility boot on an old-only 2011-certificate firmware configuration.
 - Build Arm64 artifacts and collect clearly labeled emulation evidence.
 - Keep Arm64 **Experimental** until exact artifacts pass real Arm64 hardware.
 

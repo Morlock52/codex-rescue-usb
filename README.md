@@ -1,7 +1,7 @@
 # Codex Rescue Orchestrator
 
 [![Lifecycle: Enterprise Technical Preview](https://img.shields.io/badge/lifecycle-enterprise%20technical%20preview-155EEF)](#evidence-ledger)
-[![Source contracts: 180 passing](https://img.shields.io/badge/source%20contracts-180%20passing-16803C)](#verify-the-source)
+[![Source contracts: 181 passing](https://img.shields.io/badge/source%20contracts-181%20passing-16803C)](#verify-the-source)
 [![Windows CI](https://github.com/Morlock52/codex-rescue-usb/actions/workflows/orchestrator-ci.yml/badge.svg)](https://github.com/Morlock52/codex-rescue-usb/actions/workflows/orchestrator-ci.yml)
 [![Installer: signing gate open](https://img.shields.io/badge/signed%20installer-gate%20open-B54708)](#install-the-orchestrator)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-7C3AED)](LICENSE)
@@ -30,7 +30,7 @@ The repository now contains the source implementation for:
 - a complete Figma workflow system translated into shared WPF resources; and
 - guided WPF Plan/Apply controls for toolchain, media, Proxmox, USB, UEFI, and salvage workflows.
 
-This milestone does **not** yet include a publicly signed MSIX release, live Proxmox connector receipt, new four-ISO build receipt, positive virtual USB write, disposable-VM UEFI repair/rollback receipt, `.bek` salvage receipt, Arm64 hardware result, or physical USB result. Those evidence gates are deliberately kept open below.
+The two x64 media profiles now have source-bound build receipts and disconnected Proxmox boot evidence. This milestone does **not** yet include a publicly signed MSIX release, live Proxmox **connector** receipt, complete four-ISO build receipt, positive virtual USB write, disposable-VM UEFI repair/rollback receipt, `.bek` salvage receipt, Arm64 hardware result, or physical USB result. Those evidence gates are deliberately kept open below.
 
 ## Why technical teams evaluate it
 
@@ -103,7 +103,18 @@ All seven images in this section are **Figma designs—not runtime evidence**. T
 
 *Figma design · not runtime evidence.* Receipts show before/after evidence, changes, normalized results, restart state, privacy declarations, and the evidence tier.
 
-The existing project also has real earlier-stage VM evidence:
+### Current x64 WinPE runtime evidence
+
+These images are **Proxmox VM runtime evidence**, not Figma designs or physical-hardware proof. Each exact ISO was built from commit `0b5c3d6`, independently hashed, attached to a separate no-NIC q35/OVMF VM, and observed at the WinPE recovery prompt. The disposable VMs were then re-identified by stopped state, name, and unique label before deletion.
+
+| Screenshot | Artifact and SHA-256 | Evidence boundary |
+| --- | --- | --- |
+| ![x64 2023-CA WinPE prompt in a disconnected Proxmox VM](docs/images/vm-runtime-x64-2023ca-winpe-0b5c3d6.png) | `x64-2023CA` · `4FFAA638D3F046B132A42E4751317D3290D6167F40CCF0DE129043A4D808BFBA` | Exact ISO visibly reached the WinPE prompt in a no-NIC UEFI VM |
+| ![x64 2011-CA WinPE prompt in a disconnected Proxmox VM](docs/images/vm-runtime-x64-2011ca-winpe-0b5c3d6.png) | `x64-2011CA` · `A4F6F7AA5620A72627ECEDE5F33E2EE35209BA28A7D8CC5E5CA5DFAEE52CF2A3` | Exact ISO visibly reached the WinPE prompt in a no-NIC UEFI VM; the current Proxmox pre-enrolled variable store reports `2023k`, so this is not old-only 2011-certificate firmware proof |
+
+The machine-readable [x64 Proxmox boot receipt](docs/evidence/2026-08-07-x64-proxmox-boot.json) binds the source revision, matrix receipt, ISO sizes and hashes, VM configuration, screenshots, cleanup checks, and open evidence boundaries. It does not prove USB writing, Secure Boot on physical hardware, UEFI repair, BitLocker salvage, accessibility, or Arm64.
+
+The project also preserves earlier-stage VM evidence:
 
 | Screenshot | Evidence label | What it proves |
 | --- | --- | --- |
@@ -400,10 +411,10 @@ Read [SECURITY.md](SECURITY.md) and the detailed [security model](docs/reference
 | --- | --- | --- | --- |
 | Earlier fixture and WinPE baseline | 129-test baseline, exact alpha.13 VM evidence already in repo | Verified within its documented scope | Preserve while extending |
 | New Figma workflow | Seven exported source designs and shared visual language | Design complete | Windows runtime screenshot comparison and accessibility review |
-| New Orchestrator source | Contracts, guided action UI, state machine, broker, update, telemetry, and connector source | 180 Python contracts, 0-warning Windows build, and 21 MSTests pass | Runtime accessibility and integration matrix |
+| New Orchestrator source | Contracts, guided action UI, state machine, broker, update, telemetry, and connector source | 181 Python contracts, 0-warning Windows build, and 21 MSTests pass | Runtime accessibility and integration matrix |
 | Privileged asset boundary | Fixed catalog, individual script signing requirement, WinVerifyTrust, fixed runner | Source verified | Azure-signed package runtime and tamper tests |
 | Signed installation/update | MSIX/App Installer and protected-tag OIDC workflow | Pipeline source complete | Azure identity, protected environment, signed install, N-1 update |
-| x64 four-path media work | Matrix and receipt-gated builders | Source verified | Build both x64 trust paths and boot in disconnected disposable VMs |
+| x64 media work | Two source-bound ISOs, verification JSON, hashes, SBOM/provenance, and no-NIC Proxmox prompt evidence | VM verified within the recorded firmware boundary | Physical USB/Secure Boot and old-only 2011-certificate firmware |
 | Arm64 media work | Matrix and builders | Source verified; Experimental | Build/emulation receipt, then real Arm64 hardware |
 | Proxmox connector | Pinned certificate, bounded session, labeled no-NIC VM source | Source verified | Live endpoint integration receipt and cleanup proof |
 | Guarded USB | Plan/Apply writer with immediate re-scan and readback | Source verified | Zero/one/multiple virtual targets, positive virtual write, then physical media |
@@ -421,7 +432,7 @@ Source tests are not runtime proof. VM proof is not physical proof. Emulation is
 | 1. Design and contracts | Complete guided/Expert UX and versioned wire contracts | Complete at source/design level | Figma/WPF mapping and source tests |
 | 2. Standard-user Orchestrator | Audit, state machine, sealed resume, updates, privacy | Windows source build and unit tests pass | Accessibility and offline/default-network integration tests |
 | 3. Signed broker and packaging | Allowlisted elevation and signed MSIX/App Installer | Source implemented | Azure-signed clean-VM install and N-1 update |
-| 4. Media matrix and lab | Four ISOs, per-artifact provenance, isolated Proxmox x64 tests | Source implemented | Both x64 boots; Arm64 build/emulation kept Experimental |
+| 4. Media matrix and lab | Four ISOs, per-artifact provenance, isolated Proxmox x64 tests | Both x64 profiles built, verified, and booted in no-NIC VMs | Arm64 build/emulation remains Experimental; hardware remains open |
 | 5. Guarded repairs | USB, UEFI repair/rollback, `.bek` salvage | Source implemented | Disposable virtual-disk and VM acceptance suite |
 | 6. Physical technical preview | Signed release and representative hardware validation | Open | Physical x64 USB/Secure Boot, recovery, support, privacy, owner approval |
 
@@ -437,7 +448,7 @@ python3 -m compileall -q src tests
 node --check web/assets/app.js
 ```
 
-Current evidence for commit `d24e492`: **180 local source/fixture tests passed**, followed by a clean `windows-2025` build with **0 warnings**, **21/21 MSTests**, PSScriptAnalyzer, self-contained x64 publish, and an explicitly unsigned developer artifact in [CI run 31138904863](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31138904863). These checks prove source compilation and automated contracts; they do not prove signing, installation, UI accessibility, VM boot, or hardware recovery.
+Current source evidence for commit `0b5c3d6`: **181 local source/fixture tests passed**, followed by a clean `windows-2025` build with **0 warnings**, **21/21 MSTests**, PSScriptAnalyzer, self-contained x64 publish, and an explicitly unsigned developer artifact in [CI run 31140901483](https://github.com/Morlock52/codex-rescue-usb/actions/runs/31140901483). These checks prove source compilation and automated contracts. The separately labeled x64 receipt above adds exact-ISO VM boot evidence; neither source nor VM evidence proves signing, installation, UI accessibility, physical USB, or hardware recovery.
 
 Windows source verification:
 
