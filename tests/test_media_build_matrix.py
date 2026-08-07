@@ -74,6 +74,10 @@ class MediaBuildMatrixTests(unittest.TestCase):
         ):
             self.assertIn(required, source)
 
+    def test_builder_output_cannot_pollute_typed_matrix_artifacts(self) -> None:
+        source = MATRIX_BUILDER.read_text(encoding="utf-8")
+        self.assertIn("& $builder @parameters | Out-Host", source)
+
 
 if __name__ == "__main__":
     unittest.main()

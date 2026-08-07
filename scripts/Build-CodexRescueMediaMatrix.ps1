@@ -112,7 +112,7 @@ $results = foreach ($artifact in $compatible) {
         ServicingUpdate = [string]$artifact.servicingUpdate
         Force = $Force
     }
-    & $builder @parameters
+    & $builder @parameters | Out-Host
 
     $isoPath = Join-Path $artifactDirectory "$name.iso"
     $verificationPath = "$isoPath.verification.json"
