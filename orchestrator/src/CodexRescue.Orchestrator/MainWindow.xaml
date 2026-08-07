@@ -231,6 +231,17 @@
                              AutomationProperties.LiveSetting="Polite" />
                 </StackPanel>
               </Border>
+              <TextBlock Text="Future repair proposals" FontSize="22" FontWeight="Bold" Margin="0,24,0,10" />
+              <TextBlock Text="These cards are intentionally non-executable until each workflow has its own rollback, disposable-target, and acceptance contract."
+                         TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,12" />
+              <UniformGrid Columns="2">
+                <Border Style="{StaticResource WorkflowCardStyle}"><StackPanel><TextBlock Text="Offline DISM" Style="{StaticResource CardTitleStyle}" /><TextBlock Text="Version-matched ScanHealth and RestoreHealth with /LimitAccess." Style="{StaticResource CardBodyStyle}" /><TextBlock Text="PROPOSAL ONLY" Style="{StaticResource MonoStatusStyle}" /></StackPanel></Border>
+                <Border Style="{StaticResource WorkflowCardStyle}"><StackPanel><TextBlock Text="Quick Machine Recovery" Style="{StaticResource CardTitleStyle}" /><TextBlock Text="Eligibility and configuration evidence without automatically enabling network remediation." Style="{StaticResource CardBodyStyle}" /><TextBlock Text="PROPOSAL ONLY" Style="{StaticResource MonoStatusStyle}" /></StackPanel></Border>
+                <Border Style="{StaticResource WorkflowCardStyle}"><StackPanel><TextBlock Text="File-copy recovery" Style="{StaticResource CardTitleStyle}" /><TextBlock Text="Evidence-first copy to distinct approved storage with manifests and readback." Style="{StaticResource CardBodyStyle}" /><TextBlock Text="PROPOSAL ONLY" Style="{StaticResource MonoStatusStyle}" /></StackPanel></Border>
+                <Border Style="{StaticResource WorkflowCardStyle}"><StackPanel><TextBlock Text="Driver injection" Style="{StaticResource CardTitleStyle}" /><TextBlock Text="Signed, architecture-matched drivers with rollback evidence." Style="{StaticResource CardBodyStyle}" /><TextBlock Text="PROPOSAL ONLY" Style="{StaticResource MonoStatusStyle}" /></StackPanel></Border>
+                <Border Style="{StaticResource WorkflowCardStyle}"><StackPanel><TextBlock Text="Windows RE repair" Style="{StaticResource CardTitleStyle}" /><TextBlock Text="Bounded WinRE registration and partition recovery after backup proof." Style="{StaticResource CardBodyStyle}" /><TextBlock Text="PROPOSAL ONLY" Style="{StaticResource MonoStatusStyle}" /></StackPanel></Border>
+                <Border Style="{StaticResource WorkflowCardStyle}"><StackPanel><TextBlock Text="Offline SFC" Style="{StaticResource CardTitleStyle}" /><TextBlock Text="Version-aware system-file checks with disposable-target validation." Style="{StaticResource CardBodyStyle}" /><TextBlock Text="PROPOSAL ONLY" Style="{StaticResource MonoStatusStyle}" /></StackPanel></Border>
+              </UniformGrid>
             </StackPanel>
           </ScrollViewer>
         </TabItem>

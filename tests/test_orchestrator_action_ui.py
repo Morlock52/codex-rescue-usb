@@ -58,6 +58,19 @@ class OrchestratorActionUiSourceTests(unittest.TestCase):
         self.assertIn("protector.Verify", store)
         self.assertIn("flushToDisk: true", store)
 
+    def test_future_repairs_are_visible_but_proposal_only(self) -> None:
+        xaml = (APP / "MainWindow.xaml").read_text(encoding="utf-8")
+        for label in (
+            "Offline DISM",
+            "Quick Machine Recovery",
+            "File-copy recovery",
+            "Driver injection",
+            "Windows RE repair",
+            "Offline SFC",
+        ):
+            self.assertIn(label, xaml)
+        self.assertGreaterEqual(xaml.count("PROPOSAL ONLY"), 6)
+
 
 if __name__ == "__main__":
     unittest.main()
