@@ -55,6 +55,17 @@ class GuardedActionTests(unittest.TestCase):
             self.assertIn(operation, source)
         self.assertNotIn("Invoke-Expression", source)
 
+    def test_usb_writer_rechecks_cleared_state_and_uses_actual_free_extent(self) -> None:
+        source = USB.read_text(encoding="utf-8")
+        self.assertIn("Disk did not become RAW after Clear-Disk", source)
+        self.assertIn("PartitionStyle -cne 'RAW'", source)
+        self.assertIn("LargestFreeExtent", source)
+        self.assertIn("-UseMaximumSize", source)
+        self.assertLess(
+            source.index("Disk did not become RAW after Clear-Disk"),
+            source.index("Initialize-Disk"),
+        )
+
     def test_uefi_repair_requires_unambiguous_pair_and_readable_backup(self) -> None:
         source = UEFI.read_text(encoding="utf-8")
         for gate in (

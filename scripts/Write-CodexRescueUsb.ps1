@@ -193,9 +193,27 @@ try {
     }
 
     Clear-Disk -Number $DiskNumber -RemoveData -RemoveOEM -Confirm:$false
+    Update-HostStorageCache
+    $clearedDisk = Get-Disk -Number $DiskNumber -ErrorAction Stop
+    if ($clearedDisk.PartitionStyle -cne 'RAW') {
+        throw 'Disk did not become RAW after Clear-Disk; refusing to continue.'
+    }
     Initialize-Disk -Number $DiskNumber -PartitionStyle GPT | Out-Null
-    $partitionSize = [Math]::Min([uint64]($recheckedDisk.Size - 32MB), $maximumFat32PartitionSize)
-    $partition = New-Partition -DiskNumber $DiskNumber -Size $partitionSize -AssignDriveLetter
+    Update-HostStorageCache
+    $initializedDisk = Get-Disk -Number $DiskNumber -ErrorAction Stop
+    if ($initializedDisk.PartitionStyle -cne 'GPT') {
+        throw 'Disk did not become GPT after Initialize-Disk; refusing to continue.'
+    }
+    $largestFreeExtent = [uint64]$initializedDisk.LargestFreeExtent
+    if ($largestFreeExtent -eq 0) {
+        throw 'The initialized disk has no free extent.'
+    }
+    if ($largestFreeExtent -le $maximumFat32PartitionSize) {
+        $partition = New-Partition -DiskNumber $DiskNumber -UseMaximumSize -AssignDriveLetter
+    }
+    else {
+        $partition = New-Partition -DiskNumber $DiskNumber -Size $maximumFat32PartitionSize -AssignDriveLetter
+    }
     $volume = Format-Volume -Partition $partition -FileSystem FAT32 -NewFileSystemLabel 'CODEX_RESCUE' -Confirm:$false
     if ([string]::IsNullOrWhiteSpace([string]$volume.DriveLetter)) {
         throw 'The new FAT32 volume has no drive letter.'
