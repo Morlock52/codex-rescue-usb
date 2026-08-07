@@ -240,12 +240,14 @@ Microsoft’s July 28, 2026 [ADK servicing guidance](https://learn.microsoft.com
 Install the matching ADK and WinPE add-on, apply the servicing package, and preserve its receipt. Then run:
 
 ```powershell
+$sourceRevision = (git rev-parse HEAD).Trim()
 .\scripts\Build-CodexRescueMediaMatrix.ps1 `
   -ServicingReceiptPath 'C:\CodexRescue\receipts\adk-servicing.json' `
-  -OutputDirectory 'C:\CodexRescue\dist\media'
+  -OutputDirectory 'C:\CodexRescue\dist\media' `
+  -SourceRevision $sourceRevision
 ```
 
-The builder runs only profiles matching that receipt. Run once on the x64 ADK and once on the Arm64 ADK. Each output must have its ISO, verification JSON, SHA-256, injected-source inventory, required-package result, SBOM, and provenance. A successful build is not boot evidence.
+The signed Orchestrator obtains `SourceRevision` from its signed asset catalog automatically; the explicit argument above is required for a Git checkout. The builder runs only profiles matching that receipt. Run once on the x64 ADK and once on the Arm64 ADK. Each output receives its ISO, verification JSON, SHA-256 file, injected-source inventory, required-package result, SPDX SBOM, and provenance JSON. The provenance JSON is an unsigned build record until a protected release adds an external attestation. A successful build is not boot evidence.
 
 ### 3. Proxmox Test Lab
 

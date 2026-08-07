@@ -15,6 +15,7 @@ public sealed record SignedAssetEntryV1(
 public sealed record SignedAssetCatalogV1(
     int SchemaVersion,
     string PackageVersion,
+    string SourceRevision,
     IReadOnlyList<SignedAssetEntryV1> Assets);
 
 public sealed class SignedAssetCatalog
@@ -66,7 +67,9 @@ public sealed class SignedAssetCatalog
         var catalog = JsonSerializer.Deserialize<SignedAssetCatalogV1>(catalogBytes)
             ?? throw new InvalidDataException("Signed asset catalog is empty.");
         if (catalog.SchemaVersion != 1 ||
-            !string.Equals(catalog.PackageVersion, expectedPackageVersion, StringComparison.Ordinal))
+            !string.Equals(catalog.PackageVersion, expectedPackageVersion, StringComparison.Ordinal) ||
+            string.IsNullOrWhiteSpace(catalog.SourceRevision) ||
+            catalog.SourceRevision.Length != 40 || !catalog.SourceRevision.All(Uri.IsHexDigit))
         {
             throw new InvalidDataException("Signed asset catalog does not match this broker package.");
         }

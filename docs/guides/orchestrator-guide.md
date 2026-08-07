@@ -140,9 +140,11 @@ Arm64 output is Experimental until real Arm64 hardware passes.
 ## 7. Build and verify media
 
 ```powershell
+$sourceRevision = (git rev-parse HEAD).Trim()
 .\scripts\Build-CodexRescueMediaMatrix.ps1 `
   -ServicingReceiptPath 'C:\CodexRescue\receipts\adk-servicing.json' `
-  -OutputDirectory 'C:\CodexRescue\dist\media'
+  -OutputDirectory 'C:\CodexRescue\dist\media' `
+  -SourceRevision $sourceRevision
 ```
 
 Expected per artifact:
@@ -155,7 +157,7 @@ Expected per artifact:
 - injected-source hash inventory;
 - required-package checks;
 - no recovery material;
-- SBOM and provenance in a release build; and
+- SPDX SBOM and provenance JSON (an unsigned build record until externally attested); and
 - `PhysicalHardwareVerified: false` until a separate hardware run.
 
 If a receipt does not match the selected ADK, a patch signature is not Valid, or an output misses its verification file, stop. Do not rename one architecture or trust path to resemble another.

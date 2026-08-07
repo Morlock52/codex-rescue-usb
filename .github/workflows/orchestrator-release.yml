@@ -68,7 +68,7 @@ jobs:
           timestamp-digest: SHA256
       - name: Generate post-signature asset catalog
         shell: pwsh
-        run: orchestrator/packaging/New-SignedAssetCatalog.ps1 -AssetsDirectory .release/Assets -PackageVersion '${{ steps.version.outputs.semver }}'
+        run: orchestrator/packaging/New-SignedAssetCatalog.ps1 -AssetsDirectory .release/Assets -PackageVersion '${{ steps.version.outputs.semver }}' -SourceRevision '${{ github.sha }}'
       - name: Sign executables and libraries
         uses: azure/artifact-signing-action@v2
         with:

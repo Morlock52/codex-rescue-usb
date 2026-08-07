@@ -60,6 +60,20 @@ class MediaBuildMatrixTests(unittest.TestCase):
             self.assertIn(field, source)
         self.assertIn("ContainsRecoveryMaterial = $false", source)
 
+    def test_each_matrix_artifact_gets_hash_sbom_and_provenance(self) -> None:
+        source = MATRIX_BUILDER.read_text(encoding="utf-8")
+        for required in (
+            "SourceRevision",
+            ".sha256",
+            ".spdx.json",
+            ".provenance.json",
+            "InjectedSourceInventory",
+            "SourceCatalogSha256",
+            "ProvenanceTier",
+            "ContainsRecoveryMaterial = $false",
+        ):
+            self.assertIn(required, source)
+
 
 if __name__ == "__main__":
     unittest.main()

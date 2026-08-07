@@ -5,7 +5,8 @@ Creates the release-only catalog after privileged scripts are signed.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$AssetsDirectory,
-    [Parameter(Mandatory)][string]$PackageVersion
+    [Parameter(Mandatory)][string]$PackageVersion,
+    [Parameter(Mandatory)][ValidatePattern('^[A-Fa-f0-9]{40}$')][string]$SourceRevision
 )
 
 Set-StrictMode -Version Latest
@@ -66,6 +67,7 @@ $assets = foreach ($entry in $expected) {
 $catalog = [ordered]@{
     SchemaVersion = 1
     PackageVersion = $PackageVersion
+    SourceRevision = $SourceRevision.ToLowerInvariant()
     Assets = @($assets)
 }
 $outputPath = Join-Path $AssetsDirectory 'assets-manifest.json'
