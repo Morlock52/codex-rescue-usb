@@ -14,6 +14,7 @@ class OrchestratorUpdateUiSourceTests(unittest.TestCase):
             "Open 30-minute window",
             "Check signed release",
             "Import offline bundle",
+            "Open verified N-1 rollback",
             "Close window",
         ):
             self.assertIn(label, xaml)
@@ -21,6 +22,7 @@ class OrchestratorUpdateUiSourceTests(unittest.TestCase):
             "OpenMaintenance_Click",
             "CheckRelease_Click",
             "ImportOfflineBundle_Click",
+            "OpenRollback_Click",
             "CloseMaintenance_Click",
         ):
             self.assertIn(handler, code)

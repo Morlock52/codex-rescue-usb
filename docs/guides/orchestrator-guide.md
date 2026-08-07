@@ -124,7 +124,7 @@ Expected result: no file escapes staging, no bundle content executes during impo
 
 ### Rollback
 
-Use rollback only for a documented compatibility or support reason. Review N-1 metadata and use Windows App Installer. Do not alter package versions or enable a forced automatic downgrade.
+Use rollback only for a documented compatibility or support reason. In Setup & Updates, select **Open verified N-1 rollback**. The app re-verifies the cached signed release, generates a unique local App Installer descriptor for that exact bundle, requires `ROLL BACK TO <version>`, and leaves Windows App Installer visible. The descriptor uses Microsoft’s `ForceUpdateFromAnyVersion` setting because Windows otherwise blocks a lower package version; the normal update descriptor remains upgrade-only. Do not alter either descriptor or package version.
 
 ## 6. Prepare the media build host
 

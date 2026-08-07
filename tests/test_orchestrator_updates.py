@@ -61,6 +61,17 @@ class OrchestratorUpdateSourceTests(unittest.TestCase):
         self.assertNotIn("ms-appinstaller:", source)
         self.assertNotIn("Add-AppxPackage", source)
 
+    def test_rollback_is_separate_reverified_n_minus_one_and_operator_visible(self) -> None:
+        source = (SERVICES / "RollbackInstallerService.cs").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("GetRollbackCandidate", source)
+        self.assertIn("SignedReleaseVerifier", source)
+        self.assertIn("requireTrustedChain: true", source)
+        self.assertIn("ForceUpdateFromAnyVersion", source)
+        self.assertIn("FileMode.CreateNew", source)
+        self.assertNotIn("Process.Start", source)
+
 
 if __name__ == "__main__":
     unittest.main()

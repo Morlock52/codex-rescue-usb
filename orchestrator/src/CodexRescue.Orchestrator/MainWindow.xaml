@@ -126,6 +126,7 @@
                 <Button Content="Open 30-minute window" Click="OpenMaintenance_Click" Margin="0,0,8,8" />
                 <Button x:Name="CheckReleaseButton" Content="Check signed release" Click="CheckRelease_Click" Margin="0,0,8,8" />
                 <Button x:Name="ImportOfflineButton" Content="Import offline bundle" Click="ImportOfflineBundle_Click" Margin="0,0,8,8" />
+                <Button x:Name="RollbackButton" Content="Open verified N-1 rollback" Click="OpenRollback_Click" Margin="0,0,8,8" />
                 <Button Content="Close window" Click="CloseMaintenance_Click" Margin="0,0,8,8" />
               </WrapPanel>
               <TextBlock x:Name="MaintenanceStatus" Text="Closed; network release checks are disabled."

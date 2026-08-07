@@ -197,12 +197,13 @@ Importing a bundle never executes a script or package automatically.
 
 The verified release cache retains only the current version and N-1. A lower or duplicate version is refused as an update. Rollback is a separate operator action:
 
-1. Open **Receipts & Support** and locate the previous verified package.
-2. Review the rollback metadata and current package state.
-3. Select **Open rollback package**.
-4. Approve the Windows App Installer downgrade prompt only when the support plan requires it.
+1. Open **Setup & Updates**.
+2. Select **Open verified N-1 rollback**.
+3. The Orchestrator re-verifies the cached N-1 manifest, trusted timestamp, publisher, package size, and SHA-256.
+4. Type the displayed `ROLL BACK TO <version>` phrase.
+5. Review the lower version and publisher in Windows App Installer, then approve only when the support plan requires it.
 
-Automatic forced downgrade is disabled.
+Windows blocks lower versions by default. The Orchestrator therefore generates a new local, single-purpose App Installer descriptor containing `ForceUpdateFromAnyVersion=true` only after N-1 re-verification and explicit approval. It does not add that setting to the normal update feed or run a hidden package command. See Microsoft’s [MSIX downgrade guidance](https://learn.microsoft.com/en-us/windows/msix/app-package-updates).
 
 ### Uninstall
 

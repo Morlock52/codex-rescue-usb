@@ -137,6 +137,44 @@ public partial class MainWindow : Window
         CreateReleaseCache(),
         PublisherIdentityService.GetCurrentPackagePublisher());
 
+    private async void OpenRollback_Click(object sender, RoutedEventArgs e)
+    {
+        UpdateButtonsEnabled(false);
+        PreparedRollback? prepared = null;
+        try
+        {
+            var service = new RollbackInstallerService(
+                CreateReleaseCache(),
+                new SignedReleaseVerifier(),
+                PublisherIdentityService.GetCurrentPackagePublisher());
+            prepared = await service.PrepareAsync(CancellationToken.None);
+            var phrase = $"ROLL BACK TO {prepared.Version}";
+            if (new OperatorConfirmationDialog(
+                    this,
+                    "Open verified N-1 rollback",
+                    "The cached release was re-verified. This explicit local descriptor permits a lower signed package version; Windows App Installer remains visible and the normal update feed is not changed automatically.",
+                    phrase,
+                    destructive: false).ShowDialog() != true)
+            {
+                File.Delete(Path.Combine(prepared.Directory, prepared.AppInstallerName));
+                MaintenanceStatus.Text = "Verified rollback reviewed; downgrade cancelled.";
+                return;
+            }
+
+            new AppInstallerLauncher().LaunchVerified(prepared.Directory, prepared.AppInstallerName);
+            MaintenanceStatus.Text = $"Verified N-1 rollback {prepared.Version} opened in Windows App Installer.";
+        }
+        catch (Exception exception) when (
+            exception is InvalidOperationException or CryptographicException or IOException)
+        {
+            MaintenanceStatus.Text = ActionFailure(exception);
+        }
+        finally
+        {
+            UpdateButtonsEnabled(true);
+        }
+    }
+
     private static ReleaseCacheManager CreateReleaseCache() => new(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "CodexRescue",
@@ -146,6 +184,7 @@ public partial class MainWindow : Window
     {
         CheckReleaseButton.IsEnabled = enabled;
         ImportOfflineButton.IsEnabled = enabled;
+        RollbackButton.IsEnabled = enabled;
     }
 
     private void DisableTelemetry_Click(object sender, RoutedEventArgs e)

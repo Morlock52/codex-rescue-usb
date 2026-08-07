@@ -1,5 +1,7 @@
 namespace CodexRescue.Orchestrator.Services;
 
+public sealed record CachedRelease(Version Version, string Directory);
+
 public sealed class ReleaseCacheManager
 {
     private readonly string _cacheRoot;
@@ -39,6 +41,20 @@ public sealed class ReleaseCacheManager
         }
 
         return destination;
+    }
+
+    public CachedRelease GetRollbackCandidate()
+    {
+        var versions = GetVersionDirectories().Take(2).ToArray();
+        if (versions.Length != 2)
+        {
+            throw new InvalidOperationException("A verified N-1 rollback package is not available.");
+        }
+        var rollback = versions[1];
+        var rollbackVersion = rollback.Version
+            ?? throw new InvalidOperationException("The N-1 rollback version is invalid.");
+
+        return new CachedRelease(rollbackVersion, rollback.Path);
     }
 
     private IEnumerable<(Version? Version, string Path)> GetVersionDirectories() =>

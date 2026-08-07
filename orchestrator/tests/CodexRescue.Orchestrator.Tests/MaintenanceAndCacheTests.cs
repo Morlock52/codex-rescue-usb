@@ -33,6 +33,7 @@ public sealed class MaintenanceAndCacheTests
             Directory.GetDirectories(Path.Combine(directory.Path, "cache"))
                 .Select(Path.GetFileName)
                 .ToArray());
+        Assert.AreEqual(new Version(1, 1, 0), cache.GetRollbackCandidate().Version);
         Assert.ThrowsExactly<InvalidOperationException>(() =>
             cache.PromoteVerifiedBundle(NewStaging(directory.Path, "old"), "1.0.0"));
     }
