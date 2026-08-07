@@ -27,12 +27,14 @@ public sealed class SignedReleaseVerifier
         var signedCms = new SignedCms(new ContentInfo(manifestBytes), detached: true);
         signedCms.Decode(detachedSignature);
         signedCms.CheckSignature(verifySignatureOnly: true);
-        if (signedCms.SignerInfos.Count != 1 || signedCms.SignerInfos[0].Certificate is null)
+        if (signedCms.SignerInfos.Count != 1)
         {
             throw new CryptographicException("Exactly one release signer is required.");
         }
 
-        var certificate = signedCms.SignerInfos[0].Certificate;
+        var signerInfo = signedCms.SignerInfos[0];
+        var certificate = signerInfo.Certificate
+            ?? throw new CryptographicException("The release signer certificate is missing.");
         var expectedPublisher = new X500DistinguishedName(expectedPublisherIdentity);
         if (!CryptographicOperations.FixedTimeEquals(
                 certificate.SubjectName.RawData,
@@ -56,7 +58,7 @@ public sealed class SignedReleaseVerifier
         if (requireTrustedChain)
         {
             var timestamp = GetVerifiedTimestamp(
-                signedCms.SignerInfos[0],
+                signerInfo,
                 signedCms.Certificates,
                 now);
             verificationTime = timestamp.Timestamp;
